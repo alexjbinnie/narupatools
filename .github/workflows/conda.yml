@@ -1,6 +1,9 @@
 name: Conda Package
 
-on: push
+on:
+  push:
+    paths:
+      - 'narupatools/*'
 
 jobs:
   run-linters:

@@ -1,6 +1,12 @@
-name: Lint
+name: Static Analysis
 
-on: push
+on:
+  push:
+    paths:
+      - 'narupatools/**.py'
+      - 'stubs/**.pyi'
+      - 'lint-environment.yml'
+      - 'setup.cfg'
 
 jobs:
   run-linters:

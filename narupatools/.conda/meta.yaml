@@ -3,7 +3,7 @@ package:
   version: "0.2.0"
 
 source:
-  path: ..
+  path: ../
 
 build:
   number: 0
@@ -13,8 +13,6 @@ build:
 requirements:
   host:
     - pip
-    - python
-  build:
     - python
   run:
     - python>=3.8

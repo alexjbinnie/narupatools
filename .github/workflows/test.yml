@@ -1,0 +1,16 @@
+name: Python package
+
+on:
+  push:
+    paths:
+      - 'narupatools/src/*'
+      - 'narupatools/tests/*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v2
