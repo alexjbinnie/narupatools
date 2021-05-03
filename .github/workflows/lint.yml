@@ -13,14 +13,25 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache lint-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('lint-environment.yml') }}
+
       - name: Set up conda environment
         uses: conda-incubator/setup-miniconda@v2
         with:
           environment-file: lint-environment.yml
+          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
       - name: Run black
         run: |
-          black narupatools stubs
+          black --check narupatools stubs
 
       - name: Run flake8
         run: |
@@ -28,4 +39,4 @@ jobs:
 
       - name: Run mypy
         run: |
-          narupatools/src narupatools/tests
+          mypy narupatools/src narupatools/tests
