@@ -8,34 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        shell: sh -l {0}
+        shell: bash -l {0}
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
-      - name: Set up python
-        uses: actions/setup-python@v2
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: 3.8
-
-      - name: Install packages
-        run: |
-          pip install numpy>=1.20
-          pip install black==21.4b2
-          pip install flake8==3.8.4
-          pip install mypy==0.812
+          environment-file: lint-environment.yml
 
       - name: Run black
-        uses: wearerequired/lint-action@v1
-        with:
-          black: true
+        run: |
+          black narupatools stubs
 
       - name: Run flake8
-        uses: wearerequired/lint-action@v1
-        with:
-          flake8: true
+        run: |
+          flake8 narupatools stubs
 
       - name: Run mypy
-        uses: wearerequired/lint-action@v1
-        with:
-          mypy: true
+        run: |
+          narupatools/src narupatools/tests
