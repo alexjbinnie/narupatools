@@ -17,17 +17,11 @@ jobs:
           activate-environment: narupatools-lint
           environment-file: lint-environment.yml
 
-      - name: Conda info
-        shell: bash -l {0}
-        run: |
-          conda info
-          python
-          black
-
       - name: Run black
         uses: wearerequired/lint-action@v1
         with:
           black: true
+          black_command_prefix: python -m
 
       - name: Run flake8
         uses: wearerequired/lint-action@v1
