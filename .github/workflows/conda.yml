@@ -35,4 +35,4 @@ jobs:
 
       - name: Run conda build
         run: |
-          conda build narupatools --output-folder build
+          conda build narupatools --output-folder build -c conda-forge irl omnia alexjbinnie
