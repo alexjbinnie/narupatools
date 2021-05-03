@@ -1,6 +1,6 @@
 package:
   name: "narupatools"
-  version: {{ version }}
+  version: "0.2.0"
 
 source:
   path: ..
