@@ -3,6 +3,7 @@ name: Conda Package
 on:
   push:
     paths:
+      - '.github/workflows/*'
       - 'narupatools/*'
 
 jobs:
@@ -16,21 +17,10 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
-      - name: Cache conda
-        uses: actions/cache@v2
-        env:
-          # Increase this value to reset cache lint-environment.yml has not changed
-          CACHE_NUMBER: 0
-        with:
-          path: ~/conda_pkgs_dir
-          key:
-            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('lint-environment.yml') }}
-
       - name: Set up conda environment
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: 3.8
-          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
       - name: Install conda build
         run: |
@@ -39,7 +29,7 @@ jobs:
       - name: Run conda build
         run: |
           conda build narupatools --output-folder build -c conda-forge -c irl -c omnia -c alexjbinnie
-          export $CONDA_PACKAGE=$(conda build narupatools --output)
+          export CONDA_PACKAGE=$(conda build narupatools --output)
           echo "::set-env name=$CONDA_PACKAGE::$CONDA_PACKAGE"
 
       - name: Test conda install

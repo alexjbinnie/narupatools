@@ -3,6 +3,7 @@ name: Static Analysis
 on:
   push:
     paths:
+      - '.github/workflows/*'
       - 'narupatools/**.py'
       - 'stubs/**.pyi'
       - 'lint-environment.yml'

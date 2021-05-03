@@ -1,0 +1,16 @@
+name: narupatools-lint
+channels:
+  - conda-forge
+  - irl
+  - omnia
+  - alexjbinnie
+dependencies:
+  - python=3.8
+  - numpy>=1.20.*
+  - narupa-server=0.1.2061
+  - mdtraj=1.9.*
+  - lammps=2021.02.10
+  - pytest==6.2.*
+  - pytest-xdist==2.2.*
+  - hypothesis==6.8.*
+  - infinite-sets==1.0.*
