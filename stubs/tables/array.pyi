@@ -1,0 +1,3 @@
+from tables.node import Node
+
+class Array(Node): ...
