@@ -36,4 +36,10 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest -n auto narupatools
+        pytest -n auto --junit-xml pytest.xml narupatools
+        
+    - name: Publish results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        files: pytest.xml
