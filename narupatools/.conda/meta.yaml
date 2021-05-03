@@ -22,8 +22,7 @@ requirements:
     - mdtraj>=1.9.*
     - lxml>=4.6.*
     - pip
-    - pip:
-      - infinite-sets==1.0.*
+    - infinite-sets==1.0.*
 
 about:
   home: https://github.com/alexjbinnie/narupatools
