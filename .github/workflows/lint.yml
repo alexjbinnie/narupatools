@@ -19,7 +19,10 @@ jobs:
 
       - name: Conda info
         shell: bash -l {0}
-        run: conda info
+        run: |
+          conda info
+          python
+          black
 
       - name: Run black
         uses: wearerequired/lint-action@v1
