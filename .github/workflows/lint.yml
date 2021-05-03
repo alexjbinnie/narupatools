@@ -17,6 +17,10 @@ jobs:
           activate-environment: narupatools-lint
           environment-file: lint-environment.yml
 
+      - name: Conda info
+        shell: bash -l {0}
+        run: conda info
+
       - name: Run black
         uses: wearerequired/lint-action@v1
         with:
