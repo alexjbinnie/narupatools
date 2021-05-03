@@ -1,0 +1,9 @@
+name: narupatools-lint
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - numpy>=1.20.*
+  - black=21.4b2
+  - flake8=3.8.*
+  - mypy=0.812
