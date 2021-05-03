@@ -27,14 +27,16 @@ jobs:
         uses: wearerequired/lint-action@v1
         with:
           black: true
-          black_command_prefix: $CONDA/envs/narupatools-lint/python -m
+          black_command_prefix: $CONDA/envs/narupatools-lint/bin/python -m
 
       - name: Run flake8
         uses: wearerequired/lint-action@v1
         with:
           flake8: true
+          flake8_command_prefix: $CONDA/envs/narupatools-lint/bin/python -m
 
       - name: Run mypy
         uses: wearerequired/lint-action@v1
         with:
           mypy: true
+          mypy_command_prefix: $CONDA/envs/narupatools-lint/bin/python -m
