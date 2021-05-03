@@ -19,9 +19,10 @@ import os
 
 import pytest
 
+
 # Change the working directory so LAMMPS can find input files.
 @pytest.fixture(scope="module", autouse=True)
-def change_test_dir(request):
+def _change_test_dir(request):
     os.chdir(request.fspath.dirname)
     yield
     os.chdir(request.config.invocation_dir)

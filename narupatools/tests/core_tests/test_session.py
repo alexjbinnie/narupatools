@@ -9,7 +9,7 @@ from narupatools.app import Client, Session
 
 @pytest.fixture
 def session() -> Generator[Session, None, None]:
-    with Session() as session:
+    with Session(port=0) as session:
         yield session
 
 

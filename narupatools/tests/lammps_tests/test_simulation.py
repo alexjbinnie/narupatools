@@ -52,7 +52,7 @@ def test_extract_compute_invalid(simulation):
 
 
 def test_atom_property_valid(simulation):
-    assert simulation.get_atom_property("f", PropertyType.DOUBLE, 3) is not None
+    assert simulation.gather_atoms("f", PropertyType.DOUBLE, 3) is not None
 
 
 def test_packages(simulation):

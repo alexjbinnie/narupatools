@@ -120,7 +120,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         )
 
     def test_client_session(self, dynamics):
-        with Session() as session:
+        with Session(port=0) as session:
             dynamics.run(block=False)
             session.show(dynamics)
 
@@ -138,7 +138,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 )
 
     def test_client_session_imd(self, dynamics):
-        with Session() as session:
+        with Session(port=0) as session:
             dynamics.run(block=False)
             session.show(dynamics)
 

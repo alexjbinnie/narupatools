@@ -591,6 +591,22 @@ class LAMMPSSimulation:
         self.command("variable imdfy atom c_imdf[2]")
         self.command("variable imdfz atom c_imdf[3]")
         self.command("fix imd_force all addforce v_imdfx v_imdfy v_imdfz")
+        self.command("fix_modify imd_force energy yes")
+
+    def setup_langevin(self, *, temperature: float, friction: float, seed: int) -> None:
+        """
+        Setup a Langevin thermostat.
+
+        :param temperature: Temperature in kelvin
+        :param friction: Friction of the thermostat in inverse picoseconds.
+        :param seed: Seed to use for random number generation.
+        """
+        temperature *= self._narupa_to_lammps.temperature
+        friction /= self._narupa_to_lammps.time
+        self.command(
+            f"fix langevin all langevin {temperature} {temperature} {1.0 / friction} "
+            f"{seed}"
+        )
 
     def __del__(self) -> None:
         self.__lammps.close()
