@@ -10,3 +10,8 @@ dependencies:
   - flake8=3.8.*
   - mypy=0.812
   - narupa-server=0.1.2061
+  - pytest==6.2.*
+  - hypothesis==6.8.*
+  - pip
+  - pip:
+      - infinite-sets==1.0.*
