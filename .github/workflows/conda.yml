@@ -1,10 +1,6 @@
 name: Conda Package
 
-on:
-  push:
-    paths:
-      - '.github/workflows/*'
-      - 'narupatools/*'
+on: push
 
 jobs:
   run-linters:
