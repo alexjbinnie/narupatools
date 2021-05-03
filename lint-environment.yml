@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - irl
   - omnia
+  - alexjbinnie
 dependencies:
   - python=3.8
   - numpy>=1.20.*
@@ -12,6 +13,4 @@ dependencies:
   - narupa-server=0.1.2061
   - pytest==6.2.*
   - hypothesis==6.8.*
-  - pip
-  - pip:
-      - infinite-sets==1.0.*
+  - infinite-sets==1.0.*
