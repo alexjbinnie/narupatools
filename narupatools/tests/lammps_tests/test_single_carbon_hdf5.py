@@ -30,7 +30,7 @@ from narupatools.physics.vector import vector
 _NarupaToASE = UnitsNarupa >> UnitsASE
 
 
-@pytest.fixture()
+@pytest.fixture
 def single_carbon_simulation():
     simulation = LAMMPSSimulation.create_new("real")
     simulation.command("atom_style atomic")
@@ -43,7 +43,7 @@ def single_carbon_simulation():
     return simulation
 
 
-@pytest.fixture()
+@pytest.fixture
 def single_carbon_langevin_simulation(single_carbon_simulation):
     single_carbon_simulation.command("fix 1 all nve")
     single_carbon_simulation.setup_langevin(temperature=1, friction=0.01, seed=22)

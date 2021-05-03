@@ -16,6 +16,8 @@
 
 """Base implementation for something that can be played back."""
 
+from __future__ import annotations
+
 import time
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future, ThreadPoolExecutor

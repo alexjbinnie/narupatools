@@ -4,6 +4,7 @@ from tempfile import NamedTemporaryFile
 import mdtraj
 import numpy as np
 import pytest
+
 from narupatools.frame.hdf5 import HDF5Trajectory, add_hdf5_writer
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import vector
@@ -24,7 +25,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         yield file.name
         file.close()
 
-    @pytest.fixture()
+    @pytest.fixture
     @abstractmethod
     def dynamics(self) -> InteractiveSimulationDynamics:  # noqa: PT004
         raise NotImplementedError()

@@ -29,7 +29,7 @@ from narupatools.physics.vector import vector
 _NarupaToASE = UnitsNarupa >> UnitsASE
 
 
-@pytest.fixture()
+@pytest.fixture
 def simulation():
     system = System()
     system.addParticle(12.000)

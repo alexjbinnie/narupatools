@@ -1,4 +1,4 @@
-name: narupatools-test
+name: narupatools-docs
 channels:
   - conda-forge
   - irl
@@ -10,7 +10,5 @@ dependencies:
   - narupa-server=0.1.2061
   - mdtraj=1.9.*
   - lammps=2021.02.10
-  - pytest==6.2.*
-  - pytest-xdist==2.2.*
-  - hypothesis==6.8.*
   - infinite-sets==1.0.*
+  - sphinx==3.5.2
