@@ -27,9 +27,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         with:
           environment-file: lint-environment.yml
-          mamba-version: "*"
           use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
-          use-mamba: true
 
       - name: Run black
         run: |

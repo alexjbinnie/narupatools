@@ -19,7 +19,7 @@ dependencies:
   - mypy=0.812
   - mypy_extensions=0.4.*
   - narupa-server=0.1.2061
-  - pytest==6.2.*
-  - pytest-xdist==2.2.*
-  - hypothesis==6.8.*
-  - infinite-sets==1.0.*
+  - pytest=6.2.*
+  - pytest-xdist=2.2.*
+  - hypothesis=6.8.*
+  - infinite-sets=1.0.*

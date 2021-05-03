@@ -10,8 +10,9 @@ dependencies:
   - narupa-server=0.1.2061
   - mdtraj=1.9.*
   - lammps=2021.02.10
-  - pytest==6.2.*
-  - pytest-xdist==2.2.*
-  - pytest-timeout==1.4.*
-  - hypothesis==6.8.*
-  - infinite-sets==1.0.*
+  - pytest=6.2.*
+  - pytest-xdist=2.2.*
+  - pytest-timeout=1.4.*
+  - hypothesis=6.8.*
+  - lxml=4.6.*
+  - infinite-sets=1.0.*
