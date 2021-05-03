@@ -1,0 +1,35 @@
+name: Lint
+
+on: push
+
+jobs:
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install Python dependencies
+        run: pip install black==21.4b2 flake8==3.8.4 mypy==0.812
+
+      - name: Run black
+        uses: wearerequired/lint-action@v1
+        with:
+          black: true
+
+      - name: Run flake8
+          uses: wearerequired/lint-action@v1
+          with:
+            flake8: true
+
+      - name: Run mypy
+          uses: wearerequired/lint-action@v1
+          with:
+            mypy: true
