@@ -6,7 +6,9 @@ jobs:
   run-linters:
     name: Run linters
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
@@ -14,29 +16,24 @@ jobs:
       - name: Set up conda environment
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: narupatools-lint
           environment-file: lint-environment.yml
 
       - name: Find python
         shell: bash -l {0}
         run: |
           conda activate narupatools-lint
-          which python
 
       - name: Run black
         uses: wearerequired/lint-action@v1
         with:
           black: true
-          black_command_prefix: $CONDA/envs/narupatools-lint/bin/python -m
 
       - name: Run flake8
         uses: wearerequired/lint-action@v1
         with:
           flake8: true
-          flake8_command_prefix: $CONDA/envs/narupatools-lint/bin/python -m
 
       - name: Run mypy
         uses: wearerequired/lint-action@v1
         with:
           mypy: true
-          mypy_command_prefix: $CONDA/envs/narupatools-lint/bin/python -m
