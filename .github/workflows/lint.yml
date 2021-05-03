@@ -13,10 +13,17 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
-      - name: Set up conda environment
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Set up python
+        uses: actions/setup-python@v2
         with:
-          environment-file: lint-environment.yml
+          python-version: 3.8
+
+      - name: Install packages
+        run: |
+          - pip install numpy>=1.20
+          - pip install black==21.4b2
+          - pip install flake8==3.8.4
+          - pip install mypy==0.812
 
       - name: Run black
         uses: wearerequired/lint-action@v1
