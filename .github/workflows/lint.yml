@@ -20,16 +20,16 @@ jobs:
         run: pip install black==21.4b2 flake8==3.8.4 mypy==0.812
 
       - name: Run black
-        uses: wearerequired/lint-action@v1
+        uses: wearerequired/lint-action@v1.9.0
         with:
           black: true
 
       - name: Run flake8
-          uses: wearerequired/lint-action@v1
+          uses: wearerequired/lint-action@v1.9.0
           with:
             flake8: true
 
       - name: Run mypy
-          uses: wearerequired/lint-action@v1
+          uses: wearerequired/lint-action@v1.9.0
           with:
             mypy: true
