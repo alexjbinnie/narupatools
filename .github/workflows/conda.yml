@@ -28,7 +28,7 @@ jobs:
 
       - name: Run conda build
         run: |
-          conda build narupatools --output-folder build -c conda-forge -c irl -c omnia -c alexjbinnie
+          conda build narupatools -c conda-forge -c irl -c omnia -c alexjbinnie
           echo "conda_package=$(conda build narupatools --output)" >> $GITHUB_ENV
 
       - name: Test conda install

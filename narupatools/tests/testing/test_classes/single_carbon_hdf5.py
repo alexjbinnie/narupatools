@@ -4,8 +4,7 @@ from tempfile import NamedTemporaryFile
 import mdtraj
 import numpy as np
 import pytest
-
-from narupatools.frame.hdf5 import add_hdf5_writer, HDF5Trajectory
+from narupatools.frame.hdf5 import HDF5Trajectory, add_hdf5_writer
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import vector
 
