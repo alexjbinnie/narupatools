@@ -18,7 +18,9 @@ jobs:
           environment-file: lint-environment.yml
 
       - name: Find python
-        run: which python
+        run: |
+          conda activate narupatools-lint
+          which python
 
       - name: Run black
         uses: wearerequired/lint-action@v1
