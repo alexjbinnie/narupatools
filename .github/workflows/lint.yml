@@ -25,11 +25,11 @@ jobs:
           black: true
 
       - name: Run flake8
-          uses: wearerequired/lint-action@v1.9.0
-          with:
-            flake8: true
+        uses: wearerequired/lint-action@v1.9.0
+        with:
+          flake8: true
 
       - name: Run mypy
-          uses: wearerequired/lint-action@v1.9.0
-          with:
-            mypy: true
+        uses: wearerequired/lint-action@v1.9.0
+        with:
+          mypy: true
