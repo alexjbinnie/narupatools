@@ -23,7 +23,7 @@ from testing import add_mark
 
 
 def pytest_collection_modifyitems(items):
-    add_mark(filename=__file__, mark=pytest.mark.openmm, items=items)
+    add_mark(filename=__file__, mark=pytest.mark.lammps, items=items)
 
 
 # Change the working directory so LAMMPS can find input files.
