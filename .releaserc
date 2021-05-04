@@ -1,0 +1,10 @@
+{
+  "branches": [
+    {"name": "main"},
+    {
+        "name": "develop",
+        "channel": "dev",
+        "prerelease": "beta"
+    }
+  ]
+}
