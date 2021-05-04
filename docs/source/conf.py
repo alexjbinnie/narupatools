@@ -30,7 +30,8 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx_autodoc_typehints",
-    "sphinx.ext.intersphinx" "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.inheritance_diagram",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
