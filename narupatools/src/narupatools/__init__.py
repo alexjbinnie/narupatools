@@ -17,6 +17,7 @@
 """Narupatools is a package containing utilities to make working with Narupa easier."""
 
 import importlib
+import os
 
 import narupatools.ase  # noqa: F401
 import narupatools.core
@@ -28,6 +29,7 @@ import narupatools.openmm  # noqa: F401
 if importlib.util.find_spec("lammps") is not None:
     import narupatools.lammps  # noqa: F401
 
-from ._version import __version__  # noqa
+with open("VERSION") as version_file:
+    __version__ = version_file.read().strip()
 
 __author__ = "Alex Jamieson-Binnie"
