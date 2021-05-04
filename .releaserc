@@ -6,5 +6,8 @@
         "channel": "dev",
         "prerelease": "beta"
     }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer"
   ]
 }
