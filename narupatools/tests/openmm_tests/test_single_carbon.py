@@ -18,7 +18,6 @@ import pytest
 from ase.md import VelocityVerlet
 from simtk.openmm import System
 from simtk.openmm.app import Element, Simulation, Topology
-from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.ase.openmm import openmm_simulation_to_ase_atoms
@@ -26,6 +25,7 @@ from narupatools.core import UnitsNarupa
 from narupatools.openmm.dynamics import OpenMMDynamics
 from narupatools.openmm.integrators import velocity_verlet_integrator
 from narupatools.physics.vector import vector
+from test_classes.single_carbon import SingleCarbonSystemTests
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

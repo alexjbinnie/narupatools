@@ -30,9 +30,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx_autodoc_typehints",
-    "sphinx.ext.intersphinx",
-    "hoverxref.extension",
-    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.intersphinx" "sphinx.ext.inheritance_diagram",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -78,8 +76,6 @@ intersphinx_mapping = {
     "narupa": ("https://narupa.readthedocs.io/en/latest", None),
     "openmm": ("http://docs.openmm.org/7.1.0/api-python/", None),
 }
-
-hoverxref_domains = ["py"]
 
 set_type_checking_flag = True
 

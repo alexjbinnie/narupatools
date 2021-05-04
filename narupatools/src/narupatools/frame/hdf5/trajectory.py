@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import contextlib
+import re
 from collections import Mapping
 from typing import Iterator, Optional
 
@@ -57,9 +58,6 @@ class InteractionsView(Mapping):
         """Calculate the work done by all interactions, in kilojoules per mole."""
         if self._interactions is None:
             return 0.0
-        print(len(self))
-        for interaction in self.values():
-            print(interaction.calculate_work())
         return sum(interaction.calculate_work() for interaction in self.values())
 
 
@@ -192,6 +190,25 @@ class HDF5Trajectory:
 
     def __init__(self, file: File):
         self._file = file
+        conventions = re.split(",| ", self._file.root._v_attrs["conventions"])
+        if "Pande" not in conventions:
+            raise ValueError(
+                "Can't read HDF5 trajectory - Pande not specified in conventions."
+            )
+        mdtraj_conv_version = self._file.root._v_attrs["conventionVersion"]
+        if mdtraj_conv_version != "1.1":
+            raise ValueError(
+                f"Can't read HDF5 trajectory - MDTraj conventions {mdtraj_conv_version}"
+                f" unsupported."
+            )
+        narupatools_conv_version = self._file.root._v_attrs[
+            "narupatoolsConventionVersion"
+        ]
+        if narupatools_conv_version != "1.0":
+            raise ValueError(
+                f"Can't read HDF5 trajectory - NarupaTools conventions "
+                f"{narupatools_conv_version} unsupported."
+            )
         self._positions = self._file.root.coordinates
         with contextlib.suppress(NoSuchNodeError):
             self._velocities = self._file.root.velocities

@@ -10,6 +10,7 @@ from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import vector
 
 
+@pytest.mark.dynamics
 class SingleCarbonHDF5Tests(metaclass=ABCMeta):
     """
     Tests for a single carbon test system writing to HDF5

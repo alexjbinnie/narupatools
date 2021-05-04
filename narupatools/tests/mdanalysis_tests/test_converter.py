@@ -17,7 +17,6 @@
 import pytest
 from MDAnalysis import AtomGroup, Universe
 from narupa.trajectory import FrameData
-from test_classes.converter import NeuraminidaseTestConverter
 
 from narupatools.frame import (
     BondCount,
@@ -30,6 +29,7 @@ from narupatools.mdanalysis import (
     mdanalysis_atomgroup_to_frame,
     mdanalysis_universe_to_frame,
 )
+from test_classes.converter import NeuraminidaseTestConverter
 
 
 @pytest.fixture(scope="module")

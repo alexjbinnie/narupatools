@@ -95,9 +95,7 @@ class Interaction(Generic[_TDynamics], metaclass=ABCMeta):
     def potential_energy(self) -> float:
         """Potential energy of the interaction, in kilojoules per mole."""
         if self._energy is None:
-            raise AttributeError(
-                "Potential energy has not been calculated at this" "point."
-            )
+            self._forces, self._energy = self.update_energy_and_forces()
         return self._energy
 
     @property
@@ -111,7 +109,7 @@ class Interaction(Generic[_TDynamics], metaclass=ABCMeta):
         this interaction.
         """
         if self._forces is None:
-            raise AttributeError("Forces have not been calculated at this point.")
+            self._forces, self._energy = self.update_energy_and_forces()
         return self._forces
 
     def on_pre_step(self) -> None:

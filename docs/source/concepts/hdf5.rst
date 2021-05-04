@@ -9,16 +9,16 @@ The following format is an extension of the MDTraj trajectory format, as defined
 NarupaTools Trajectory 1.0
 ==========================
 
-The NarupaTools trajectory format is a superset of the MDTraj trajectory 1.1 convention.
+The NarupaTools 1.0 trajectory format is a superset of the MDTraj trajectory 1.1 convention.
 
 Global Attributes
 -----------------
 
-* **Conventions (required)**: Space/comma separated list of tokens defining conventions followed by the file. MDTraj requires that 'Pande' be one of the conventions present. NarupaTools additionally requires that 'NarupaTools' also be present to indicate a trajectory adheres to this standard.
+* **conventions (required)**: Space/comma separated list of tokens defining conventions followed by the file. MDTraj requires that 'Pande' be one of the conventions present. NarupaTools additionally requires that 'NarupaTools' also be present to indicate a trajectory adheres to this standard.
 
-* **ConventionVersion (required)**: Should be set to "1.1" to indicate the convention version for MDTraj.
+* **conventionVersion (required)**: Should be set to "1.1" to indicate the convention version for MDTraj.
 
-* **NarupaToolsConventionVersion (required)**: Should be set to "1.0", to indicate the convention version for NarupaTools.
+* **narupaToolsConventionVersion (required)**: Should be set to "1.0", to indicate the convention version for *narupatools*.
 
 * **program (required)**: Name of the creating program or module.
 
@@ -81,3 +81,58 @@ Within the root group '/' the following arrays can be specified. Each array shou
 
     * Shape: (1, ...)
     * Type: string
+
+Interactions
+============
+
+The *narupatools* HDF5 format additionally stores interactions applied to the system. They are stored under a group 'interactions' with the key '/interactions'.
+
+Each interaction is logged as a separate group under this group. For example, an interaction could be saved under '/interactions/interaction-my-id'. The key that each interaction is stored under is identical to the key that it was stored in the shared state.
+
+Interaction Attributes
+----------------------
+
+Each interaction has the following attributes:
+
+* **type (required)**: Type of the interaction, such as 'spring' or 'gaussian'.
+
+* **startIndex (required)**: The index of the first frame this interaction was applied to.
+
+* **endIndex (required)**: The index of the last frame this interaction was applied to.
+
+Interaction Arrays
+------------------
+
+* **indices (required)**: Indices of the particles involved in the interaction.
+
+    * Shape: (n_atoms_interaction)
+    * Type: int32
+    * Standard Units: "kJ/mol"
+
+* **position (required)**: Position of the interaction.
+
+    * Shape: (n_frames, 3)
+    * Type: float32
+    * Standard Units: "nanometers"
+
+* **forces (required)**: Force on each particle due to the interaction at each frame.
+
+    * Shape: (n_frames, n_atoms_interactions, 3)
+    * Type: float32
+    * Standard Units: "kJ/mol/nanometer"
+
+* **potentialEnergy (required)**: Potential energy of the interaction at each frame.
+
+    * Shape: (n_frames)
+    * Type: float32
+    * Standard Units: "kJ/mol"
+
+* **frameIndex (required)**: Index of the corresponding frame in the main trajectory.
+
+    * Shape: (n_frames)
+    * Type: int32
+
+* **scale (required)**: Interaction scale at each frame
+
+    * Shape: (n_frames)
+    * Type: float32

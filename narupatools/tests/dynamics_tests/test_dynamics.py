@@ -19,9 +19,9 @@ import time
 import pytest
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
-from testing import assert_event_called, assert_event_not_called
 
 from narupatools.core.dynamics import SimulationDynamics
+from testing import assert_event_called, assert_event_not_called
 
 
 class ExampleDynamics(SimulationDynamics):

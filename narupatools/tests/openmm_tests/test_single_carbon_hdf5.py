@@ -18,13 +18,13 @@ import pytest
 from ase.md import Langevin
 from simtk.openmm import LangevinIntegrator, System
 from simtk.openmm.app import Element, Simulation, Topology
-from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.ase.openmm import openmm_simulation_to_ase_atoms
 from narupatools.core import UnitsNarupa
 from narupatools.openmm.dynamics import OpenMMDynamics
 from narupatools.physics.vector import vector
+from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

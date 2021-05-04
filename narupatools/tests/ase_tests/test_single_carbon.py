@@ -18,11 +18,11 @@ import numpy as np
 import pytest
 from ase import Atoms
 from ase.md import VelocityVerlet
-from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.ase import NullCalculator
 from narupatools.core import UnitsNarupa
+from test_classes.single_carbon import SingleCarbonSystemTests
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

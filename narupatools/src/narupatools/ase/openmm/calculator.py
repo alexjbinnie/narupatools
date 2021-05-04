@@ -108,15 +108,12 @@ class OpenMMCalculator(Calculator, CalculatorSetAtoms):
         self.results["forces"] = self._forces
 
     def _calculate_openmm(self) -> Tuple[float, np.ndarray]:
-        print(f"Calculate OpenMM")
         state = self._context.getState(getEnergy=True, getForces=True)
         energy = state.getPotentialEnergy()._value
         forces = state.getForces(asNumpy=True)._value
-        print("Calculated")
         return energy * _OpenMMToASE.energy, forces * _OpenMMToASE.force
 
     def _set_positions(self, positions: np.ndarray) -> None:
-        print(f"Set positions {positions}")
         self._context.setPositions(positions * angstrom)
 
     def _ensure_atoms_valid(self, atoms: Atoms) -> None:

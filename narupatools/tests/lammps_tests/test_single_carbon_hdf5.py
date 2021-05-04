@@ -15,9 +15,6 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
-
-lammps = pytest.importorskip("lammps")
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.core import UnitsNarupa
@@ -26,6 +23,9 @@ from narupatools.lammps.dynamics import LAMMPSDynamics
 from narupatools.lammps.region import Box
 from narupatools.lammps.simulation import LAMMPSSimulation
 from narupatools.physics.vector import vector
+from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
+
+lammps = pytest.importorskip("lammps")
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

@@ -15,10 +15,10 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from test_classes.dynamics import VillinDynamicsTests
 
 from narupatools.ase import ASEDynamics
 from narupatools.ase.openmm import openmm_simulation_to_ase_molecular_dynamics
+from test_classes.dynamics import VillinDynamicsTests
 
 
 @pytest.fixture

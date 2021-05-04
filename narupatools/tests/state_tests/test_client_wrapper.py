@@ -17,9 +17,10 @@
 from typing import Generator
 
 import pytest
-from fixtures import SharedStateClientWrapperWithDelay
 from narupa.app import NarupaImdClient
 from narupa.core import NarupaServer
+
+from fixtures import SharedStateClientWrapperWithDelay
 
 
 class Unserializable:

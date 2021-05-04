@@ -54,3 +54,30 @@ The dimensionless scaling factor is not applied to this kind of interaction.
 Calculating Work
 ================
 
+The work done by an interaction is given by the integral:
+
+.. math:: W = \int_C F \cdot ds
+
+where the integral C is along a given path.
+
+Our trajectory is split into discrete steps, where we know both the force :math:`F` and displacement :math:`s` at different points in time.
+
+The infinitesimal work here is given by:
+
+.. math:: \delta W = F \cdot ds
+
+For two adjacent timesteps with times :math:`t_0` and :math:`t_1`, we have:
+
+.. math:: F = \frac{1}{2} (F(t_0) + F(t_1))
+
+.. math:: ds = s(t_1) - s(t_0)
+
+where we approximate the force as the average between the forces at the start and end of the step. Therefore:
+
+.. math:: \delta W = \frac{1}{2} (F(t_0) + F(t_1)) \cdot (s(t_1) - s(t_0))
+
+This gives the work for a single step on a single particle. The total work for an interaction is therefore:
+
+.. math:: W = \frac{1}{2} \sum_i \sum_{n=0}^{N-1} (F_i(t_{n}) + F_i(t_{n+1})) \cdot (s_i(t_{n+1}) - s_i(t_{n}))
+
+where the first sum is over all indices :math:`i` affected by the interaction and the second sum is over all timesteps

@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
+import os
 from contextlib import contextmanager
 
 from narupatools.core.event import EventListener
@@ -51,3 +51,11 @@ def assert_event_not_called(event: EventListener):
     event.remove_callback(on_called)
 
     assert not was_called
+
+
+def add_mark(*, filename, mark, items):
+    dir_path = os.path.dirname(os.path.realpath(filename))
+    for item in items:
+        file_path = os.path.realpath(item.fspath)
+        if file_path.startswith(dir_path):
+            item.add_marker(mark)

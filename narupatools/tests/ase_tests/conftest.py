@@ -3,6 +3,12 @@ import pytest
 from ase import Atoms
 from ase.io import read
 
+from testing import add_mark
+
+
+def pytest_collection_modifyitems(items):
+    add_mark(filename=__file__, mark=pytest.mark.ase, items=items)
+
 
 @pytest.fixture(scope="session")
 def ethane_atoms_readonly(ethane_sdf_filename) -> Atoms:

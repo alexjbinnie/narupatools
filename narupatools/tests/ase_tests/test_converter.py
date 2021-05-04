@@ -18,7 +18,6 @@ import ase
 import pytest
 from ase import Atoms
 from narupa.trajectory import FrameData
-from test_classes.converter import NeuraminidaseTestConverter
 
 from narupatools.ase import ase_atoms_to_frame
 from narupatools.frame import (
@@ -29,6 +28,7 @@ from narupatools.frame import (
     ParticlePositions,
     ParticleResidues,
 )
+from test_classes.converter import NeuraminidaseTestConverter
 
 
 @pytest.fixture(scope="module")

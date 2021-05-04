@@ -61,7 +61,7 @@ class HDF5Writer:
     def _add_global_attributes(self) -> None:
         self._file.root._v_attrs["application"] = "narupatools"
         self._file.root._v_attrs["conventionVersion"] = "1.1"
-        self._file.root._v_attrs["narupaToolsConventionVersion"] = "1.0"
+        self._file.root._v_attrs["narupatoolsConventionVersion"] = "1.0"
         self._file.root._v_attrs["program"] = "narupatools"
         self._file.root._v_attrs["conventions"] = "Pande,NarupaTools"
         self._file.root._v_attrs["programVersion"] = narupatools.__version__

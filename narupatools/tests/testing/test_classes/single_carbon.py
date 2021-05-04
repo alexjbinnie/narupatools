@@ -10,6 +10,7 @@ from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import dot_product, sqr_magnitude, vector, zero_vector
 
 
+@pytest.mark.dynamics
 class SingleCarbonSystemTests(metaclass=ABCMeta):
     """
     Tests for the single carbon test system.
@@ -119,6 +120,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
             np.array([vector(5, 5, 5)])
         )
 
+    @pytest.mark.session
     def test_client_session(self, dynamics):
         with Session(port=0) as session:
             dynamics.run(block=False)
@@ -137,6 +139,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                     np.array([vector(5, 5, 5)])
                 )
 
+    @pytest.mark.session
     def test_client_session_imd(self, dynamics):
         with Session(port=0) as session:
             dynamics.run(block=False)
