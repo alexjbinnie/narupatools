@@ -38,7 +38,7 @@ class ExampleDynamics(SimulationDynamics):
         pass
 
     @property
-    def time_step(self) -> float:
+    def timestep(self) -> float:
         return 1.0
 
 

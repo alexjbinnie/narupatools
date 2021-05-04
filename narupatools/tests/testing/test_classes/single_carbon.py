@@ -161,7 +161,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 time.sleep(0.5)
                 dynamics.run(10)
                 assert len(dynamics.imd.current_interactions) == 1
-                t = dynamics.time_step * 10
+                t = dynamics.timestep * 10
                 mass = dynamics.masses[0]
                 position = vector(5, 5, 5) + 0.5 / mass * t * t * force
                 assert dynamics.positions[0] == pytest.approx(position)

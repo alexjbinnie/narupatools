@@ -174,11 +174,11 @@ class ASEDynamics(Generic[TIntegrator], InteractiveSimulationDynamics):
         self.atoms.set_cell(self._initial_box)
 
     @property
-    def time_step(self) -> float:  # noqa: D102
+    def timestep(self) -> float:  # noqa: D102
         return self.molecular_dynamics.dt * _ASEToNarupa.time
 
-    @time_step.setter
-    def time_step(self, value: float) -> None:
+    @timestep.setter
+    def timestep(self, value: float) -> None:
         self.molecular_dynamics.dt = value * _NarupaToASE.time
 
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:

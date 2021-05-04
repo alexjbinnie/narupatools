@@ -74,7 +74,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         return self._simulation.get_frame(fields=fields)
 
     @property
-    def time_step(self) -> float:  # noqa: D102
+    def timestep(self) -> float:  # noqa: D102
         return self._simulation.timestep
 
     @property

@@ -92,7 +92,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, Broadcastable):
         return self._imd
 
     @property
-    def time_step(self) -> float:  # noqa: D102
+    def timestep(self) -> float:  # noqa: D102
         return self._simulation.integrator.getStepSize()._value
 
     @property

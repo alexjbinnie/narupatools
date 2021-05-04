@@ -161,7 +161,7 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
         self._on_pre_step.invoke()
         self._step_internal()
         self._elapsed_steps += 1
-        self._elapsed_time += self.time_step
+        self._elapsed_time += self.timestep
         self._on_post_step.invoke()
         if self._remaining_steps is not None:
             self._remaining_steps -= 1
@@ -217,7 +217,7 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def time_step(self) -> float:
+    def timestep(self) -> float:
         """
         Current time step of the simulation in picoseconds.
 

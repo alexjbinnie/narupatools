@@ -29,7 +29,8 @@ import narupatools.openmm  # noqa: F401
 if importlib.util.find_spec("lammps") is not None:
     import narupatools.lammps  # noqa: F401
 
-with open("VERSION") as version_file:
+__location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(__location + "/VERSION") as version_file:
     __version__ = version_file.read().strip()
 
 __author__ = "Alex Jamieson-Binnie"

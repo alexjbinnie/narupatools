@@ -100,7 +100,7 @@ def openmm_simulation_to_ase_molecular_dynamics(
         # Use default temperature of 300 K
         temperature = 300
 
-    time_step = simulation.integrator.getStepSize().value_in_unit(picoseconds)
+    timestep = simulation.integrator.getStepSize().value_in_unit(picoseconds)
 
     # friction in per femtosecond
     if not isinstance(simulation.integrator, LangevinIntegrator):
@@ -119,7 +119,7 @@ def openmm_simulation_to_ase_molecular_dynamics(
     # to the OpenMM system.
     molecular_dynamics = Langevin(
         atoms=atoms,
-        timestep=time_step * _OpenMMToASE.time,
+        timestep=timestep * _OpenMMToASE.time,
         temperature_K=temperature,
         friction=friction / _OpenMMToASE.time,
         fixcm=False,
