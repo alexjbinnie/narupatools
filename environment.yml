@@ -1,18 +1,16 @@
-# Conda environment for unit testing
-name: narupatools-test
+# Conda environment for running narupatools and associated jupyter notebooks.
+name: narupatools
 channels:
   - conda-forge
   - irl
   - alexjbinnie
 dependencies:
-  - python=3.8
+  - python>=3.8
   - numpy>=1.20.*
   - narupa-server=0.1.2061
   - mdtraj=1.9.*
   - lammps=2021.02.10
-  - pytest=6.2.*
-  - pytest-xdist=2.2.*
-  - pytest-timeout=1.4.*
-  - hypothesis=6.8.*
   - lxml=4.6.*
   - infinite-sets=1.0.*
+  - plotly=4.14.*
+  - nglview=2.7.*

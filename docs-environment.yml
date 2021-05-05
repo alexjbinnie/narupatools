@@ -1,8 +1,8 @@
+# Conda environment for documentation.
 name: narupatools-docs
 channels:
   - conda-forge
   - irl
-  - omnia
   - alexjbinnie
 dependencies:
   - python>=3.8
