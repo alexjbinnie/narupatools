@@ -8,7 +8,7 @@ This package includes extensions and utilities for working with the Narupa frame
 
 This library can be installed using
 
-```conda install narupatools -c conda-forge -c omnia -c irl -c alexjbinnie```
+```conda install narupatools -c conda-forge -c irl -c alexjbinnie```
 
 # Disclaimer
 

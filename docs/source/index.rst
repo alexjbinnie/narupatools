@@ -16,7 +16,7 @@ You can install *narupatools* using conda:
 
 .. code-block:: console
 
-   conda install -c conda-forge -c omnia -c irl -c alexjbinnie narupatools
+   conda install -c conda-forge -c irl -c alexjbinnie narupatools
 
 *narupatools* has Narupa and its dependencies as dependencies itself, so if setting up a new conda environment you can simply use:
 
@@ -24,7 +24,7 @@ You can install *narupatools* using conda:
 
    conda create -n narupatools
    conda activate narupatools
-   conda install -c irl -c omnia -c conda-forge -c alexjbinnie narupatools
+   conda install-c conda-forge -c irl -c alexjbinnie narupatools
 
 Disclaimer
 ----------
