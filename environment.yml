@@ -16,4 +16,4 @@ dependencies:
   - nglview=2.7.*
   - pip
   - pip:
-    ./narupatools
+    - ./narupatools
