@@ -1,0 +1,45 @@
+@font-face {
+    font-family: "Roboto Slab";
+    src: url("./RobotoSlab-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Lato";
+    src: url("./Lato-Regular.ttf");
+}
+
+.sphinxsidebarwrapper {
+    border-right: 3px solid #FF6600;
+    background: #FAFAFA;
+}
+
+body {
+    background: #F2F2F2;
+}
+
+.body {
+    padding-top: 16px !important;
+    padding-bottom: 24px !important;
+}
+
+dl.py > dt {
+    background: #EEEEEE;
+    padding-top: 6px;
+    padding-bottom: 8px;
+    padding-left: 8px;
+    border-bottom: 2px solid #FF6600;
+    margin-top: 8px;
+}
+
+dl.py > dd {
+    margin-bottom: 24px;
+}
+
+em.property {
+    background: #DDDDDD;
+    font-size: 14px;
+    font-style: normal;
+    font-family: 'Roboto Slab';
+    padding-left: 4px;
+    margin-right: 4px;
+}

@@ -1,0 +1,6 @@
+from typing import Sequence
+
+class ElementBase:
+    text: str
+    def findall(self, path: str) -> Sequence[ElementBase]: ...
+    def append(self, _element: ElementBase) -> None: ...

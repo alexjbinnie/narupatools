@@ -1,0 +1,45 @@
+name: Test
+
+on: push
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v2
+
+    - name: Cache conda
+      uses: actions/cache@v2
+      env:
+        # Increase this value to reset cache lint-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('test-environment.yml') }}
+
+    - name: Set up conda environment
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        environment-file: test-environment.yml
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+    - name: Install narupatools
+      run: |
+        pip install -e narupatools
+
+    - name: Run tests
+      run: |
+        pytest -m "(not openmm) and (not lammps)" --junit-xml pytest.xml narupatools
+        
+    - name: Publish results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        files: pytest.xml
