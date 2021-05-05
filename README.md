@@ -6,10 +6,7 @@ This package includes extensions and utilities for working with the Narupa frame
 
 This library can be installed using
 
-```pip install narupatools```
-
-Note that you will need an installation of the Narupa python libraries (and its dependencies). Instructions for this can
-be found [here](https://gitlab.com/intangiblerealities/narupa-protocol)
+```conda install narupatools -c conda-forge -c omnia -c irl -c alexjbinnie```
 
 # Disclaimer
 
