@@ -7,7 +7,7 @@ Writing *narupatools* HDF5 trajectories to file is simple.
 .. code-block:: python
 
    from narupatools.ase.openmm import ASEOpenMMDynamics
-   from narupatools.frame.hdf5 import
+   from narupatools.frame.hdf5 import add_hdf5_writer
 
    dynamics = ASEOpenMMDynamics.from_xml_file("neuraminidase.xml")
 

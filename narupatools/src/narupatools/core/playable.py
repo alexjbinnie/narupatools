@@ -22,7 +22,7 @@ import time
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Lock
-from typing import Generator, Optional, Union
+from typing import Generator, Literal, Optional, Union, overload
 
 from .health_check import HealthCheck
 
@@ -187,6 +187,18 @@ class Playable(HealthCheck, metaclass=ABCMeta):
         """
         self.run(block)
 
+    @overload
+    def run(self, block: Literal[True]) -> bool:
+        ...
+
+    @overload
+    def run(self, block: Literal[False]) -> Future[bool]:
+        ...
+
+    @overload
+    def run(self, block: bool) -> Union[bool, Future[bool]]:
+        ...
+
     def run(self, block: bool = True) -> Union[bool, Future[bool]]:
         """
         Run this object, potentially in a background thread.
@@ -211,16 +223,17 @@ class Playable(HealthCheck, metaclass=ABCMeta):
     def _run(self) -> bool:
         with self._is_running_lock:
             self._start_run()
+            was_cancelled = False
             for _ in self._yield_at_framerate():
                 with self._advance_lock:
                     if self._cancelled:
+                        was_cancelled = True
                         break
                     if self._paused:
                         continue
                     if not self._advance():
                         break
             self._end_run()
-            was_cancelled = self._cancelled
             self._paused = False
             self._cancelled = False
             return not was_cancelled

@@ -1,8 +1,14 @@
 narupatools
 ===========
 
-.. image:: https://img.shields.io/pypi/l/narupatools?style=for-the-badge   :alt: PyPI - License
-.. image:: https://img.shields.io/pypi/v/narupatools?style=for-the-badge   :alt: PyPI
+.. image:: https://img.shields.io/badge/Source-GitHub-181717?style=flat-square&logo=github
+    :target: https://github.com/alexjbinnie/narupatools
+.. image:: https://img.shields.io/badge/Download-Anaconda-44A833?style=flat-square&logo=anaconda
+    :target: https://anaconda.org/alexjbinnie/narupatools
+.. image:: https://img.shields.io/badge/Documentation-Read_the_Docs-8CA1AF?style=flat-square&logo=read-the-docs
+    :target: https://narupatools.readthedocs.io/en/latest/
+.. image:: https://img.shields.io/badge/License-GNU_General_Public_License_V3-orange?style=flat-square
+    :target: https://www.gnu.org/licenses/gpl-3.0.en.html
 
 *narupatools* is a python package containing utilities for running and interacting with molecular dynamics simulations being run within
 the `Narupa framework <https://gitlab.com/intangiblerealities/narupa-protocol>`_.
@@ -11,6 +17,11 @@ This documentation contains an overview of some of the concepts involved in *nar
 
 Installation
 ------------
+
+.. image:: https://anaconda.org/alexjbinnie/narupatools/badges/version.svg
+    :target: https://anaconda.org/alexjbinnie/narupatools
+.. image:: https://anaconda.org/alexjbinnie/narupatools/badges/latest_release_date.svg
+    :target: https://anaconda.org/alexjbinnie/narupatools
 
 You can install *narupatools* using conda:
 

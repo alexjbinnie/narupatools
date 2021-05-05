@@ -14,3 +14,6 @@ dependencies:
   - infinite-sets=1.0.*
   - plotly=4.14.*
   - nglview=2.7.*
+  - pip
+  - pip:
+    ./narupatools
