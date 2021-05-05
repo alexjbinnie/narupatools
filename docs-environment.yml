@@ -15,3 +15,5 @@ dependencies:
   - sphinx-autodoc-typehints=1.12.*
   - nbsphinx=0.8.*
   - ipykernel
+  - plotly=4.14.*
+  - nglview=2.7.*
