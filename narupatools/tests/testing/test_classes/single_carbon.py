@@ -155,7 +155,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
 
                 dynamics.stop()
                 force = vector(1, 0, 0)
-                client.start_interaction(
+                interaction_id = client.start_interaction(
                     constant_interaction(force=force, particles=[0])
                 )
                 time.sleep(0.5)
@@ -165,3 +165,8 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 mass = dynamics.masses[0]
                 position = vector(5, 5, 5) + 0.5 / mass * t * t * force
                 assert dynamics.positions[0] == pytest.approx(position)
+
+                client.stop_interaction(interaction_id)
+                time.sleep(0.5)
+                dynamics.run(10)
+                assert len(dynamics.imd.current_interactions) == 0

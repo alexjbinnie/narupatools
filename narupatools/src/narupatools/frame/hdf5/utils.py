@@ -85,7 +85,7 @@ def generate_topology(frame: FrameData, /) -> bytes:
                 "index": atom_index,
                 "name": atom_name,
                 "element": Z2SYMB[atom_element]
-                if (atom_element is not None and atom_elements != 0)
+                if (atom_element is not None and atom_element != 0)
                 else "",
             }
         )

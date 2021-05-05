@@ -49,11 +49,11 @@ def openmm_simulation_to_ase_atoms(simulation: Simulation, /) -> Atoms:
     """
     Generate an ASE atoms representation of the OpenMM simulation.
 
-    The :ref:`ase.atoms.Atoms` object will have a
-    :ref:`narupatools.ase.openmm.OpenMMCalculator` which calculates the forces and
+    The :class:`~ase.atoms.Atoms` object will have a
+    :class:`~narupatools.ase.openmm.OpenMMCalculator` which calculates the forces and
     energy based on the simulation.
 
-    :param simulation: OpenMM simulation to convert to :ref:`ase.atoms.Atoms`.
+    :param simulation: OpenMM simulation to convert to :class:`~ase.atoms.Atoms`.
     :return: ASE atoms object, with positions and chemical symbols read from the current
              state of the OpenMM simulation.
     """

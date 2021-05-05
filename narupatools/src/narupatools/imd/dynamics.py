@@ -38,11 +38,11 @@ class InteractiveSimulationDynamics(
 
     def start_broadcast(self, broadcaster: Broadcaster) -> None:  # noqa: D102
         if isinstance(broadcaster, Session):
-            self.imd.add_dynamic_interactions_source(broadcaster.server.imd)
+            self.imd.add_dynamic_interactions_source(broadcaster.app.imd)
 
     def end_broadcast(self, broadcaster: Broadcaster) -> None:  # noqa: D102
         if isinstance(broadcaster, Session):
-            self.imd.remove_dynamic_interactions_source(broadcaster.server.imd)
+            self.imd.remove_dynamic_interactions_source(broadcaster.app.imd)
 
     @property
     @abstractmethod

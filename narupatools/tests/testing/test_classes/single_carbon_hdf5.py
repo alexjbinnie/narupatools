@@ -116,10 +116,13 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
             constant_interaction(force=vector(0.0, 50.0, 0.0), particles=[0])
         )
         dynamics.run(20)
+        assert len(dynamics.imd.current_interactions) == 2
         dynamics.imd.remove_interaction(key1)
         dynamics.run(20)
+        assert len(dynamics.imd.current_interactions) == 1
         dynamics.imd.remove_interaction(key2)
         dynamics.run(20)
+        assert len(dynamics.imd.current_interactions) == 0
         writer.close()
 
         traj2 = HDF5Trajectory.load_file(hdf5_filename)
@@ -129,6 +132,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         interaction2 = traj2.interactions[key2]
         assert interaction1.duration == pytest.approx(0.4)
         assert interaction2.duration == pytest.approx(0.4)
+        assert interaction1.frame_range == range(20, 61)
         assert (
             interaction1.calculate_work() + interaction2.calculate_work()
             == pytest.approx(traj2.interactions.calculate_work())

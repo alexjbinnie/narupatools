@@ -17,12 +17,14 @@
 """Describes the base class for anything that supports get_frame."""
 
 from abc import ABCMeta, abstractmethod
+from typing import Protocol, runtime_checkable
 
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
 
-class FrameSource(metaclass=ABCMeta):
+@runtime_checkable
+class FrameSource(Protocol, metaclass=ABCMeta):
     """Base class for object which can create a FrameData."""
 
     @abstractmethod
@@ -33,4 +35,22 @@ class FrameSource(metaclass=ABCMeta):
         :param fields: Collection of fields that should be added to FrameData if
                        available.
         """
+        pass
+
+
+class TrajectorySource(Protocol, metaclass=ABCMeta):
+    """Base class for object which can create multiple FrameData."""
+
+    @abstractmethod
+    def get_frame(self, *, index: int, fields: InfiniteSet[str]) -> FrameData:
+        """
+        Create a FrameData representation, with the given fields present if available.
+
+        :param index: Index of frame to get.
+        :param fields: Collection of fields that should be added to FrameData if
+                       available.
+        """
+        pass
+
+    def __len__(self) -> int:
         pass

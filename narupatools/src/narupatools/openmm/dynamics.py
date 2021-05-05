@@ -178,12 +178,12 @@ class OpenMMInteraction(Interaction[OpenMMDynamics]):
     def update_energy_and_forces(self) -> Tuple[Vector3Array, float]:  # noqa: D102
         return calculate_imd_force(
             interaction=self.interaction,
-            positions=self._dynamics.positions,
-            masses=self._dynamics.masses,
+            positions=self._dynamics.positions[self.particle_indices],
+            masses=self._dynamics.masses[self.particle_indices],
         )
 
     def get_positions(self) -> Vector3Array:  # noqa: D102
-        return self._dynamics.positions
+        return self._dynamics.positions[self.particle_indices]  # type: ignore
 
 
 def _get_or_create_imd_force(simulation: Simulation) -> CustomExternalForce:

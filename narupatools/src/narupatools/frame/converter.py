@@ -30,6 +30,7 @@ from narupa.trajectory import FrameData
 
 from narupatools.state.typing import Serializable
 from .fields import (
+    BondPairs,
     ParticleCharges,
     ParticleElements,
     ParticleNames,
@@ -49,7 +50,7 @@ class FrameConverter(metaclass=ABCMeta):
     Provides conversions to and from a Narupa FrameData.
 
     Subclasses are automatically registered to work with the
-    :ref:`narupatools.frame.convert` function.
+    :func:`~narupatools.frame.convert` function.
     """
 
     def __init_subclass__(cls) -> None:
@@ -277,9 +278,25 @@ def frame_to_pdb_string(frame_data: FrameData) -> str:
         record_type = "ATOM  " if resnames[residue] in PDB_STD_RESIDUES else "HETATM"
         file.write(
             f"{record_type}{index + 1:5} {name:4.4} {resnames[residue]:3.3} "
-            f"A{residue + 1:4}     {position[0]:8.3f}{position[1]:8.3f}"
+            f"A{residue + 1:4}    {position[0]:8.3f}{position[1]:8.3f}"
             f"{position[2]:8.3f}  1.00  0.00          {Z2SYMB[element]:2.2}"
             f"{int(charge):2}\n"
         )
+    bonded: Dict[int, List[int]] = {}
+    for bond in BondPairs.get(frame_data):
+        if bond[0] not in bonded:
+            bonded[bond[0]] = []
+        if bond[1] not in bonded:
+            bonded[bond[1]] = []
+        bonded[bond[0]].append(bond[1])
+        bonded[bond[1]].append(bond[0])
+
+    for index in range(count):
+        if index not in bonded:
+            continue
+        line = f"CONECT{index + 1:5}"
+        for n in bonded[index]:
+            line += f"{n + 1:5}"
+        file.write(line + "\n")
 
     return file.getvalue()

@@ -35,11 +35,12 @@ def dictionary_to_protobuf(mapping: Mapping[str, Serializable]) -> Struct:
     """
     Convert an arbitrary mapping to a protobuf Struct.
 
-    Improved version of :ref:`narupa.utilities.protobuf_utilities.dict_to_struct`, that
-    can serialize more complex types such as iterables, mappings and NumPy arrays.
+    Improved version of :func:`~narupa.utilities.protobuf_utilities.dict_to_struct`,
+    that can serialize more complex types such as iterables, mappings and NumPy arrays.
 
     :param mapping: Dictionary to convert.
-    :return: :ref:`Struct` containing copies of all the items of the dictionary.
+    :return: :class:`~google.protobuf.struct_pb2.Struct` containing copies of all the
+             items of the dictionary.
     """
     struct = Struct()
     update_struct(struct, mapping)

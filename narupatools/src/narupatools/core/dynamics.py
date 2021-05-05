@@ -123,7 +123,7 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
         state of the simulation on initialization, and use this to reset the simulation.
 
         This method is called whenever a client runs the reset command,
-        described in :ref:`narupa.trajectory.frame_server`.
+        described in :class:`~narupa.trajectory.frame_server`.
         """
         super().restart()
 

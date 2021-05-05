@@ -43,7 +43,7 @@ _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
-class ASEDynamics(Generic[TIntegrator], InteractiveSimulationDynamics):
+class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
     """
     Run dynamics using an ASE `MolecularDynamics` object.
 

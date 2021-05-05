@@ -21,11 +21,13 @@ from __future__ import annotations
 from os import PathLike
 from typing import Union
 
+from MDAnalysis import Universe
 from ase.md.md import MolecularDynamics
 from simtk.openmm.app import Simulation
 
 from narupatools.ase import ASEDynamics
 from narupatools.ase.openmm import openmm_simulation_to_ase_molecular_dynamics
+from narupatools.frame import convert
 from narupatools.openmm import deserialize_simulation
 
 
@@ -39,7 +41,7 @@ class ASEOpenMMDynamics(ASEDynamics):
         :param simulation: OpenMM simulation that is used in the dynamics.
         :param dynamics: ASE dynamics to run.
         """
-        super().__init__(dynamics)
+        super().__init__(dynamics, universe=convert(simulation, Universe))
         self._simulation = simulation
 
     @property

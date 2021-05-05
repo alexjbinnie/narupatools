@@ -12,25 +12,19 @@ This documentation contains an overview of some of the concepts involved in *nar
 Installation
 ------------
 
-You can install *narupatools* from pip:
+You can install *narupatools* using conda:
 
 .. code-block:: console
 
-   pip install narupatools
+   conda install -c conda-forge -c omnia -c irl -c alexjbinnie narupatools
 
-If you want the latest development version, specify the version exactly (a list of versions can be found `here <https://pypi.org/project/narupatools/#history>`_):
-
-.. code-block:: console
-
-    pip install narupatools==1.0.0.dev1
-
-Currently, as Narupa and its dependencies are conda packages, you must first have set up a conda environment appropriate for narupatools **before** pip installing:
+*narupatools* has Narupa and its dependencies as dependencies itself, so if setting up a new conda environment you can simply use:
 
 .. code-block:: console
 
-   conda create -n narupatools "python>=3.8"
+   conda create -n narupatools
    conda activate narupatools
-   conda install -c irl -c omnia -c conda-forge numpy>=1.20.0 lxml narupa-server mdtraj
+   conda install -c irl -c omnia -c conda-forge -c alexjbinnie narupatools
 
 Disclaimer
 ----------
@@ -40,7 +34,7 @@ Disclaimer
 License
 -------
 
-This project is released under the GNU General Public License version 3. All code written for narupatools is (c) University of Bristol, All Rights Reserved.
+This project is released under the GNU General Public License version 3. All code written for narupatools is (c) Alex Jamieson-Binnie, All Rights Reserved.
 
 Some code is originally part of the narupa python libraries, and is modified under the terms of the GPL. All narupa code is (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 

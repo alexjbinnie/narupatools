@@ -69,7 +69,7 @@ class OpenMMCalculator(Calculator, CalculatorSetAtoms):
 
     def set_atoms(self, /, atoms: Atoms) -> None:
         """
-        Called when this is assigned using :ref:`Atoms.set_calculator`.
+        Called when this is assigned using :meth:`~ase.atoms.Atoms.set_calculator`.
 
         :param atoms: ASE atoms object this calculator has been assigned to.
         """

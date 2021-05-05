@@ -7,12 +7,12 @@ In *narupatools*, the idea of a server is replaced by that of a **Session**. Thi
 
 The session represents the server you create and which people connect to. The session initially is 'empty' and not showing anything. You then tell the server to show your dynamics. This tells the server to start sending frames from the dynamics. For example:
 
-.. code-block:: python
+.. testcode::
 
    from narupatools.openmm import OpenMMDynamics
    from narupatools.core import NarupaSession
 
-   dynamics = OpenMMDynamics.from_xml_file("neuraminidase.xml")
+   dynamics = OpenMMDynamics.from_xml_file("./nanotube.xml")
 
    with NarupaSession.start() as session:
        print(f"Session started on port {session.port}")
@@ -22,3 +22,7 @@ The session represents the server you create and which people connect to. The se
 
        # Start running the dynamics indefinitely
        dynamics.run()
+
+.. testcleanup::
+
+   dynamics.stop()

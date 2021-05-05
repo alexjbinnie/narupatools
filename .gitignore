@@ -212,3 +212,5 @@ fabric.properties
 
 
 log.lammps
+
+docs/source/_autosummary

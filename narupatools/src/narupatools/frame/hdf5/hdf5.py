@@ -25,11 +25,11 @@ from .writer import HDF5Writer
 
 
 def add_hdf5_writer(
-    *,
     dynamics: InteractiveSimulationDynamics,
+    *,
     filename: str,
     title: str,
-    n_steps: int = 1
+    write_velocities: bool = True
 ) -> HDF5Writer:
     """
     Add an HDF5 Writer to some ASE dynamics.
@@ -37,7 +37,7 @@ def add_hdf5_writer(
     :param dynamics: Dynamics to attach this writer to.
     :param filename: Filename to write to.
     :param title: Optional title for this trajectory.
-    :param n_steps: Number of steps to take
+    :param write_velocities: Should this writer write velocities?
     :return: HDF5 writer that is listening to the trajectory.
     """
     writer = HDF5Writer(filename=filename, title=title)
@@ -64,11 +64,9 @@ def add_hdf5_writer(
         has_logged_initial = True
 
     def log_step(**kwargs: Any) -> None:
-        if dynamics.total_steps % n_steps > 0:
-            return
         writer.save_frame(
             coordinates=dynamics.positions,
-            velocities=dynamics.velocities,
+            velocities=dynamics.velocities if write_velocities else None,
             forces=dynamics.forces,
             kineticEnergy=dynamics.kinetic_energy,
             potentialEnergy=dynamics.potential_energy,

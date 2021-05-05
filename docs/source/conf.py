@@ -32,6 +32,8 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
     "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.doctest",
+    "nbsphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -69,6 +71,8 @@ autodoc_mock_imports = ["lammps"]
 
 autosummary_generate = True
 
+nbsphinx_execute = "always"
+
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "ase": ("https://wiki.fysik.dtu.dk/ase", None),
@@ -81,9 +85,3 @@ intersphinx_mapping = {
 set_type_checking_flag = True
 
 inheritance_graph_attrs = dict(rankdir="TB")
-
-# def check_intersphinx(app, env):
-#    exit(2)
-
-# def setup(app):
-#    app.connect('env-updated', check_intersphinx)

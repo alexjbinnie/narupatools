@@ -51,7 +51,7 @@ class ConstantCalculator(Calculator, CalculatorSetAtoms):
         :param energy: Energy in electronvolts.
         :param charges: Charges in elementary charges.
         :param kwargs: Keyword arguments for the base
-                       :ref:`~ase.calculators.calculator.Calculator`.
+                       :class:`~ase.calculators.calculator.Calculator`.
         """
         super().__init__(**kwargs)
         self.implemented_properties = []

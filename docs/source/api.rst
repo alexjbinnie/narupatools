@@ -1,6 +1,6 @@
 .. autosummary::
    :toctree: _autosummary
-   :recursie:
+   :recursive:
    :nosignatures:
 
    narupatools

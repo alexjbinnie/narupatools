@@ -29,6 +29,12 @@ from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.core import DEFAULT_SERVE_ADDRESS, NarupaServer
 from narupa.essd import DiscoveryServer
 from narupa.trajectory import FrameData
+from narupa.trajectory.frame_server import (
+    PAUSE_COMMAND_KEY,
+    PLAY_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+    STEP_COMMAND_KEY,
+)
 
 from narupatools.core.broadcastable import Broadcastable, Broadcaster
 from narupatools.core.dynamics import SimulationDynamics
@@ -84,21 +90,33 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._target: Optional[TTarget] = None
 
         self.frame_index = 0
-        self._initialise_server(**kwargs)
+        self._server = self._initialise_server(**kwargs)
 
         self._frame_producer = FrameProducer(self._produce_frame)
         self._frame_producer.on_frame_produced.add_callback(self._on_frame_produced)
         self._frame_producer.start(block=False)
 
         self._shared_state = SharedStateView(
-            SharedStateServerWrapper(self.server.server)
+            SharedStateServerWrapper(self._server.server)
         )
 
-        self.server.server._state_service.state_dictionary.content_updated.add_callback(
+        narupa_server = self._server.server
+
+        narupa_server._state_service.state_dictionary.content_updated.add_callback(
             self._shared_state.on_dictionary_update
         )
 
         self._on_target_changed = Event(OnTargetChanged)
+
+        narupa_server.register_command(PLAY_COMMAND_KEY, self.play)  # type: ignore
+        narupa_server.register_command(RESET_COMMAND_KEY, self.restart)  # type: ignore
+        narupa_server.register_command(STEP_COMMAND_KEY, self.step)  # type: ignore
+        narupa_server.register_command(PAUSE_COMMAND_KEY, self.pause)  # type: ignore
+
+    @property
+    def app(self) -> NarupaImdApplication:
+        """Underlying Narupa application."""
+        return self._server
 
     @property
     def shared_state(self) -> SharedStateView:
@@ -106,7 +124,7 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         return self._shared_state
 
     def _on_frame_produced(self, *, frame: FrameData, **kwargs: Any) -> None:
-        self.server.frame_publisher.send_frame(self.frame_index, frame)
+        self._server.frame_publisher.send_frame(self.frame_index, frame)
         self.frame_index += 1
 
     def run(self, *, block: bool = False) -> None:
@@ -124,6 +142,26 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         """Stop the target if it is a playable object."""
         if isinstance(self._target, Playable):
             self._target.stop(wait=True)
+
+    def restart(self) -> None:
+        """Restart the target if it is a playable object."""
+        if isinstance(self._target, Playable):
+            self._target.restart()
+
+    def step(self) -> None:
+        """Step the target if it is a playable object."""
+        if isinstance(self._target, Playable):
+            self._target.step()
+
+    def play(self) -> None:
+        """Play the target if it is a playable object."""
+        if isinstance(self._target, Playable):
+            self._target.play()
+
+    def pause(self) -> None:
+        """Pause the target if it is a playable object."""
+        if isinstance(self._target, Playable):
+            self._target.pause()
 
     def show(self, target: TTarget, /) -> None:
         """
@@ -194,7 +232,7 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         port: Optional[int] = None,
         run_discovery: bool = True,
         discovery_port: Optional[int] = None,
-    ) -> None:
+    ) -> NarupaImdApplication:
 
         address = address or DEFAULT_SERVE_ADDRESS
         if port is None:
@@ -203,13 +241,13 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         discovery: Optional[DiscoveryServer] = None
         if run_discovery:
             discovery = DiscoveryServer(broadcast_port=discovery_port)
-        self.server = NarupaImdApplication(server, discovery, name)
+        return NarupaImdApplication(server, discovery, name)
 
     def close(self) -> None:
         """Remove the current target and close down the server and background tasks."""
         self.target = None
         self._frame_producer.stop(wait=True)
-        self.server.close()
+        self._server.close()
 
     def health_check(self) -> None:  # noqa: D102
         self._frame_producer.health_check()
@@ -237,3 +275,18 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         traceback: Optional[TracebackType],
     ) -> None:
         self.close()
+
+    @property
+    def address(self) -> str:
+        """URL or IP address the server is broadcasting at."""
+        return self._server.address
+
+    @property
+    def port(self) -> int:
+        """Port the session is broadcasting on."""
+        return self._server.port
+
+    @property
+    def name(self) -> str:
+        """Name of the session."""
+        return self._server.name

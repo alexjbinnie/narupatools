@@ -100,14 +100,17 @@ class DynamicInteractions:
         self._source = source
         self._interactions: Set[str] = set()
 
-    def update(self) -> None:
+    def update(self, has_reset: bool) -> None:
         """Update the interactions based on the current state of the source."""
+        if has_reset:
+            self._interactions.clear()
         interactions = self._source.active_interactions
-        for key in self._interactions:
-            if key not in self._imd.current_interactions.keys():
+        for key in list(self._interactions):
+            if key not in interactions:
                 self._imd.remove_interaction(key)
+                self._interactions.remove(key)
         for key in interactions.keys():
-            if key not in self._imd.current_interactions.keys():
+            if key not in self._interactions:
                 self._imd.add_interaction(interactions[key], key=key)
                 self._interactions.add(key)
             else:
@@ -223,9 +226,9 @@ class InteractionFeature(Generic[TDynamics, TInteraction]):
         This returns a (N, 3) NumPy array, where N is the number of atoms in the system.
         The forces are in kilojoules per mole per nanometer.
         """
-        forces = np.zeros((3, self._system_size))
+        forces = np.zeros((self._system_size, 3))
         for interaction in self._current_interactions.values():
-            forces[interaction.particle_indices] += interaction.forces
+            forces[interaction.particle_indices, :] += interaction.forces
         return forces
 
     @property
@@ -245,7 +248,9 @@ class InteractionFeature(Generic[TDynamics, TInteraction]):
                 self.remove_interaction(key)
 
         for source in self._sources:
-            source.update()
+            source.update(self._has_reset)
+
+        self._has_reset = False
 
         for interaction in self.current_interactions.values():
             interaction.on_pre_step()

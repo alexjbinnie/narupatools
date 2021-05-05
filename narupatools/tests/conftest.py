@@ -147,6 +147,8 @@ def villin_mda_universe_readonly(villin_pdb_filename) -> Universe:
 
 pytest.register_assert_rewrite("tests.base_tests.converter")
 pytest.register_assert_rewrite("tests.base_tests.dynamics")
+pytest.register_assert_rewrite("test_classes.single_carbon_hdf5")
+pytest.register_assert_rewrite("test_classes.single_carbon")
 
 
 # Skip OpenMM exceptions, which occur on CI but not locally.

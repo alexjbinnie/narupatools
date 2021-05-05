@@ -31,7 +31,7 @@ class CalculatorSetAtoms(Protocol):
 
     def set_atoms(self, atoms: Atoms, /) -> None:
         """
-        Called when an :ref:`ase.atoms.Atoms` object is assigned this calculator.
+        Called when an :class:`ase.atoms.Atoms` object is assigned this calculator.
 
         :param atoms: Atoms this is assigned to.
         """

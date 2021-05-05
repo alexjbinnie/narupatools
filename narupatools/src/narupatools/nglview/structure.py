@@ -21,9 +21,13 @@ from io import StringIO
 import nglview
 from ase.atoms import Atoms
 from ase.io import write
+from infinite_sets import everything
 from narupa.trajectory.frame_data import FrameData
 
+from narupatools.frame import ParticlePositions
 from narupatools.frame.converter import frame_to_pdb_string
+from narupatools.frame.frame_source import FrameSource, TrajectorySource
+from narupatools.physics.typing import Vector3Array
 
 
 class ASEStructure(nglview.Structure):
@@ -50,3 +54,37 @@ class FrameDataStructure(nglview.Structure):
     def get_structure_string(self) -> str:
         """Create a PDB string so NGLView can read in the structure."""
         return frame_to_pdb_string(self.frame)
+
+
+class NarupaToolsFrame(nglview.Structure):
+    """Wrapper around a FrameSource for use with nglview."""
+
+    def __init__(self, frame: FrameSource):
+        super().__init__()
+        self.frame = frame
+
+    def get_structure_string(self) -> str:  # noqa: D102
+        frame = self.frame.get_frame(fields=everything())
+        return frame_to_pdb_string(frame)
+
+
+class NarupaToolsTrajectory(nglview.Trajectory, nglview.Structure):
+    """Wrapper around a TrajectorySource for use with nglview."""
+
+    def __init__(self, trajectory: TrajectorySource):
+        super(nglview.Structure, self).__init__()
+        super(nglview.Trajectory, self).__init__()
+        self.trajectory = trajectory
+
+    def get_coordinates(self, index: int) -> Vector3Array:  # noqa: D102
+        frame = self.trajectory.get_frame(index=index, fields={ParticlePositions.key})
+        positions = ParticlePositions.get(frame) * 10
+        return positions  # type: ignore
+
+    @property
+    def n_frames(self) -> int:  # noqa: D102
+        return len(self.trajectory)
+
+    def get_structure_string(self) -> str:  # noqa: D102
+        frame = self.trajectory.get_frame(index=0, fields=everything())
+        return frame_to_pdb_string(frame)

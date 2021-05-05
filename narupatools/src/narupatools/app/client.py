@@ -94,9 +94,7 @@ class Client(NarupaImdClient):
         :param session: Session that is running.
         :yields: Client connected to the given session.
         """
-        with cls.connect_to_server(
-            address="localhost", port=session.server.port
-        ) as client:
+        with cls.connect_to_server(address="localhost", port=session.port) as client:
             yield client
 
     @classmethod

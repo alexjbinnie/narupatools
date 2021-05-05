@@ -67,7 +67,7 @@ class EventListener(Protocol[TCallback]):
         Remove a callback.
 
         :param callback: Function previous added using
-                         :ref:`EventListener.add_callback`.
+                         :meth:`~narupatools.core.event.EventListener.add_callback`.
         """
         ...
 

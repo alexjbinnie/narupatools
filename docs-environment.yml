@@ -13,3 +13,4 @@ dependencies:
   - infinite-sets=1.0.*
   - sphinx=3.5.*
   - sphinx-autodoc-typehints=1.12.*
+  - nbsphinx=0.8.*
