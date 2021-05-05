@@ -1,3 +1,5 @@
+[![Anaconda-Server Badge](https://anaconda.org/alexjbinnie/narupatools/badges/installer/conda.svg)](https://conda.anaconda.org/alexjbinnie) ![Conda](https://img.shields.io/conda/v/alexjbinnie/narupatools?style=flat-square) ![Conda - License](https://img.shields.io/conda/l/alexjbinnie/narupatools?style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/alexjbinnie/narupatools?style=flat-square)
+
 # narupatools Python Package
 
 This package includes extensions and utilities for working with the Narupa framework.
@@ -6,10 +8,7 @@ This package includes extensions and utilities for working with the Narupa frame
 
 This library can be installed using
 
-```pip install narupatools```
-
-Note that you will need an installation of the Narupa python libraries (and its dependencies). Instructions for this can
-be found [here](https://gitlab.com/intangiblerealities/narupa-protocol)
+```conda install narupatools -c conda-forge -c omnia -c irl -c alexjbinnie```
 
 # Disclaimer
 
