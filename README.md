@@ -1,3 +1,5 @@
+[![Anaconda-Server Badge](https://anaconda.org/alexjbinnie/narupatools/badges/installer/conda.svg)](https://conda.anaconda.org/alexjbinnie) ![Conda](https://img.shields.io/conda/v/alexjbinnie/narupatools?style=flat-square) ![Conda - License](https://img.shields.io/conda/l/alexjbinnie/narupatools?style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/alexjbinnie/narupatools?style=flat-square)
+
 # narupatools Python Package
 
 This package includes extensions and utilities for working with the Narupa framework.
