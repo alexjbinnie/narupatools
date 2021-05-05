@@ -14,3 +14,4 @@ dependencies:
   - sphinx=3.5.*
   - sphinx-autodoc-typehints=1.12.*
   - nbsphinx=0.8.*
+  - ipykernel
