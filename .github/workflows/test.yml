@@ -44,7 +44,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest -m "(not lammps)" --junit-xml pytest.xml narupatools
+        pytest -s -m "(not lammps)" --junit-xml pytest.xml narupatools
         
     - name: Publish results
       uses: EnricoMi/publish-unit-test-result-action@v1

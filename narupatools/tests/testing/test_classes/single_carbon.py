@@ -123,13 +123,14 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
     @pytest.mark.session
     def test_client_session(self, dynamics):
         with Session(port=0) as session:
+            print(f"Start Dynamics {time.monotonic()}")
             dynamics.run(block=False)
             session.show(dynamics)
 
             time.sleep(0.5)
 
             session.health_check()
-
+            print(f"Start Client {time.monotonic()}")
             with Client.connect_to_session(session) as client:
                 client.subscribe_to_frames()
                 client.wait_until_first_frame(2)
@@ -138,8 +139,10 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 assert ParticlePositions.get(frame) == pytest.approx(
                     np.array([vector(5, 5, 5)])
                 )
+            print(f"End Client {time.monotonic()}")
 
             dynamics.stop(wait=True)
+        print(f"End Session {time.monotonic()}")
 
     @pytest.mark.session
     def test_client_session_imd(self, dynamics):
