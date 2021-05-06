@@ -19,7 +19,7 @@
 # Modified under the terms of the GPL.
 
 """ASE Calculator that interfaces with OpenMM to provide forces."""
-
+import time
 from typing import Any, Collection, List, Optional, Tuple
 
 import numpy as np
@@ -90,6 +90,7 @@ class OpenMMCalculator(Calculator, CalculatorSetAtoms):
         properties: Collection[str] = ("energy", "forces"),
         system_changes: List[str] = all_changes,
     ) -> None:
+        print(f"Calculate {time.monotonic()}")
         if self.atoms is not None and (atoms is self.atoms or atoms is None):
             if self._positions_dirty:
                 self._set_positions(self.atoms.positions)
