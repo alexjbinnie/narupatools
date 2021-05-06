@@ -21,7 +21,7 @@ This format is an extension of the MDTraj trajectory format. More details may be
 in the documentation.
 """
 
-from .hdf5 import add_hdf5_writer
 from .trajectory import HDF5Trajectory
+from .writer import add_hdf5_writer
 
 __all__ = ["add_hdf5_writer", "HDF5Trajectory"]

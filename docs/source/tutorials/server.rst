@@ -23,6 +23,33 @@ The session represents the server you create and which people connect to. The se
        # Start running the dynamics indefinitely
        dynamics.run()
 
+       # Run until ctrl-C is pressed
+       session.start_loop()
+
 .. testcleanup::
 
    dynamics.stop()
+
+We need to use some kind of loop in the script to prevent it from ending. The actual dynamics and server are all running on other threads, so we simply need to keep the main thread alive. The :meth:`~narupatools.app.session.Session.start_loop` function runs an infinite loop, checking each second to see if any of the background threads have crashed out.
+
+Running in a Notebook
+---------------------
+
+When running in a notebook, you won't want to use the `with` construct, and instead want to create and close the session in separate cells:
+
+.. testcode::
+
+   session = NarupaSession.start()
+
+.. testcode::
+
+   session.close()
+
+In a notebook, you won't need the to use the :meth:`~narupatools.app.session.Session.start_loop` function, as having the notebook open keeps the other threads going.
+
+Health Checks
+-------------
+
+If one of the background threads (like the MD loop, or the loop that is sending frames to the clients) throws an exception, it won't be printed out. To actually check if this has happened, you should call the :math:`~narupatools.app.session.Session.health_check` function. This is called automatically every second when using the :meth:`~narupatools.app.session.Session.start_loop` function.
+
+If you're using a notebook and the server seems to be playing up, use the health check to make sure there hasn't been any exceptions.

@@ -15,6 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Protocol for an interactions source."""
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -39,9 +40,9 @@ class InteractionsSource(Protocol):
         ...
 
 
-def wrap_interactions(
+def wrap_interaction_source(
     dict: Mapping[str, ParticleInteraction], /
-) -> _InteractionsSourceWrapper:
+) -> InteractionsSource:
     """
     Wrap a pythonic dictionary as an interaction.
 

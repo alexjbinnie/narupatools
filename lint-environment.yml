@@ -1,8 +1,10 @@
+# Conda environment for running linters and mypy.
+# Due to the presence of the stubs folder, packages such as lxml, mdtraj
+# and lammps are not needed.
 name: narupatools-lint
 channels:
   - conda-forge
   - irl
-  - omnia
   - alexjbinnie
 dependencies:
   - python=3.8
