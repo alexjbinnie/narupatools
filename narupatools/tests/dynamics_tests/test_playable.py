@@ -64,6 +64,7 @@ def test_run(playable):
     playable.max_steps = 10
     playable.run(block=True)
     assert playable.steps == 10
+    playable.stop(wait=True)
 
 
 def test_run_is_running(playable):
@@ -73,6 +74,7 @@ def test_run_is_running(playable):
     assert playable.is_running
     assert playable.is_playing
     assert not playable.is_paused
+    playable.stop(wait=True)
 
 
 def test_play(playable):
@@ -90,6 +92,7 @@ def test_pause(playable):
     assert playable.is_running
     assert not playable.is_playing
     assert playable.is_paused
+    playable.stop(wait=True)
 
 
 @pytest.mark.timeout(4)
@@ -101,6 +104,7 @@ def test_playback_interval(playable, interval):
     time.sleep(2)
     # Accept a 10% error
     assert playable.steps == pytest.approx(2.0 / interval, rel=1e-1)
+    playable.stop(wait=True)
 
 
 @pytest.mark.timeout(4)
@@ -112,6 +116,7 @@ def test_playback_rate(playable, rate):
     time.sleep(2)
     # Accept a 20% error
     assert playable.steps == pytest.approx(2.0 * rate, rel=2e-1)
+    playable.stop(wait=True)
 
 
 def test_play_twice(playable):
@@ -132,3 +137,4 @@ def test_run_twice(playable):
     playable.run(block=False)
     with pytest.raises(RuntimeError):
         playable.run(block=False)
+    playable.stop(wait=True)

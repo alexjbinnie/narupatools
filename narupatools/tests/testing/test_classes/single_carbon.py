@@ -139,6 +139,8 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                     np.array([vector(5, 5, 5)])
                 )
 
+            dynamics.stop(wait=True)
+
     @pytest.mark.session
     def test_client_session_imd(self, dynamics):
         with Session(port=0) as session:
@@ -153,7 +155,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 client.subscribe_to_frames()
                 client.wait_until_first_frame(2)
 
-                dynamics.stop()
+                dynamics.stop(wait=True)
                 force = vector(1, 0, 0)
                 interaction_id = client.start_interaction(
                     constant_interaction(force=force, particles=[0])
@@ -170,3 +172,5 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 time.sleep(0.5)
                 dynamics.run(10)
                 assert len(dynamics.imd.current_interactions) == 0
+
+            dynamics.stop(wait=True)

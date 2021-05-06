@@ -121,6 +121,7 @@ def test_run_twice(dynamics):
     dynamics.run(block=False)
     with pytest.raises(RuntimeError):
         dynamics.run(block=False)
+    dynamics.stop(wait=True)
 
 
 def test_play(dynamics):
@@ -130,6 +131,7 @@ def test_play(dynamics):
     assert dynamics.is_playing is False
     dynamics.play()
     assert dynamics.is_playing
+    dynamics.stop(wait=True)
 
 
 def test_play_twice(dynamics):
