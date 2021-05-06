@@ -157,7 +157,15 @@ class InteractionView:
 
         where now the second sum is over adjacent timesteps.
         """
-        work = 0.0
+        return self.calculate_per_particle_work().sum()  # type: ignore
+
+    def calculate_per_particle_work(self) -> ScalarArray:
+        """
+        Calculate the work done by the interaction on each affected particle.
+
+        The work is in kilojoules per mole.
+        """
+        works = np.zeros(shape=(len(self._indices),), dtype=float)
         for rel_frame, abs_frame in enumerate(
             range(self._start_index, self._end_index)
         ):
@@ -165,14 +173,12 @@ class InteractionView:
             f1 = self._interaction.forces[rel_frame + 1]
             s0 = self._source._positions[abs_frame]
             s1 = self._source._positions[abs_frame + 1]
-            work_this_step = 0.0
             for rel_index, abs_index in enumerate(self.indices):
                 # Use trapezoidal rule to calculate single step of integral F.dS
                 F = 0.5 * (f0[rel_index] + f1[rel_index])
                 dS = s1[abs_index] - s0[abs_index]
-                work_this_step += np.dot(F, dS)
-            work += work_this_step
-        return work
+                works[rel_index] += np.dot(F, dS)
+        return works
 
     def calculate_cumulative_work(self) -> ScalarArray:
         """
@@ -243,6 +249,22 @@ class InteractionsView(Mapping[str, InteractionView]):
             return 0.0
         return sum(interaction.calculate_work() for interaction in self.values())
 
+    def calculate_per_particle_work(self) -> ScalarArray:
+        """
+        Calculate the work done by all interactions on each particle.
+
+        The work is in kilojoules per mole.
+
+        :returns: NumPy array of shape (n_particles, ), giving the total work done by
+                  all interactions on each particle.
+        """
+        works = np.zeros(dtype=float, shape=(self._source._n_atoms,))
+        if self._interactions is None:
+            return works
+        for interaction in self.values():
+            works[interaction.indices] += interaction.calculate_per_particle_work()
+        return works
+
     def calculate_cumulative_work(self) -> ScalarArray:
         """Calculate the work done by all interactions, in kilojoules per mole."""
         accum_work = np.zeros(len(self._source))
@@ -276,7 +298,7 @@ class InteractionsView(Mapping[str, InteractionView]):
 
         These forces are in kilojoules per mole per nanometer.
         """
-        forces = np.zeros((len(self._source), 3))
+        forces = np.zeros((self._source._n_frames, self._source._n_atoms, 3))
         for interaction in self.values():
             forces[interaction.frame_indices] += interaction.forces
         return forces
@@ -425,18 +447,34 @@ class HDF5Trajectory(TrajectorySource):
                 f"Can't read HDF5 trajectory - NarupaTools conventions "
                 f"{narupatools_conv_version} unsupported."
             )
-        self._topology = HDF5Topology.from_string(self._file.root.topology[0])
         self._positions = self._file.root.coordinates
+        self._n_frames, self._n_atoms, dim = self._positions.shape
+        if dim != 3:
+            raise ValueError("Trajectory does not contain 3D positions.")
+        with contextlib.suppress(NoSuchNodeError):
+            self._topology = HDF5Topology.from_string(self._file.root.topology[0])
+            if len(self._topology.atoms) != self._n_atoms:
+                raise ValueError("Topology has wrong number of atoms.")
         with contextlib.suppress(NoSuchNodeError):
             self._velocities = self._file.root.velocities
+            if self._velocities.shape != self._positions.shape:
+                raise ValueError("Position and velocity arrays have mismatched shapes.")
         with contextlib.suppress(NoSuchNodeError):
             self._forces = self._file.root.forces
+            if self._forces.shape != self._positions.shape:
+                raise ValueError("Position and forces arrays have mismatched shapes.")
         with contextlib.suppress(NoSuchNodeError):
             self._times = self._file.root.time
+            if self._times.shape != (self._n_frames,):
+                raise ValueError("Time array has mismatched shape.")
         with contextlib.suppress(NoSuchNodeError):
             self._kinetic_energies = self._file.root.kineticEnergy
+            if self._kinetic_energies.shape != (self._n_frames,):
+                raise ValueError("Kinetic energy array has mismatched shape.")
         with contextlib.suppress(NoSuchNodeError):
             self._potential_energies = self._file.root.potentialEnergy
+            if self._potential_energies.shape != (self._n_frames,):
+                raise ValueError("Potential energy array has mismatched shape.")
 
         self._interactions: InteractionsView = InteractionsView(self)
         with contextlib.suppress(NoSuchNodeError):
@@ -458,7 +496,12 @@ class HDF5Trajectory(TrajectorySource):
         return self._interactions
 
     def __len__(self) -> int:
-        return len(self._positions)
+        return self._n_frames  # type: ignore
+
+    @property
+    def topology(self) -> HDF5Topology:
+        """Topology stored with the trajectory."""
+        return self._topology
 
     @property
     def positions(self) -> Vector3Array:
@@ -493,19 +536,25 @@ class HDF5Trajectory(TrajectorySource):
     def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
     ) -> FrameData:
-        frame = self._topology.get_frame(fields=fields)
+        frame = FrameData()
+        with contextlib.suppress(AttributeError):
+            frame = self._topology.get_frame(fields=fields)
         if ParticleCount.key in fields:
             ParticleCount.set(frame, len(self._positions[0]))
         if ParticlePositions.key in fields:
             ParticlePositions.set(frame, self._positions[index])
         if ParticleVelocities.key in fields:
-            ParticleVelocities.set(frame, self._velocities[index])
+            with contextlib.suppress(AttributeError):
+                ParticleVelocities.set(frame, self._velocities[index])
         if ParticleForces.key in fields:
-            ParticleForces.set(frame, self._forces[index])
+            with contextlib.suppress(AttributeError):
+                ParticleForces.set(frame, self._forces[index])
         if PotentialEnergy.key in fields:
-            PotentialEnergy.set(frame, self._potential_energies[index])
+            with contextlib.suppress(AttributeError):
+                PotentialEnergy.set(frame, self._potential_energies[index])
         if KineticEnergy.key in fields:
-            KineticEnergy.set(frame, self._kinetic_energies[index])
+            with contextlib.suppress(AttributeError):
+                KineticEnergy.set(frame, self._kinetic_energies[index])
         return frame
 
     def __repr__(self) -> str:

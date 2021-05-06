@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import time
 from abc import ABCMeta
 from contextlib import contextmanager
 from types import TracebackType
@@ -290,3 +291,17 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     def name(self) -> str:
         """Name of the session."""
         return self._server.name
+
+    def start_loop(self) -> None:
+        """
+        Run an infinite loop waiting for a keyboard interruption.
+
+        This checks the health of the session every second to catch any exceptions
+        occurring on one of the background threads.
+        """
+        while True:
+            try:
+                time.sleep(1)
+                self.health_check()
+            except KeyboardInterrupt:
+                return

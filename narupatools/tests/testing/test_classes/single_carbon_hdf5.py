@@ -1,3 +1,4 @@
+import os
 from abc import ABCMeta, abstractmethod
 from tempfile import NamedTemporaryFile
 
@@ -7,6 +8,9 @@ import pytest
 
 from narupatools.frame.hdf5 import HDF5Trajectory, add_hdf5_writer
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
+from narupatools.imd.interaction_source import (
+    wrap_interaction_source,
+)
 from narupatools.physics.vector import vector
 
 
@@ -22,9 +26,10 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
 
     @pytest.fixture
     def hdf5_filename(self):
-        file = NamedTemporaryFile(suffix=".h5", delete=False, mode="w")
-        yield file.name
+        file = NamedTemporaryFile(suffix=".h5", delete=True, mode="w")
+        filename = file.name
         file.close()
+        return filename
 
     @pytest.fixture
     @abstractmethod
@@ -102,6 +107,8 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
             dynamics.imd.total_work / 0.6, rel=1e-3
         )
 
+        assert traj2.interactions.forces.shape == (101, 1, 3)
+
     def test_hdf5_writer_multiple_interactions(self, dynamics, hdf5_filename):
         writer = add_hdf5_writer(
             dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
@@ -137,3 +144,83 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
             interaction1.calculate_work() + interaction2.calculate_work()
             == pytest.approx(traj2.interactions.calculate_work())
         )
+
+    def test_hdf5_on_reset(self, dynamics, hdf5_filename):
+        writer = add_hdf5_writer(
+            dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
+        )
+        dynamics.run(25)
+
+        interactions = {}
+        dynamics.imd.add_dynamic_interactions_source(
+            wrap_interaction_source(interactions)
+        )
+
+        key = "my_interaction"
+        interactions[key] = constant_interaction(
+            force=vector(50.0, 0.0, 0.0), particles=[0]
+        )
+
+        dynamics.run(25)
+
+        dynamics.reset()
+
+        dynamics.run(25)
+
+        interactions.clear()
+
+        dynamics.run(25)
+
+        writer.close()
+
+        assert os.path.exists(hdf5_filename)
+        hdf_file_name, hdf_file_ext = os.path.splitext(hdf5_filename)
+        hdf_filename2 = hdf_file_name + "-2" + hdf_file_ext
+        assert os.path.exists(hdf_filename2)
+
+        traj1 = HDF5Trajectory.load_file(hdf5_filename)
+        traj2 = HDF5Trajectory.load_file(hdf_filename2)
+
+        assert len(traj1.interactions) == 1
+        assert len(traj2.interactions) == 1
+
+        assert traj1.interactions[key].frame_range == range(25, 51)
+        assert traj2.interactions[key].frame_range == range(0, 26)
+
+        assert traj1.times[0] == pytest.approx(0.0)
+        assert traj2.times[0] == pytest.approx(0.0)
+
+    def test_hdf5_file_exists(self, dynamics, hdf5_filename):
+        with open(hdf5_filename, "a"):
+            pass
+
+        with pytest.raises(FileExistsError):
+            _ = add_hdf5_writer(
+                dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
+            )
+
+    def test_hdf5_suffix(self, dynamics, hdf5_filename):
+        hdf_file_name, hdf_file_ext = os.path.splitext(hdf5_filename)
+        hdf5_filename2 = hdf_file_name + "-2" + hdf_file_ext
+        hdf5_filename3 = hdf_file_name + "-3" + hdf_file_ext
+
+        with open(hdf5_filename2, "a"):
+            pass
+
+        assert not os.path.exists(hdf5_filename3)
+
+        writer = add_hdf5_writer(
+            dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
+        )
+
+        dynamics.run(10)
+        dynamics.reset()
+        dynamics.run(10)
+
+        writer.close()
+
+        assert os.path.exists(hdf5_filename3)
+
+    def test_hdf5_load_missing_file(self, dynamics, hdf5_filename):
+        with pytest.raises(OSError):  # noqa: PT011
+            HDF5Trajectory.load_file(hdf5_filename)

@@ -29,6 +29,7 @@ from narupatools.frame import (
     ChainCount,
     ParticleCount,
     ParticleElements,
+    ParticleMasses,
     ParticleNames,
     ParticleResidues,
     ResidueChains,
@@ -58,6 +59,7 @@ def generate_topology(frame: FrameData, /) -> bytes:
     atom_residues = ParticleResidues.get_with_default(
         frame, default=itertools.repeat(0)
     )
+    atom_masses = ParticleMasses.get_with_default(frame, default=itertools.repeat(None))
 
     chains = []
     residues = []
@@ -77,18 +79,19 @@ def generate_topology(frame: FrameData, /) -> bytes:
         residues.append(res)
         chains[res_chain]["residues"].append(res)
 
-    for atom_index, atom_name, atom_element, atom_res in zip(
-        range(atom_count), atom_names, atom_elements, atom_residues
+    for atom_index, atom_name, atom_element, atom_res, atom_mass in zip(
+        range(atom_count), atom_names, atom_elements, atom_residues, atom_masses
     ):
-        residues[atom_res]["atoms"].append(
-            {
-                "index": atom_index,
-                "name": atom_name,
-                "element": Z2SYMB[atom_element]
-                if (atom_element is not None and atom_element != 0)
-                else "",
-            }
-        )
+        atom = {
+            "index": atom_index,
+            "name": atom_name,
+            "element": Z2SYMB[atom_element]
+            if (atom_element is not None and atom_element != 0)
+            else "",
+        }
+        if atom_mass is not None:
+            atom["mass"] = atom_mass
+        residues[atom_res]["atoms"].append(atom)
 
     topology = {"bonds": bonds, "chains": chains}
 

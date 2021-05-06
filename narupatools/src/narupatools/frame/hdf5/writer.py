@@ -18,34 +18,84 @@
 
 from __future__ import annotations
 
+import os
+from time import monotonic as time_monotonic
 from types import TracebackType
-from typing import Dict, Optional, Tuple, Type
+from typing import Any, Dict, Optional, Tuple, Type
 
 import numpy as np
 import tables
+from infinite_sets import everything
 from narupa.imd import ParticleInteraction
 from narupa.trajectory import FrameData
 from tables import EArray, Float32Atom, Group
 
 import narupatools
+from narupatools.imd import InteractiveSimulationDynamics
 from .utils import generate_topology
 
 
 class HDF5Writer:
     """Writer for HDF5 trajectory containing interactive forces."""
 
-    def __init__(self, filename: str, title: str = ""):
-        self._file = tables.open_file(filename, mode="w", title=title)
+    def __init__(
+        self,
+        filename: str,
+        *,
+        title: Optional[str] = None,
+        author: Optional[str] = None,
+        overwrite_existing: bool = False,
+    ):
+        self._setup(
+            filename, title=title, author=author, overwrite_existing=overwrite_existing
+        )
+
+    def _setup(
+        self,
+        filename: str,
+        *,
+        title: Optional[str] = None,
+        author: Optional[str] = None,
+        overwrite_existing: bool = False,
+    ) -> None:
+        if not overwrite_existing and os.path.exists(filename):
+            raise FileExistsError(filename)
+        self._file = tables.open_file(filename, mode="w", title=title or "")
         self._add_global_attributes()
+        if author is not None:
+            self._file.root._v_attrs["author"] = str(author)
         self._coordinates: Optional[EArray] = None
         self._forces: Optional[EArray] = None
         self._velocities: Optional[EArray] = None
         self._time: Optional[EArray] = None
+        self._realtime: Optional[EArray] = None
         self._kinetic_energy: Optional[EArray] = None
         self._potential_energy: Optional[EArray] = None
         self._interactions: Optional[Group] = None
         self._has_saved_topology: bool = False
+        self._start_realtime: Optional[float] = None
         self._per_interaction: Dict[str, Group] = {}
+        self._closed = False
+
+    def reopen(
+        self,
+        filename: str,
+        *,
+        title: Optional[str] = None,
+        author: Optional[str] = None,
+    ) -> None:
+        """
+        Reopen a writer for a different file, discarding the old state.
+
+        This closes the previous file.
+
+        :param filename: Name of the file to write to.
+        :param title: Title to add to the trajectory.
+        :param author: Name of the author.
+        """
+        if not self._closed:
+            self.close()
+        self._setup(filename, title=title, author=author)
 
     def __enter__(self) -> HDF5Writer:
         return self
@@ -73,7 +123,7 @@ class HDF5Writer:
         title: str,
         shape: Tuple[int, ...],
         units: Optional[str] = None,
-        parent: Optional[Group] = None
+        parent: Optional[Group] = None,
     ) -> EArray:
         if parent is None:
             parent = self._file.root
@@ -97,6 +147,15 @@ class HDF5Writer:
                 name="time", title="Time", shape=(), units="picoseconds"
             )
         return self._time
+
+    @property
+    def realtime(self) -> EArray:
+        """Array of real times in seconds since the first frame."""
+        if self._realtime is None:
+            self._realtime = self._create_array(
+                name="realtime", title="Real Time", shape=(), units="seconds"
+            )
+        return self._realtime
 
     @property
     def coordinates(self) -> EArray:
@@ -169,7 +228,12 @@ class HDF5Writer:
 
     def close(self) -> None:
         """Close the file being written to."""
+        for key in list(self._per_interaction.keys()):
+            self.end_interaction(
+                key=key, frame_index=len(self._coordinates) or 0  # type: ignore
+            )
         self._file.close()
+        self._closed = True
 
     def save_topology(self, frame: FrameData) -> None:
         """
@@ -184,10 +248,11 @@ class HDF5Writer:
 
     def save_frame(
         self,
+        *,
         coordinates: np.ndarray,
         time: float,
-        potentialEnergy: float,
-        kineticEnergy: float,
+        potential_energy: float,
+        kinetic_energy: float,
         velocities: Optional[np.ndarray] = None,
         forces: Optional[np.ndarray] = None,
     ) -> None:
@@ -197,8 +262,8 @@ class HDF5Writer:
         :param coordinates: Atomic coordinates in nanometers.
         :param velocities: Atomic velocities in nanometers per picoseconds.
         :param time: Time in picoseconds.
-        :param potentialEnergy: Potential energy in kilojoules per mole.
-        :param kineticEnergy: Kinetic energy in kilojoules per mole.
+        :param potential_energy: Potential energy in kilojoules per mole.
+        :param kinetic_energy: Kinetic energy in kilojoules per mole.
         :param forces: Atomic forces in kilojoules per mole per nanometer.
         """
         if not hasattr(self, "n_atoms"):
@@ -210,8 +275,14 @@ class HDF5Writer:
         if forces is not None:
             self.forces.append(np.array([forces]))
         self.time.append(np.array([time]))
-        self.potential_energy.append(np.array([potentialEnergy]))
-        self.kinetic_energy.append(np.array([kineticEnergy]))
+        if self._start_realtime is None:
+            self._start_realtime = time_monotonic()
+            self.realtime.append(np.array([0]))
+        else:
+            self.realtime.append(np.array([time_monotonic() - self._start_realtime]))
+
+        self.potential_energy.append(np.array([potential_energy]))
+        self.kinetic_energy.append(np.array([kinetic_energy]))
 
         self._file.flush()
 
@@ -222,7 +293,7 @@ class HDF5Writer:
         interaction: ParticleInteraction,
         frame_index: int,
         potential_energy: Optional[float] = None,
-        forces: Optional[np.ndarray] = None
+        forces: Optional[np.ndarray] = None,
     ) -> None:
         """
         Save an IMD interaction to the trajectory.
@@ -303,7 +374,7 @@ class HDF5Writer:
         interaction: ParticleInteraction,
         frame_index: int,
         potential_energy: Optional[float] = None,
-        forces: Optional[np.ndarray] = None
+        forces: Optional[np.ndarray] = None,
     ) -> None:
         """
         Save an IMD interaction to the trajectory.
@@ -332,5 +403,98 @@ class HDF5Writer:
         :param key: Key of the interaction.
         :param frame_index: Current frame of the simulation.
         """
+        if key not in self._per_interaction:
+            return
         self._per_interaction[key]._v_attrs["endIndex"] = frame_index
         del self._per_interaction[key]
+
+
+def add_hdf5_writer(
+    dynamics: InteractiveSimulationDynamics,
+    *,
+    filename: str,
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    write_velocities: bool = True,
+    overwrite_existing: bool = False,
+) -> HDF5Writer:
+    """
+    Add an HDF5 Writer to interactive dynamics.
+
+    :param dynamics: Dynamics to attach this writer to.
+    :param filename: Filename to write to.
+    :param title: Optional title for this trajectory.
+    :param author: Optional author to store with the trajectory.
+    :param write_velocities: Should this writer write velocities?
+    :param overwrite_existing: Should an existing file be overwritten?
+    :return: HDF5 writer that is listening to the trajectory.
+    """
+    fullfilename, extension = os.path.splitext(filename)
+
+    writer = HDF5Writer(
+        filename=fullfilename + extension,
+        title=title,
+        author=author,
+        overwrite_existing=overwrite_existing,
+    )
+    has_logged_initial = False
+
+    def log_initial(**kwargs: Any) -> None:
+        nonlocal writer
+        nonlocal has_logged_initial
+
+        for interaction in dynamics.imd.current_interactions.values():
+            writer.create_interaction(
+                key=interaction.key,
+                interaction=interaction.interaction,
+                frame_index=dynamics.elapsed_steps,
+                potential_energy=interaction.potential_energy,
+                forces=interaction.forces,
+            )
+
+        if has_logged_initial:
+            return
+
+        log_step(**kwargs)
+        writer.save_topology(dynamics.get_frame(everything()))
+        has_logged_initial = True
+
+    def log_step(**kwargs: Any) -> None:
+        nonlocal writer
+        writer.save_frame(
+            coordinates=dynamics.positions,
+            velocities=dynamics.velocities if write_velocities else None,
+            forces=dynamics.forces,
+            kinetic_energy=dynamics.kinetic_energy,
+            potential_energy=dynamics.potential_energy,
+            time=dynamics.elapsed_time,
+        )
+        for interaction in dynamics.imd.current_interactions.values():
+            writer.save_interaction(
+                key=interaction.key,
+                interaction=interaction.interaction,
+                frame_index=dynamics.elapsed_steps,
+                potential_energy=interaction.potential_energy,
+                forces=interaction.forces,
+            )
+
+    def log_end_interaction(key: str, **kwargs: Any) -> None:
+        nonlocal writer
+        writer.end_interaction(key=key, frame_index=dynamics.total_steps)
+
+    def on_reset(**kwargs: Any) -> None:
+        nonlocal writer
+        nonlocal has_logged_initial
+        writer.close()
+        suffix = 2
+        while os.path.exists(new_filename := f"{fullfilename}-{suffix}{extension}"):
+            suffix += 1
+        writer.reopen(filename=new_filename, title=title, author=author)
+        has_logged_initial = False
+
+    dynamics.on_pre_step.add_callback(log_initial)
+    dynamics.on_post_step.add_callback(log_step)
+    dynamics.on_reset.add_callback(on_reset)
+    dynamics.imd.on_end_interaction.add_callback(log_end_interaction)
+
+    return writer

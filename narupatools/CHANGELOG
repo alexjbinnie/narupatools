@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2021-05-06
+### Added
+- Added a `start_loop` function to Session, which does the standard infinite loop with health checking and keyboard interrupting.
+
+### Changed
+- Playable.run gained typing overloads.
+- When a Playable is cancelled, the fact it was cancelled is now stored locally within the method.
+- HDF5Writer will throw an error instead of overwriting a file.
+
+### Fixed
+- VERSION was not include in python package.
+
 ## [1.0.0] - 2021-05-05
 ### Added
 - Now a conda recipe!
