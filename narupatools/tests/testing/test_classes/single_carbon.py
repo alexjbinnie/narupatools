@@ -1,11 +1,12 @@
-import time
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 import pytest
+from infinite_sets import everything
 
 from narupatools.app import Client, Session
-from narupatools.frame import ParticleElements, ParticlePositions
+from narupatools.core.timing import wait_for
+from narupatools.frame import ParticlePositions
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import dot_product, sqr_magnitude, vector, zero_vector
 
@@ -82,12 +83,12 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         dynamics.run(100)
         assert len(dynamics.imd.current_interactions) == 1
         assert dynamics.forces[0] == pytest.approx(force)
-        time = dynamics.elapsed_time
+        elapsed_time = dynamics.elapsed_time
         mass = dynamics.masses[0]
-        position = vector(5, 5, 5) + 0.5 / mass * time * time * force
-        velocity = force * time / mass
+        position = vector(5, 5, 5) + 0.5 / mass * elapsed_time * elapsed_time * force
+        velocity = force * elapsed_time / mass
         work = dot_product(force, position - vector(5, 5, 5))
-        assert time == pytest.approx(1)
+        assert elapsed_time == pytest.approx(1)
         assert dynamics.positions[0] == pytest.approx(position)
         assert dynamics.velocities[0] == pytest.approx(velocity)
         assert dynamics.imd.total_work == pytest.approx(work, rel=1e-3)
@@ -115,24 +116,21 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         assert dynamics.imd.total_work == pytest.approx(dot_product(force, dS))
 
     def test_get_frame(self, dynamics):
-        frame = dynamics.get_frame({ParticlePositions.key, ParticleElements.key})
+        frame = dynamics.get_frame(everything())
         assert ParticlePositions.get(frame) == pytest.approx(
             np.array([vector(5, 5, 5)])
         )
 
     @pytest.mark.session
     def test_client_session(self, dynamics):
-        with Session(port=0) as session:
-            dynamics.run(block=False)
+        with Session(port=0, run_discovery=False) as session:
             session.show(dynamics)
-
-            time.sleep(0.5)
 
             session.health_check()
 
             with Client.connect_to_session(session) as client:
                 client.subscribe_to_frames()
-                client.wait_until_first_frame(2)
+                client.wait_until_first_frame(timeout=2)
 
                 frame = client.current_frame
                 assert ParticlePositions.get(frame) == pytest.approx(
@@ -141,24 +139,22 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
 
     @pytest.mark.session
     def test_client_session_imd(self, dynamics):
-        with Session(port=0) as session:
-            dynamics.run(block=False)
+        with Session(port=0, run_discovery=False) as session:
             session.show(dynamics)
-
-            time.sleep(0.5)
 
             session.health_check()
 
             with Client.connect_to_session(session) as client:
                 client.subscribe_to_frames()
-                client.wait_until_first_frame(2)
+                client.wait_until_first_frame(timeout=2)
 
-                dynamics.stop()
                 force = vector(1, 0, 0)
                 interaction_id = client.start_interaction(
                     constant_interaction(force=force, particles=[0])
                 )
-                time.sleep(0.5)
+
+                wait_for(lambda: interaction_id in session.shared_state)
+
                 dynamics.run(10)
                 assert len(dynamics.imd.current_interactions) == 1
                 t = dynamics.timestep * 10
@@ -167,6 +163,8 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 assert dynamics.positions[0] == pytest.approx(position)
 
                 client.stop_interaction(interaction_id)
-                time.sleep(0.5)
+
+                wait_for(lambda: interaction_id not in session.shared_state)
+
                 dynamics.run(10)
                 assert len(dynamics.imd.current_interactions) == 0

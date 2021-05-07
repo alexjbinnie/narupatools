@@ -45,6 +45,6 @@ def client(session):
 
 def test_client_gets_frame(session_villin_openmm, client):
     client.subscribe_to_frames()
-    client.wait_until_first_frame(2)
+    client.wait_until_first_frame(timeout=2)
     assert ParticlePositions.key in client.current_frame
     assert ParticlePositions.key in client.current_frame.copy()

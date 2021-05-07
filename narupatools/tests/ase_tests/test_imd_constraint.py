@@ -37,7 +37,10 @@ def carbon_atoms(single_carbon_atoms):
 def constraint(carbon_atoms):
     interaction = constant_interaction(force=[-1.0, 0.0, 0.0], particles=[0])
     constraint = InteractionConstraint(
-        dynamics=None, key="abc", interaction=interaction, start_time=0.0
+        dynamics=carbon_atoms,
+        key="abc",
+        interaction=interaction,
+        start_time=0.0,
     )
     carbon_atoms.constraints.append(constraint)
     return constraint

@@ -16,6 +16,10 @@
 
 """An ASE constraint that triggers events when things change."""
 
+from __future__ import annotations
+
+from typing import Optional
+
 import numpy as np
 from ase.atoms import Atoms
 from narupa.utilities.event import Event
@@ -68,3 +72,32 @@ class ASEObserver(ASECellConstraint, ASEMomentaConstraint):
         self, atoms: Atoms, momenta: np.ndarray, /
     ) -> None:  # noqa: D102
         self._on_set_momenta.invoke()
+
+    @classmethod
+    def get_or_create(cls, atoms: Atoms) -> ASEObserver:
+        """
+        Get the observer for the given Atoms, or add a new one.
+
+        :param atoms: Atoms object to look for an attached observer.
+        :returns: Found observer, or a newly created one which is added to the atoms
+                  object.
+        """
+        constraint = cls.get(atoms)
+        if constraint is not None:
+            return constraint
+        constraint = cls()
+        atoms.constraints.append(constraint)
+        return constraint
+
+    @classmethod
+    def get(cls, atoms: Atoms) -> Optional[ASEObserver]:
+        """
+        Get the observer for the given Atoms, or None if one does not exist.
+
+        :param atoms: Atoms object to look for an attached observer.
+        :returns: Found observer.
+        """
+        for constraint in atoms.constraints:
+            if isinstance(constraint, ASEObserver):
+                return constraint
+        return None

@@ -19,7 +19,7 @@
 # Modified under the terms of the GPL.
 
 """ASE Calculator that interfaces with OpenMM to provide forces."""
-
+from threading import Lock
 from typing import Any, Collection, List, Optional, Tuple
 
 import numpy as np
@@ -50,11 +50,14 @@ class OpenMMCalculator(Calculator, CalculatorSetAtoms):
 
     implemented_properties = ["energy", "forces"]
 
-    def __init__(self, simulation: Simulation, **kwargs: Any):
+    def __init__(
+        self, simulation: Simulation, atoms: Optional[Atoms] = None, **kwargs: Any
+    ):
         """
         Create a calculator for the given simulation.
 
         :param simulation: OpenMM simulation to use as a calculator.
+        :param atoms: Atoms object to which this calculator will be attached.
         :param kwargs: Dictionary of keywords to pass to the base ASE calculator.
         """
         super().__init__(**kwargs)
@@ -62,7 +65,23 @@ class OpenMMCalculator(Calculator, CalculatorSetAtoms):
         self._positions_dirty: bool = True
         self._energy: Optional[float] = None
         self._forces: Optional[Vector3Array] = None
-        self._position_observer = ASEObserver()
+        self._position_observer: Optional[ASEObserver] = None
+        self._atoms: Optional[Atoms] = None
+        if atoms is not None:
+            self.set_atoms(atoms)
+        self._calculate_lock = Lock()
+
+    def _add_callback(self, atoms: Atoms) -> None:
+        if self._position_observer in atoms.constraints:
+            return
+        observer = ASEObserver.get_or_create(atoms)
+        if self._position_observer is observer:
+            return
+        if self._position_observer is not None:
+            self._position_observer.on_set_positions.remove_callback(
+                self._mark_positions_as_dirty
+            )
+        self._position_observer = observer
         self._position_observer.on_set_positions.add_callback(
             self._mark_positions_as_dirty
         )
@@ -73,11 +92,9 @@ class OpenMMCalculator(Calculator, CalculatorSetAtoms):
 
         :param atoms: ASE atoms object this calculator has been assigned to.
         """
-        if self.atoms is not None:
-            self.atoms.constraints.remove(self._position_observer)
-        self.atoms = atoms
+        self._atoms = atoms
         self._ensure_atoms_valid(atoms)
-        self.atoms.constraints.append(self._position_observer)
+        self._add_callback(atoms)
         self._mark_positions_as_dirty()
 
     def _mark_positions_as_dirty(self, **kwargs: Any) -> None:
@@ -90,22 +107,23 @@ class OpenMMCalculator(Calculator, CalculatorSetAtoms):
         properties: Collection[str] = ("energy", "forces"),
         system_changes: List[str] = all_changes,
     ) -> None:
-        if self.atoms is not None and (atoms is self.atoms or atoms is None):
-            if self._positions_dirty:
-                self._set_positions(self.atoms.positions)
-                self._positions_dirty = False
+        with self._calculate_lock:
+            if self._atoms is not None and (atoms is self._atoms or atoms is None):
+                if self._positions_dirty:
+                    self._set_positions(self._atoms.positions)
+                    self._positions_dirty = False
+                    self._energy, self._forces = self._calculate_openmm()
+            elif atoms is not None:
+                self._ensure_atoms_valid(atoms)
+                self._set_positions(atoms.positions)
+                self._positions_dirty = True
                 self._energy, self._forces = self._calculate_openmm()
-        elif atoms is not None:
-            self._ensure_atoms_valid(atoms)
-            self._set_positions(atoms.positions)
-            self._positions_dirty = True
-            self._energy, self._forces = self._calculate_openmm()
-            self.set_atoms(atoms)
-        else:
-            raise CalculatorSetupError("Atoms not set.")
+                self.set_atoms(atoms)
+            else:
+                raise CalculatorSetupError("Atoms not set.")
 
-        self.results["energy"] = self._energy
-        self.results["forces"] = self._forces
+            self.results["energy"] = self._energy
+            self.results["forces"] = self._forces
 
     def _calculate_openmm(self) -> Tuple[float, np.ndarray]:
         state = self._context.getState(getEnergy=True, getForces=True)
