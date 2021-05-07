@@ -52,11 +52,10 @@ class LAMMPSCalculator(Calculator):
         self._atoms = atoms
 
         if atoms is not None:
-            _position_observer = ASEObserver()
+            _position_observer = ASEObserver.get_or_create(atoms)
             _position_observer.on_set_positions.add_callback(
                 self._mark_positions_as_dirty
             )
-            atoms.constraints.append(_position_observer)
         self._positions_dirty = True
 
         self._energy = 0.0

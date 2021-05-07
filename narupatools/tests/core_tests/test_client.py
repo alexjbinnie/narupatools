@@ -19,6 +19,7 @@ import time
 import pytest
 
 from narupatools.app import Client, Session
+from narupatools.core.timing import wait_for
 from narupatools.frame import ParticlePositions
 
 
@@ -45,6 +46,6 @@ def client(session):
 
 def test_client_gets_frame(session_villin_openmm, client):
     client.subscribe_to_frames()
-    client.wait_until_first_frame(2)
+    wait_for(lambda: ParticlePositions.key in client.current_frame)
     assert ParticlePositions.key in client.current_frame
     assert ParticlePositions.key in client.current_frame.copy()

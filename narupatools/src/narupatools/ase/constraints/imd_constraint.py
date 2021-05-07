@@ -18,7 +18,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Protocol, Tuple
+from typing import Optional, Protocol, Tuple, Union
 
 import numpy as np
 from ase.atoms import Atoms
@@ -44,6 +44,15 @@ class ASEAtomsWrapper(Protocol):
         ...
 
 
+class _ASEAtomsWrapper(ASEAtomsWrapper):
+    def __init__(self, atoms: Atoms):
+        self._atoms = atoms
+
+    @property
+    def atoms(self) -> Atoms:
+        return self._atoms
+
+
 class InteractionConstraint(
     Interaction[ASEAtomsWrapper], ASEEnergyConstraint, ASEMomentaConstraint
 ):
@@ -57,7 +66,7 @@ class InteractionConstraint(
     def __init__(
         self,
         *,
-        dynamics: ASEAtomsWrapper,
+        dynamics: Union[Atoms, ASEAtomsWrapper],
         key: str,
         interaction: ParticleInteraction,
         start_time: float,
@@ -70,10 +79,12 @@ class InteractionConstraint(
         :param interaction: Initial parameters of the interaction.
         :param start_time: Start time of interaction in simulation time in picoseconds
         """
+        if isinstance(dynamics, Atoms):
+            dynamics = _ASEAtomsWrapper(dynamics)
         super().__init__(
             dynamics=dynamics, key=key, interaction=interaction, start_time=start_time
         )
-        self._atoms: Optional[Atoms] = None
+        self._atoms: Optional[Atoms] = dynamics.atoms
 
     def _invalidate_forces_and_energy(self) -> None:
         self._atoms = None

@@ -22,8 +22,7 @@ from testing import assert_event_called
 
 @pytest.fixture
 def observer(ethane_atoms):
-    observer = ASEObserver()
-    ethane_atoms.constraints.append(observer)
+    observer = ASEObserver.get_or_create(ethane_atoms)
     return observer
 
 

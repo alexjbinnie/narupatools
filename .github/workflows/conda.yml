@@ -6,6 +6,7 @@ jobs:
   run-linters:
     name: Build Conda package
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         shell: bash -l {0}
