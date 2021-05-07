@@ -5,7 +5,7 @@ import pytest
 from infinite_sets import everything
 
 from narupatools.app import Client, Session
-from narupatools.core.timing import wait_for, wait_until_event
+from narupatools.core.timing import wait_for
 from narupatools.frame import ParticlePositions
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import dot_product, sqr_magnitude, vector, zero_vector
@@ -130,7 +130,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
 
             with Client.connect_to_session(session) as client:
                 client.subscribe_to_frames()
-                client.wait_until_first_frame(timeout=2)
+                wait_for(lambda: ParticlePositions.key in client.current_frame)
 
                 frame = client.current_frame
                 assert ParticlePositions.get(frame) == pytest.approx(
@@ -140,14 +140,13 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
     @pytest.mark.session
     def test_client_session_imd(self, dynamics):
         with Session(port=0, run_discovery=False) as session:
-            with wait_until_event(session.frame_produced):
-                session.show(dynamics)
+            session.show(dynamics)
 
             session.health_check()
 
             with Client.connect_to_session(session) as client:
                 client.subscribe_to_frames()
-                client.wait_until_first_frame(timeout=2)
+                wait_for(lambda: ParticlePositions.key in client.current_frame)
 
                 force = vector(1, 0, 0)
                 interaction_id = client.start_interaction(

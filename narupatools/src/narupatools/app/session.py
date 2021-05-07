@@ -39,11 +39,11 @@ from narupa.trajectory.frame_server import (
 
 from narupatools.core.broadcastable import Broadcastable, Broadcaster
 from narupatools.core.dynamics import SimulationDynamics
-from narupatools.core.event import Event, EventListener
+from narupatools.core.event import Event
 from narupatools.core.health_check import HealthCheck
 from narupatools.core.playable import Playable
 from narupatools.frame import KineticEnergy, ParticlePositions, PotentialEnergy
-from narupatools.frame.frame_producer import FrameProducer, OnFrameProducedCallback
+from narupatools.frame.frame_producer import FrameProducer
 from narupatools.frame.frame_source import FrameSource
 from narupatools.state.view.wrappers import SharedStateServerWrapper
 from .shared_state import SharedStateView
@@ -96,9 +96,6 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._frame_producer = FrameProducer(self._produce_frame)
         self._frame_producer.on_frame_produced.add_callback(self._on_frame_produced)
         self._frame_producer.start(block=False)
-        self._frame_produced: Event[OnFrameProducedCallback] = Event(
-            OnFrameProducedCallback
-        )
 
         self._shared_state = SharedStateView(
             SharedStateServerWrapper(self._server.server)
@@ -130,11 +127,6 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     def _on_frame_produced(self, *, frame: FrameData, **kwargs: Any) -> None:
         self._server.frame_publisher.send_frame(self.frame_index, frame)
         self.frame_index += 1
-        self._frame_produced.invoke(frame=frame, **kwargs)
-
-    @property
-    def frame_produced(self) -> EventListener[OnFrameProducedCallback]:
-        return self._frame_produced
 
     def run(self, *, block: bool = False) -> None:
         """
