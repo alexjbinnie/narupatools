@@ -5,7 +5,7 @@ import pytest
 from infinite_sets import everything
 
 from narupatools.app import Client, Session
-from narupatools.core.timing import wait_for
+from narupatools.core.timing import wait_for, wait_until_event
 from narupatools.frame import ParticlePositions
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import dot_product, sqr_magnitude, vector, zero_vector
@@ -140,7 +140,8 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
     @pytest.mark.session
     def test_client_session_imd(self, dynamics):
         with Session(port=0, run_discovery=False) as session:
-            session.show(dynamics)
+            with wait_until_event(session.frame_produced):
+                session.show(dynamics)
 
             session.health_check()
 

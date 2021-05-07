@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.1] - 2021-05-07
 ### Added
-- narupatools.core.timing.wait_for checks a predicate at an interval until a timeout. Useful for replacing fixed time.sleep calls in tests.
+- narupatools.core.timing for checking predicates at an interval until a timeout. Useful for replacing fixed time.sleep calls in tests.
 
 ### Fixed
 - Bug with OpenMM calculator where observers were added every frame. Now there is only up to one ASEObserver per Atoms.
