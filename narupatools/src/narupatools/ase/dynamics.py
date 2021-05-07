@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+from threading import Lock
 from typing import Generic, Optional, TypeVar
 
 import numpy as np
@@ -73,6 +74,7 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
         self._initial_momenta = self.atoms.get_momenta()
         self._initial_box = self.atoms.get_cell()
         self._imd = ASEIMDFeature(self)
+        self._atom_lock = Lock()
 
     @staticmethod
     def from_ase_dynamics(
@@ -166,12 +168,14 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
         return self._dynamics
 
     def _step_internal(self) -> None:
-        self._dynamics.run(1)
+        with self._atom_lock:
+            self._dynamics.run(1)
 
     def _reset_internal(self) -> None:
-        self.atoms.set_positions(self._initial_positions)
-        self.atoms.set_momenta(self._initial_momenta)
-        self.atoms.set_cell(self._initial_box)
+        with self._atom_lock:
+            self.atoms.set_positions(self._initial_positions)
+            self.atoms.set_momenta(self._initial_momenta)
+            self.atoms.set_cell(self._initial_box)
 
     @property
     def timestep(self) -> float:  # noqa: D102
@@ -184,14 +188,16 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         frame = FrameData()
         if self._universe:
-            ase_atoms_to_frame(self.atoms, fields=fields, frame=frame)
+            with self._atom_lock:
+                ase_atoms_to_frame(self.atoms, fields=fields, frame=frame)
             added_fields = set(frame.arrays.keys()) | set(frame.values.keys())
             mdanalysis_universe_to_frame(
                 self._universe, fields=fields - added_fields, frame=frame
             )
             return frame
         else:
-            ase_atoms_to_frame(self.atoms, fields=fields, frame=frame)
+            with self._atom_lock:
+                ase_atoms_to_frame(self.atoms, fields=fields, frame=frame)
         return frame
 
     @property

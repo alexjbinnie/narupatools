@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bug with OpenMM calculator where observers were added every frame. Now there is only up to one ASEObserver per Atoms.
 - Tests were using wait_until_next_frame wrong.
 - Sessions in tests use the run_discovery=False flag to avoid wasting time starting the discovery server.
+- Add lock for ASEDynamics to prevent read/write to atoms at same time.
 
 ## [1.1.0] - 2021-05-06
 ### Added
