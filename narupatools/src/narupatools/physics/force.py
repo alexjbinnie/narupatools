@@ -46,7 +46,7 @@ def spring_force(*, offset: Vector3, spring_constant: float = 1) -> Vector3:
     :param spring_constant: Spring constant :math:`k` that scales the force.
     :return: Force :math:`F` applied by the spring.
     """
-    return -offset * spring_constant  # type: ignore
+    return -offset * spring_constant
 
 
 def spring_force_and_energy(
@@ -108,7 +108,7 @@ def linear_drag_force(*, velocity: Vector3, damping_coefficient: float) -> Vecto
                                 force.
     :return: Force :math:`F` applied by the drag.
     """
-    return -damping_coefficient * velocity  # type: ignore
+    return -damping_coefficient * velocity
 
 
 def damped_spring_force(

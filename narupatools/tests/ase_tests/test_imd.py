@@ -22,8 +22,7 @@ from ase.atoms import Atoms
 from ase.md import VelocityVerlet
 from narupa.imd import ParticleInteraction
 
-from narupatools.ase import ASEDynamics, UnitsASE
-from narupatools.ase import NullCalculator
+from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
 from narupatools.ase.imd import ASEIMDFeature
 from narupatools.core import UnitsNarupa
 from narupatools.imd.interaction_source import InteractionsSource

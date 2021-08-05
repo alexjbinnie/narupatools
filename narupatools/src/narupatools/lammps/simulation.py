@@ -22,13 +22,13 @@ import contextlib
 import re
 import warnings
 from contextlib import contextmanager
-from ctypes import Array, c_double, c_int
+from ctypes import Array, c_double
 from typing import Any, Dict, Generator, List, Literal, Optional, Union, overload
 
 import numpy as np
-from MDAnalysis import Universe
 from infinite_sets import InfiniteSet
 from lammps import OutputCapture, PyLammps
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
 from narupatools.core.units import UnitsNarupa
@@ -44,16 +44,20 @@ from narupatools.frame import (
 from narupatools.lammps.units import get_unit_system
 from narupatools.mdanalysis import mdanalysis_universe_to_frame
 from narupatools.physics.typing import Vector3
+
 from .constants import PropertyType, VariableStyle, VariableType
 from .exceptions import (
     AtomIDsNotDefinedError,
-CannotOpenFileError,
+    CannotOpenFileError,
     ComputeNotFoundError,
-IllegalCommandError,
+    IllegalCommandError,
     InvalidComputeSpecificationError,
     LAMMPSError,
+    MissingInputScriptError,
     UnknownAtomPropertyError,
+    UnknownCommandError,
     UnknownPropertyNameError,
+    UnrecognizedStyleError,
 )
 from .region import Region, RegionSpecification
 from .warnings import LAMMPSWarning
@@ -223,15 +227,12 @@ class LAMMPSSimulation:
         dtype = float if type == PropertyType.DOUBLE else int
         try:
             with catch_lammps_warnings_and_exceptions():
-                key = key.encode()
                 natoms = self.__lammps.lmp.get_natoms()
-                if type == PropertyType.INT:
-                    data = ((dimension * natoms) * c_int)()
-                elif type == PropertyType.DOUBLE:
-                    data = ((dimension * natoms) * c_double)()
-                else:
-                    return None
-                self.__lammps.lmp.lib.lammps_gather_atoms(self.__lammps.lmp.lmp, key, type, dimension, data)
+                data = ((dimension * natoms) * type.get_ctype())()
+
+                self.__lammps.lmp.lib.lammps_gather_atoms(  # type: ignore[attr-defined]
+                    self.__lammps.lmp.lmp, key, type, dimension, data  # type: ignore[attr-defined]
+                )
 
             if dimension == 1:
                 return np.array(data, dtype=dtype).reshape((-1,))
@@ -240,7 +241,6 @@ class LAMMPSSimulation:
         except UnknownPropertyNameError:
             # Reraise as a different error so we know what key caused the error.
             raise UnknownAtomPropertyError(key)
-
 
     def _scatter_atoms(
         self, name: str, type: PropertyType, dimensions: int, value: np.ndarray
@@ -623,6 +623,11 @@ class LAMMPSSimulation:
     def __del__(self) -> None:
         self.__lammps.close()
 
+    def file(self, filename: str) -> None:
+        """Runn all commands found in the provided input file."""
+        with catch_lammps_warnings_and_exceptions():
+            self.__lammps.file(filename)
+
 
 class Compute:
     """Represents a compute defined in a LAMMPS simulation."""
@@ -652,21 +657,32 @@ def _to_ctypes(array: np.ndarray, natoms: int) -> Array:
     n3 = 3 * natoms
     x = (n3 * c_double)()
     for i, f in enumerate(array.flat):
-        x[i] = f  # type: ignore
+        x[i] = f
     return x
 
 
-import re
+ILLEGAL_COMMAND_REGEX = re.compile(r"illegal \w+ command", re.IGNORECASE)
+UNKNOWN_COMMAND_REGEX = re.compile(r"unknown command", re.IGNORECASE)
+MISSING_INPUT_SCRIPT_REGEX = re.compile(
+    r"cannot open input script [\w.]+: No such file or directory", re.IGNORECASE
+)
+CANNOT_OPEN_FILE_REGEX = re.compile(
+    r"cannot open file [\w.]+: No such file or directory", re.IGNORECASE
+)
+UNRECOGNIZED_STYLE_REGEX = re.compile(r"Unrecognized \w+ style", re.IGNORECASE)
 
 
-ILLEGAL_COMMAND_REGEX = re.compile(r'illegal \w+ command', re.IGNORECASE)
-
-
-def _handle_error(message):
-    if message.startswith("cannot open") and "file" in message:
+def _handle_error(message: str) -> None:
+    if MISSING_INPUT_SCRIPT_REGEX.match(message) is not None:
+        raise MissingInputScriptError(message)
+    if CANNOT_OPEN_FILE_REGEX.match(message) is not None:
         raise CannotOpenFileError(message)
     if ILLEGAL_COMMAND_REGEX.match(message) is not None:
         raise IllegalCommandError(message)
+    if UNKNOWN_COMMAND_REGEX.match(message) is not None:
+        raise UnknownCommandError(message)
+    if UNRECOGNIZED_STYLE_REGEX.match(message) is not None:
+        raise UnrecognizedStyleError(message)
     raise LAMMPSError(message)
 
 

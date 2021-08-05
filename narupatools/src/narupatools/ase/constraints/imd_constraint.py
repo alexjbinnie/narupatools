@@ -28,8 +28,8 @@ from narupatools.ase.units import UnitsASE
 from narupatools.core import UnitsNarupa
 from narupatools.imd import Interaction, calculate_imd_force
 from narupatools.physics.typing import Vector3Array
-from .constraint import ASEEnergyConstraint
-from .constraint import ASEMomentaConstraint
+
+from .constraint import ASEEnergyConstraint, ASEMomentaConstraint
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
@@ -91,9 +91,9 @@ class InteractionConstraint(
         self._energy = None
         self._forces = None
 
-    def update_energy_and_forces(
+    def update_energy_and_forces(  # noqa: D102
         self, *, atoms: Optional[Atoms] = None
-    ) -> Tuple[Vector3Array, float]:  # noqa: D102
+    ) -> Tuple[Vector3Array, float]:
         if atoms is None:
             atoms = self._dynamics.atoms
         if (
@@ -115,16 +115,16 @@ class InteractionConstraint(
             * _ASEToNarupa.length
         )
 
-    def adjust_positions(
+    def adjust_positions(  # noqa: D102
         self, atoms: Atoms, positions: np.ndarray, /
-    ) -> None:  # noqa: D102
+    ) -> None:
         # Assume all interactions depend on positions
         if atoms is self._atoms:
             self._invalidate_forces_and_energy()
 
-    def adjust_momenta(
+    def adjust_momenta(  # noqa: D102
         self, atoms: Atoms, momenta: np.ndarray, /
-    ) -> None:  # noqa: D102
+    ) -> None:
         # Assume no interactions depend on velocities
         # When they do, this should conditionally invalidate the cache
         pass

@@ -31,8 +31,26 @@ class CannotOpenFileError(LAMMPSError, FileNotFoundError):
     pass
 
 
+class MissingInputScriptError(CannotOpenFileError):
+    """Error raised when a file is not found by LAMMPS."""
+
+    pass
+
+
+class UnknownCommandError(LAMMPSError):
+    """Error raised when an unknown command is used in LAMMPS."""
+
+    pass
+
+
 class IllegalCommandError(LAMMPSError):
     """Error raised when a command is used incorrectly in LAMMPS."""
+
+    pass
+
+
+class UnrecognizedStyleError(LAMMPSError):
+    """Error raised when a style not recognized by LAMMPS is used."""
 
     pass
 

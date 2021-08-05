@@ -46,6 +46,7 @@ from narupatools.frame import KineticEnergy, ParticlePositions, PotentialEnergy
 from narupatools.frame.frame_producer import FrameProducer
 from narupatools.frame.frame_source import FrameSource
 from narupatools.state.view.wrappers import SharedStateServerWrapper
+
 from .shared_state import SharedStateView
 
 TTarget = TypeVar("TTarget")

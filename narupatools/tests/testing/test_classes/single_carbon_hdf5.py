@@ -8,9 +8,7 @@ import pytest
 
 from narupatools.frame.hdf5 import HDF5Trajectory, add_hdf5_writer
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
-from narupatools.imd.interaction_source import (
-    wrap_interaction_source,
-)
+from narupatools.imd.interaction_source import wrap_interaction_source
 from narupatools.physics.vector import vector
 
 

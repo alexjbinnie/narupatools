@@ -23,6 +23,7 @@ from narupa.trajectory import FrameData
 
 from narupatools.frame import convert
 from narupatools.frame.converter import FrameConverter
+
 from .calculator import LAMMPSCalculator
 from .simulation import LAMMPSSimulation
 

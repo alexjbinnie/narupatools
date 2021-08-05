@@ -23,6 +23,7 @@ from ase.atoms import Atoms
 from ase.calculators.calculator import Calculator, CalculatorSetupError, all_changes
 
 from narupatools.physics.typing import ScalarArrayLike, Vector3ArrayLike
+
 from .protocols import CalculatorSetAtoms
 
 

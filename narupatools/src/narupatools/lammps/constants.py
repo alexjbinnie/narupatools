@@ -15,10 +15,11 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Constants used by the LAMMPS API."""
-
+from ctypes import c_double, c_int
 from enum import IntEnum
+from typing import Any
 
-from lammps import LAMMPS_INT, LAMMPS_DOUBLE
+from lammps import LAMMPS_DOUBLE, LAMMPS_INT
 
 
 class VariableStyle(IntEnum):
@@ -39,6 +40,13 @@ class PropertyType(IntEnum):
     """Property consists of one or more integers."""
     DOUBLE = LAMMPS_DOUBLE
     """Property consists of one or more floating point numbers."""
+
+    def get_ctype(self) -> Any:
+        """Get the C type represented by this property type."""
+        if self == PropertyType.INT:
+            return c_int
+        elif self == PropertyType.DOUBLE:
+            return c_double
 
 
 class VariableType(IntEnum):

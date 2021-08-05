@@ -78,8 +78,8 @@ class NarupaToolsTrajectory(nglview.Trajectory, nglview.Structure):
 
     def get_coordinates(self, index: int) -> Vector3Array:  # noqa: D102
         frame = self.trajectory.get_frame(index=index, fields={ParticlePositions.key})
-        positions = ParticlePositions.get(frame) * 10
-        return positions  # type: ignore
+        positions = ParticlePositions.get(frame) * 10.0
+        return positions
 
     @property
     def n_frames(self) -> int:  # noqa: D102

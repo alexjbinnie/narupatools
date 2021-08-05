@@ -35,9 +35,10 @@ import uuid
 from typing import AbstractSet, Generic, Optional, Type, TypeVar, Union
 
 from narupatools.state.typing import Serializable, SerializableDictionary
+
+from ..serializable_object import SerializableObject
 from .reference import SharedStateReference
 from .view import SharedStateView
-from ..serializable_object import SerializableObject
 
 TValue = TypeVar("TValue", bound=Union[SerializableObject, Serializable])
 

@@ -21,8 +21,8 @@ from abc import ABCMeta, abstractmethod
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from .playable import Playable
 from ..frame.frame_source import FrameSource
+from .playable import Playable
 
 
 class TrajectoryPlayback(Playable, FrameSource, metaclass=ABCMeta):

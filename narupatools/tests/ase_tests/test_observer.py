@@ -15,9 +15,9 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+from testing import assert_event_called
 
 from narupatools.ase.constraints.observer import ASEObserver
-from testing import assert_event_called
 
 
 @pytest.fixture

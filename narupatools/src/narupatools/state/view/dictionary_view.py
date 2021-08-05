@@ -27,10 +27,11 @@ itself.
 from typing import Optional, Type, TypeVar, overload
 
 from narupatools.state.typing import Serializable
+
+from ..serializable_object import SerializableObject
 from .collection_view import SharedStateCollectionView
 from .reference import SharedStateReference
 from .view import SharedStateView
-from ..serializable_object import SerializableObject
 
 TSerializableObjectType = TypeVar("TSerializableObjectType", bound=SerializableObject)
 

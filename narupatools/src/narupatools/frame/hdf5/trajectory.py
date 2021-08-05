@@ -21,12 +21,13 @@ from __future__ import annotations
 import contextlib
 import json
 import re
+from dataclasses import dataclass
 from typing import Iterator, List, Mapping, Optional
 
 import numpy as np
 import tables
-from MDAnalysis.topology.tables import SYMB2Z
 from infinite_sets import InfiniteSet
+from MDAnalysis.topology.tables import SYMB2Z
 from narupa.trajectory import FrameData
 from tables import File, Group, NoSuchNodeError
 
@@ -331,14 +332,14 @@ class HDF5Topology(FrameSource):
         self.atoms.append(atom)
         return atom
 
+    @dataclass
     class Atom:
         """Atom in a HDF5 topology."""
 
-        def __init__(self, index: int, residue: HDF5Topology.Residue):
-            self.index = index
-            self.residue = residue
-            self.name: Optional[str] = None
-            self.element: Optional[str] = None
+        index: int
+        residue: HDF5Topology.Residue
+        name: Optional[str] = None
+        element: Optional[str] = None
 
         @property
         def atomic_number(self) -> Optional[int]:
@@ -347,20 +348,20 @@ class HDF5Topology(FrameSource):
                 return SYMB2Z[self.element]
             return None
 
+    @dataclass
     class Residue:
         """Residue in a HDF5 topology."""
 
-        def __init__(self, index: int, chain: HDF5Topology.Chain):
-            self.index = index
-            self.chain = chain
-            self.name: Optional[str] = None
+        index: int
+        chain: HDF5Topology.Chain
+        name: Optional[str] = None
 
+    @dataclass
     class Chain:
         """Chain in a HDF5 topology."""
 
-        def __init__(self, index: int):
-            self.index = index
-            self.name: Optional[str] = None
+        index: int
+        name: Optional[str] = None
 
     @classmethod
     def from_string(cls, string: str) -> HDF5Topology:

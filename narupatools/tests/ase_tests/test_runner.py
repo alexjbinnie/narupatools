@@ -18,8 +18,7 @@ import pytest
 from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 
-from narupatools.ase import ASEDynamics, UnitsASE
-from narupatools.ase import NullCalculator
+from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
 from narupatools.core import UnitsNarupa
 
 ASEToNarupa = UnitsASE >> UnitsNarupa

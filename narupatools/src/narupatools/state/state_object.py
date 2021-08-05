@@ -64,6 +64,7 @@ from collections.abc import Mapping
 from typing import Any, ClassVar, Dict, Union
 
 from narupatools.state.typing import Serializable
+
 from .serializable_object import SerializableObject
 
 

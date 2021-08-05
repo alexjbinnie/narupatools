@@ -28,6 +28,7 @@ from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
 from narupatools.state.view.wrappers import SharedStateClientWrapper
+
 from .session import Session
 from .shared_state import SharedStateView
 

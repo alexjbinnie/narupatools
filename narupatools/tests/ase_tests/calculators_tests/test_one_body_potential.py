@@ -13,7 +13,7 @@ class HarmonicWellPotentialCalculator(OneBodyPotentialCalculator):
         return magnitude(atom.position) ** 2
 
     def calculate_force(self, atom: Atom) -> Vector3:
-        return -2.0 * np.array(atom.position)  # type: ignore[no-any-return]
+        return -2.0 * np.array(atom.position)
 
 
 @pytest.fixture
