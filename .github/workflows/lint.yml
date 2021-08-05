@@ -44,4 +44,4 @@ jobs:
 
       - name: Run mypy
         run: |
-          mypy narupatools/src narupatools/tests
+          mypy --install-types --non-interactive narupatools/src narupatools/tests
