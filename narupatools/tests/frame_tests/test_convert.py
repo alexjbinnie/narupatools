@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from MDAnalysis import Universe
 from ase import Atoms
 from ase.io import read
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
 from narupatools.ase import NullCalculator

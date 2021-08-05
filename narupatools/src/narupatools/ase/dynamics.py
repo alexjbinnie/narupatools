@@ -22,11 +22,11 @@ from threading import Lock
 from typing import Generic, Optional, TypeVar
 
 import numpy as np
-from MDAnalysis import Universe
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
 from infinite_sets import InfiniteSet
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
 from narupatools.ase import NullCalculator
@@ -34,6 +34,7 @@ from narupatools.core.units import UnitsNarupa
 from narupatools.imd import InteractiveSimulationDynamics
 from narupatools.mdanalysis import mdanalysis_universe_to_frame
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+
 from .converter import ase_atoms_to_frame
 from .imd import ASEIMDFeature
 from .units import UnitsASE
@@ -202,7 +203,7 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
 
     @property
     def positions(self) -> Vector3Array:  # noqa: D102
-        return self.atoms.positions * _ASEToNarupa.length
+        return self.atoms.positions * _ASEToNarupa.length  # type: ignore
 
     @positions.setter
     def positions(self, value: Vector3ArrayLike) -> None:
@@ -210,7 +211,7 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
 
     @property
     def velocities(self) -> Vector3Array:  # noqa: D102
-        return self.atoms.get_velocities() * _ASEToNarupa.velocity
+        return self.atoms.get_velocities() * _ASEToNarupa.velocity  # type: ignore
 
     @velocities.setter
     def velocities(self, value: Vector3ArrayLike) -> None:
@@ -218,11 +219,11 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
 
     @property
     def forces(self) -> Vector3Array:  # noqa: D102
-        return self.atoms.get_forces() * _ASEToNarupa.force
+        return self.atoms.get_forces() * _ASEToNarupa.force  # type: ignore
 
     @property
     def masses(self) -> ScalarArray:  # noqa: D102
-        return self.atoms.get_masses() * _ASEToNarupa.mass
+        return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
     @property
     def kinetic_energy(self) -> float:  # noqa: D102

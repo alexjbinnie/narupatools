@@ -65,7 +65,7 @@ def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> V
     total_center = zero_vector()
     for i in range(0, count):
         total_center += masses[i] * positions[i]
-    return total_center / sum(masses)  # type: ignore
+    return total_center / sum(masses)
 
 
 def center_of_mass_velocity(

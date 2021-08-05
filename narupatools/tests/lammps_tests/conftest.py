@@ -18,7 +18,6 @@
 import os
 
 import pytest
-
 from testing import add_mark
 
 

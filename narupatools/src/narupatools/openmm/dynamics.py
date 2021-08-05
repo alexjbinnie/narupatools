@@ -45,6 +45,7 @@ from narupatools.physics.typing import (
     Vector3Array,
     Vector3ArrayLike,
 )
+
 from .converter import (
     get_openmm_masses,
     openmm_context_to_frame,

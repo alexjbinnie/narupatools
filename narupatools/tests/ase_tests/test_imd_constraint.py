@@ -17,8 +17,7 @@
 import numpy as np
 import pytest
 
-from narupatools.ase import NullCalculator
-from narupatools.ase import UnitsASE
+from narupatools.ase import NullCalculator, UnitsASE
 from narupatools.ase.constraints import InteractionConstraint
 from narupatools.core import UnitsNarupa
 from narupatools.imd import constant_interaction

@@ -21,8 +21,8 @@ from __future__ import annotations
 from os import PathLike
 from typing import Union
 
-from MDAnalysis import Universe
 from ase.md.md import MolecularDynamics
+from MDAnalysis import Universe
 from simtk.openmm.app import Simulation
 
 from narupatools.ase import ASEDynamics

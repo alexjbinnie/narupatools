@@ -20,13 +20,12 @@ from __future__ import annotations
 
 from typing import Optional
 
-from MDAnalysis import Universe
 from ase import Atoms
 from infinite_sets import InfiniteSet
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
-from narupatools.ase import NullCalculator
-from narupatools.ase import ase_atoms_to_frame
+from narupatools.ase import NullCalculator, ase_atoms_to_frame
 from narupatools.frame.frame_source import FrameSource
 from narupatools.mdanalysis import mdanalysis_universe_to_frame
 

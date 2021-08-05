@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from .atoms import Atom as Atom, Atoms as Atoms
+from .atoms import Atom as Atom
+from .atoms import Atoms as Atoms
 
 __all__ = ["Atom", "Atoms"]

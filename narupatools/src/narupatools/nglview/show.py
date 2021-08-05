@@ -22,8 +22,8 @@ from ase.atoms import Atoms
 from narupa.trajectory import FrameData
 from nglview import NGLWidget
 
-from .structure import ASEStructure, FrameDataStructure, NarupaToolsTrajectory
 from ..frame.frame_source import TrajectorySource
+from .structure import ASEStructure, FrameDataStructure, NarupaToolsTrajectory
 
 
 def show_ase(atoms: Atoms, /, **kwargs: Any) -> NGLWidget:

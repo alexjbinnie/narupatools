@@ -21,16 +21,15 @@ from pathlib import Path
 
 import ase
 import pytest
-from MDAnalysis import Universe
 from ase import Atoms
 from ase.md import Langevin
 from ase.units import second
+from MDAnalysis import Universe
 from simtk.openmm import LangevinIntegrator
-from simtk.openmm.app import ForceField, HBonds, PDBFile, PME, Simulation
+from simtk.openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
 from simtk.unit import kelvin, nanometer, picosecond, picoseconds
 
-from narupatools.ase import ASEDynamics
-from narupatools.ase import NullCalculator
+from narupatools.ase import ASEDynamics, NullCalculator
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "testing"))
 

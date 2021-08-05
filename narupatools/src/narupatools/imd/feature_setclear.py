@@ -23,6 +23,7 @@ from infinite_sets import InfiniteSet, everything
 
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.physics.typing import Vector3
+
 from .feature import InteractionFeature
 from .interaction import Interaction
 

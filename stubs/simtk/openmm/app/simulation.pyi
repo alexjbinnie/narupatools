@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, IO, Mapping, Optional, Union
+from typing import IO, Any, Mapping, Optional, Union
 
 from simtk.openmm import Context, Integrator, System
 from simtk.openmm.app import Topology

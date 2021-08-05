@@ -55,8 +55,9 @@ from typing import (
 )
 
 from narupatools.state.typing import Serializable, SerializableDictionary
-from .reference import SharedStateReference
+
 from ..serializable_object import SerializableObject
+from .reference import SharedStateReference
 
 TValue = TypeVar("TValue", bound=Union[SerializableObject, Serializable])
 

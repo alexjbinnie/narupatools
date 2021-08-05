@@ -27,7 +27,6 @@ from narupa.trajectory.frame_data import (
     BOX_VECTORS,
     CHAIN_COUNT,
     CHAIN_NAMES,
-    FrameData,
     KINETIC_ENERGY,
     PARTICLE_COUNT,
     PARTICLE_ELEMENTS,
@@ -40,6 +39,7 @@ from narupa.trajectory.frame_data import (
     RESIDUE_COUNT,
     RESIDUE_IDS,
     RESIDUE_NAMES,
+    FrameData,
 )
 from typing_extensions import Final
 
