@@ -18,6 +18,8 @@
 
 from enum import IntEnum
 
+from lammps import LAMMPS_INT, LAMMPS_DOUBLE
+
 
 class VariableStyle(IntEnum):
     """Variable styles that can be used for extract_compute."""
@@ -33,9 +35,9 @@ class VariableStyle(IntEnum):
 class PropertyType(IntEnum):
     """Property styles that can be used for get_atom_property."""
 
-    INT = 0
+    INT = LAMMPS_INT
     """Property consists of one or more integers."""
-    DOUBLE = 1
+    DOUBLE = LAMMPS_DOUBLE
     """Property consists of one or more floating point numbers."""
 
 

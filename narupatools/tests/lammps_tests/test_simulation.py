@@ -15,6 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+import numpy as np
 
 lammps = pytest.importorskip("lammps")
 
@@ -88,6 +89,7 @@ def test_temperature(simulation):
 
 def test_positions(simulation):
     assert len(simulation.positions) == 2004
+    assert simulation.positions[0] == pytest.approx(np.array([4.399993, 5.852678, 3.67855]))
 
 
 def test_velocities(simulation):

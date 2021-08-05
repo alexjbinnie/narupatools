@@ -22,7 +22,7 @@ import contextlib
 import re
 import warnings
 from contextlib import contextmanager
-from ctypes import Array, c_double
+from ctypes import Array, c_double, c_int
 from typing import Any, Dict, Generator, List, Literal, Optional, Union, overload
 
 import numpy as np
@@ -47,7 +47,9 @@ from narupatools.physics.typing import Vector3
 from .constants import PropertyType, VariableStyle, VariableType
 from .exceptions import (
     AtomIDsNotDefinedError,
+CannotOpenFileError,
     ComputeNotFoundError,
+IllegalCommandError,
     InvalidComputeSpecificationError,
     LAMMPSError,
     UnknownAtomPropertyError,
@@ -221,14 +223,24 @@ class LAMMPSSimulation:
         dtype = float if type == PropertyType.DOUBLE else int
         try:
             with catch_lammps_warnings_and_exceptions():
-                raw = self.__lammps.lmp.gather_atoms(key, type, dimension)
+                key = key.encode()
+                natoms = self.__lammps.lmp.get_natoms()
+                if type == PropertyType.INT:
+                    data = ((dimension * natoms) * c_int)()
+                elif type == PropertyType.DOUBLE:
+                    data = ((dimension * natoms) * c_double)()
+                else:
+                    return None
+                self.__lammps.lmp.lib.lammps_gather_atoms(self.__lammps.lmp.lmp, key, type, dimension, data)
+
+            if dimension == 1:
+                return np.array(data, dtype=dtype).reshape((-1,))
+            else:
+                return np.array(data, dtype=dtype).reshape((-1, dimension))
         except UnknownPropertyNameError:
             # Reraise as a different error so we know what key caused the error.
             raise UnknownAtomPropertyError(key)
-        if dimension == 1:
-            return np.array(raw, dtype=dtype).reshape((-1,))
-        else:
-            return np.array(raw, dtype=dtype).reshape((-1, dimension))
+
 
     def _scatter_atoms(
         self, name: str, type: PropertyType, dimensions: int, value: np.ndarray
@@ -644,6 +656,20 @@ def _to_ctypes(array: np.ndarray, natoms: int) -> Array:
     return x
 
 
+import re
+
+
+ILLEGAL_COMMAND_REGEX = re.compile(r'illegal \w+ command', re.IGNORECASE)
+
+
+def _handle_error(message):
+    if message.startswith("cannot open") and "file" in message:
+        raise CannotOpenFileError(message)
+    if ILLEGAL_COMMAND_REGEX.match(message) is not None:
+        raise IllegalCommandError(message)
+    raise LAMMPSError(message)
+
+
 @contextmanager
 def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
     """
@@ -659,7 +685,14 @@ def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
     :raises LAMMPSError: An ERROR: is logged to the console by LAMMPS.
     """
     with OutputCapture() as o:
-        yield
+        try:
+            yield
+        except Exception as e:
+            if e.args[0].startswith("ERROR on proc 0: "):
+                _handle_error(e.args[0][17:])
+            if e.args[0].startswith("ERROR: "):
+                _handle_error(e.args[0][7:])
+            raise LAMMPSError(e.args[0])
         output = o.output
     for line in output.splitlines():
         if line.startswith("WARNING: "):
@@ -671,4 +704,5 @@ def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
             else:
                 warnings.warn(LAMMPSWarning(warning))
         if line.startswith("ERROR: "):
-            raise LAMMPSError(line[7:])
+            error = line[7:]
+            _handle_error(error)

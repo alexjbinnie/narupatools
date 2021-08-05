@@ -23,7 +23,10 @@ import narupatools.ase  # noqa: F401
 import narupatools.core
 import narupatools.frame
 import narupatools.mdanalysis  # noqa: F401
-import narupatools.mdtraj  # noqa: F401
+
+if importlib.util.find_spec("mdtraj") is not None:
+    import narupatools.mdtraj  # noqa: F401
+
 import narupatools.openmm  # noqa: F401
 
 if importlib.util.find_spec("lammps") is not None:

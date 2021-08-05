@@ -25,6 +25,18 @@ class LAMMPSError(RuntimeError):
         super().__init__(message)
 
 
+class CannotOpenFileError(LAMMPSError, FileNotFoundError):
+    """Error raised when a file is not found by LAMMPS."""
+
+    pass
+
+
+class IllegalCommandError(LAMMPSError):
+    """Error raised when a command is used incorrectly in LAMMPS."""
+
+    pass
+
+
 class UnknownPropertyNameError(LAMMPSError):
     """Error raised when lammps_gather_atoms encounters an unknown property name."""
 
