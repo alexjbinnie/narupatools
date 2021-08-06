@@ -42,4 +42,5 @@ jobs:
 
       - name: Run sphinx
         run: |
+          cd docs
           sphinx-build -b html source build
