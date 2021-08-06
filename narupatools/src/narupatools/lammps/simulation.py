@@ -72,12 +72,6 @@ class LAMMPSSimulation:
         self.__lammps.enable_cmd_history = True
         self._universe = universe
         self._index_to_id: Dict[int, int] = {}
-
-        with OutputCapture() as o:
-            self.command("info system")
-
-        raise RuntimeError(o.output)
-
         unit_system = get_unit_system(self.__lammps.system.units)
         self._lammps_to_narupa = unit_system >> UnitsNarupa
         self._narupa_to_lammps = UnitsNarupa >> unit_system
