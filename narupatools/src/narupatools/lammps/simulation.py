@@ -137,7 +137,7 @@ class LAMMPSSimulation:
         with catch_lammps_warnings_and_exceptions():
             lammps.atom_modify("map yes")
             lammps.file(filename)
-            lammps.run(0)
+            lammps.command("run 0")
         universe = Universe(data_filename, format="DATA")
         simulation = cls(lammps, universe)
         return simulation
