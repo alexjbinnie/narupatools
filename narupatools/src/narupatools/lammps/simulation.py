@@ -231,7 +231,7 @@ class LAMMPSSimulation:
                 data = ((dimension * natoms) * type.get_ctype())()
 
                 self.__lammps.lmp.lib.lammps_gather_atoms(  # type: ignore[attr-defined]
-                    self.__lammps.lmp.lmp, key, type, dimension, data  # type: ignore[attr-defined]
+                    self.__lammps.lmp.lmp, key.encode(), type, dimension, data  # type: ignore[attr-defined]
                 )
 
             if dimension == 1:
