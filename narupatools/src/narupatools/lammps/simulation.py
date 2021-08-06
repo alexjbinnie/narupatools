@@ -27,7 +27,7 @@ from typing import Any, Dict, Generator, List, Literal, Optional, Union, overloa
 
 import numpy as np
 from infinite_sets import InfiniteSet
-from lammps import OutputCapture, PyLammps
+from lammps import PyLammps
 from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
@@ -59,6 +59,7 @@ from .exceptions import (
     UnknownPropertyNameError,
     UnrecognizedStyleError,
 )
+from .output_capture import OutputCapture
 from .region import Region, RegionSpecification
 from .warnings import LAMMPSWarning
 
