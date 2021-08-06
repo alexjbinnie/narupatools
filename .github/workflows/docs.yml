@@ -37,6 +37,7 @@ jobs:
 
       - name: Run sphinx doctest
         run: |
+          cd docs
           sphinx-build -b doctest source build
 
       - name: Run sphinx
