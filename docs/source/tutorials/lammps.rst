@@ -41,7 +41,8 @@ This :class:`~ase.Atoms` object can now be used with minimization and molecular 
 
 For example, to use the peptide example provided with LAMMPS:
 
-.. code-block:: python
+.. testcode:: python
+   :skipif: not HAS_LAMMPS
 
    from narupatools.ase import ASEDynamics
    from narupatools.lammps import LAMMPSSimulation, atoms_from_lammps_simulation
@@ -66,7 +67,8 @@ As with OpenMM, there is also the option to run a LAMMPS simulation dynamics dir
 
 Interactive forces are applied to the LAMMPS simulation using the `addforce` fix. These additions are applied automatically without altering the LAMMPS input file.
 
-.. code-block:: python
+.. testcode:: python
+   :skipif: not HAS_LAMMPS
 
    from narupatools.ase import ASEDynamics
    from narupatools.lammps import LAMMPSSimulation, LAMMPSDynamics

@@ -64,6 +64,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, Broadcastable):
     def _reset_internal(self) -> None:
         with self._simulation_lock, BytesIO(self._checkpoint) as bytesio:
             self._simulation.loadCheckpoint(bytesio)
+            self._simulation.context.reinitialize(preserveState=True)
 
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         frame = FrameData()

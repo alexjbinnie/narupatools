@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed lammps_gather_atoms call to use correct enums due to LAMMPS API change.
 
+## [1.1.2] - 2021-05-07
+### Fixed
+- OpenMMDynamics reset was not reseting the simulation correctly.
+
 ## [1.1.1] - 2021-05-07
 ### Added
 - narupatools.core.timing for checking predicates at an interval until a timeout. Useful for replacing fixed time.sleep calls in tests.

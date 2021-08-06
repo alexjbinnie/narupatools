@@ -85,3 +85,8 @@ intersphinx_mapping = {
 set_type_checking_flag = True
 
 inheritance_graph_attrs = dict(rankdir="TB")
+
+doctest_global_setup = '''
+import importlib
+HAS_LAMMPS = importlib.util.find_spec("lammps") is not None
+'''

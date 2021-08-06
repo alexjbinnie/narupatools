@@ -70,3 +70,13 @@ class TestVillinOpenMMDynamics(VillinDynamicsTests):
     @pytest.fixture(autouse=True)
     def dynamics(self, villin_dynamics):
         return villin_dynamics
+
+    def test_reset_works(self, dynamics):
+        positions = dynamics.positions
+        velocities = dynamics.velocities
+        forces = dynamics.forces
+        dynamics.run(100)
+        dynamics.reset()
+        assert dynamics.positions == pytest.approx(positions, rel=1e-3)
+        assert dynamics.velocities == pytest.approx(velocities, rel=1e-3)
+        assert dynamics.forces == pytest.approx(forces, rel=1e-1)
