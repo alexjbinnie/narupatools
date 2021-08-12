@@ -174,12 +174,6 @@ class GlobalNotFoundError(LAMMPSError):
         super().__init__(f"No global defined with key {key}")
 
 
-class FailedToAutodetectGlobalTypeError(LAMMPSError):
-    """Error raised when trying to extract a global and a variable type cannot be guessed."""
-
-    pass
-
-
 class InvalidThermoKeywordError(LAMMPSError):
     """Error raised when an invalid thermo keyword is specified."""
 
@@ -200,15 +194,6 @@ class FixNotFoundError(LAMMPSError):
         super().__init__(f"No fix defined with key {key}")
 
 
-class InvalidFixSpecificationError(LAMMPSError):
-    """Error raised when a fix is requested where the types are not defined."""
-
-    def __init__(self, key: str, style: VariableStyle, type: VariableDimension):
-        super().__init__(
-            f"Invalid fix specification for {key}: Style {style} and type {type}"
-        )
-
-
 class InvalidComputeSpecificationError(LAMMPSError):
     """Error raised when a compute is requested where the types are not defined."""
 
@@ -216,12 +201,6 @@ class InvalidComputeSpecificationError(LAMMPSError):
         super().__init__(
             f"Invalid compute specification for {key}: Style {style} and type {type}"
         )
-
-
-class InvalidGatherAtomsSpecification(LAMMPSError):
-    """Error raised when a gather_atoms call is used with the wrong specification."""
-
-    pass
 
 
 class UnknownAtomPropertyError(LAMMPSError):

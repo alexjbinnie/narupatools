@@ -58,8 +58,6 @@ class Interaction(Generic[_TDynamics], metaclass=ABCMeta):
         self._energy: Optional[float] = None
         self._forces: Optional[Vector3Array] = None
 
-        self._c = 0.0
-
     @property
     def particle_indices(self) -> np.ndarray:
         """List of indices affected by this interaction."""
