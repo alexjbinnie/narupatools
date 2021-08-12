@@ -57,7 +57,7 @@ This could be either a (3, 3) float array or a (4, ) float array.
 ScalarArray = npt.NDArray[np.float64]
 """A NumPy float array of shape (n,), representing a list of scalar values."""
 
-IntArray = npt.NDArray[np.float64]
+IntArray = npt.NDArray[np.int64]
 """A NumPy float array of shape (n,), representing a list of integer values."""
 
 Vector3 = npt.NDArray[np.float64]

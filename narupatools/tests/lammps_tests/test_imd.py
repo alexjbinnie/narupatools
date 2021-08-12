@@ -14,26 +14,33 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
 import pytest
 
-lammps = pytest.importorskip("lammps")
-
-from narupatools.core.units import calorie, electronvolt, kilo, mole
-from narupatools.lammps.converter import atoms_from_lammps_simulation
-from narupatools.lammps.simulation import LAMMPSSimulation
-
-
-@pytest.fixture(scope="module")
-def simulation():
-    return LAMMPSSimulation.from_file("./in.peptide")
+from narupatools.lammps import LAMMPSSimulation
 
 
 @pytest.fixture
-def atoms(simulation):
-    return atoms_from_lammps_simulation(simulation)
+def simulation():
+    simulation = LAMMPSSimulation.from_file("./in.peptide")
+    simulation.add_imd_force()
+    return simulation
 
 
-def test_energy(atoms):
-    # energy output by LAMMPS
-    initial_energy = -6372.3759 * ((kilo * calorie / mole) >> (electronvolt))
-    assert atoms.get_potential_energy() == pytest.approx(initial_energy, rel=1e-3)
+def test_initial_no_imd(simulation):
+    assert np.all(simulation.get_imd_forces() == 0)
+
+
+def test_set_imd_forces(simulation):
+    simulation.set_imd_force(2, np.array([10.0, 0.0, 0.0]))
+    simulation.run(0)
+    assert simulation.get_imd_forces()[2] == pytest.approx([10.0, 0.0, 0.0])
+
+
+def test_imd_forces_changes_actual_force(simulation):
+    existing_force = simulation.forces[2]
+    simulation.set_imd_force(2, np.array([100.0, 0.0, 0.0]))
+    simulation.run(0)
+    assert simulation.forces[2] - existing_force == pytest.approx(
+        [100.0, 0.0, 0.0], rel=1e-3, abs=0.1
+    )

@@ -15,9 +15,10 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Utilities for converting different arrays."""
+from typing import List, Optional
 
 import numpy as np
-from MDAnalysis.topology.tables import Z2SYMB, masses
+from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB, masses
 
 
 def atomic_numbers_to_symbols(numbers: np.ndarray, /) -> np.ndarray:
@@ -36,3 +37,38 @@ def atomic_numbers_to_masses(numbers: np.ndarray, /) -> np.ndarray:
     :param numbers: Array of atomic numbers to convert.
     """
     return np.array([masses[Z2SYMB[number]] for number in numbers])
+
+
+__mass_cutoff_table: Optional[List[List[int]]] = None
+
+
+def mass_to_element(mass: float, tolerance: float = 0.1) -> Optional[int]:
+    """Get the atomic number with the closest mass to a given atomic mass."""
+    global __mass_cutoff_table
+
+    if __mass_cutoff_table is None:
+        mass_dict = masses.copy()
+        del [mass_dict["DUMMY"]]
+
+        mass_list = np.array(list(mass_dict.values()))
+        symbol_list = np.array(list(mass_dict.keys()))
+        sorted = np.argsort(mass_list)
+
+        __mass_cutoff_table = []
+
+        for i in range(len(sorted) - 1):
+            cutoff = 0.5 * (mass_list[sorted[i]] + mass_list[sorted[i + 1]])
+            __mass_cutoff_table.append(
+                [
+                    cutoff,
+                    mass_list[sorted[i]],
+                    SYMB2Z[symbol_list[sorted[i]].capitalize()],
+                ]
+            )
+
+    for cutoff, actual, key in __mass_cutoff_table:
+        if mass < cutoff:
+            if abs(mass - actual) < tolerance:
+                return key
+            return None
+    return None

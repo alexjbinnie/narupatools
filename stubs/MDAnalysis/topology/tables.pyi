@@ -1,5 +1,5 @@
-from typing import Mapping
+from typing import Dict
 
-SYMB2Z: Mapping[str, int]
-Z2SYMB: Mapping[int, str]
-masses: Mapping[str, float]
+SYMB2Z: Dict[str, int]
+Z2SYMB: Dict[int, str]
+masses: Dict[str, float]

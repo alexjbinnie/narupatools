@@ -16,24 +16,16 @@
 
 import pytest
 
-lammps = pytest.importorskip("lammps")
-
-from narupatools.core.units import calorie, electronvolt, kilo, mole
-from narupatools.lammps.converter import atoms_from_lammps_simulation
-from narupatools.lammps.simulation import LAMMPSSimulation
+from narupatools.lammps.exceptions import VariableNotFoundError
 
 
-@pytest.fixture(scope="module")
-def simulation():
-    return LAMMPSSimulation.from_file("./in.peptide")
+def test_extract_variable(lammps):
+    lammps.command("variable my_var equal temp/3.0")
+    value = lammps.extract_variable("my_var")
+    assert isinstance(value, float)
+    assert value == pytest.approx(94.03350571744606, rel=1e-3)
 
 
-@pytest.fixture
-def atoms(simulation):
-    return atoms_from_lammps_simulation(simulation)
-
-
-def test_energy(atoms):
-    # energy output by LAMMPS
-    initial_energy = -6372.3759 * ((kilo * calorie / mole) >> (electronvolt))
-    assert atoms.get_potential_energy() == pytest.approx(initial_energy, rel=1e-3)
+def test_extract_variable_missing(lammps):
+    with pytest.raises(VariableNotFoundError):
+        lammps.extract_variable("my_var")

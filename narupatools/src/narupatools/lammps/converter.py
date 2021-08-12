@@ -59,10 +59,7 @@ def atoms_from_lammps_simulation(simulation: LAMMPSSimulation) -> Atoms:
     :param simulation: LAMMPS simulation to use.
     :return: ASE atoms object with a calculator that references the given simulation.
     """
-    try:
-        atoms = convert(simulation.universe, Atoms)
-    except AttributeError:
-        atoms = convert(simulation, Atoms)
+    atoms = convert(simulation, Atoms)
     calc = LAMMPSCalculator(simulation, atoms)
     atoms.set_calculator(calc)
     return atoms

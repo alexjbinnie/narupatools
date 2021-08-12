@@ -13,32 +13,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
-import pytest
-
-lammps = pytest.importorskip("lammps")
-
-from narupatools.ase import ASEDynamics
-from narupatools.lammps import (
-    LAMMPSDynamics,
-    LAMMPSSimulation,
-    atoms_from_lammps_simulation,
-)
-
-
-def test_ase_lammps():
-    simulation = LAMMPSSimulation.from_file("in.peptide")
-
-    atoms = atoms_from_lammps_simulation(simulation)
-
-    dynamics = ASEDynamics.create_velocity_verlet(atoms, timestep=0.002)
-
-    dynamics.run(100)
-
-
-def test_lammps():
-    simulation = LAMMPSSimulation.from_file("in.peptide")
-
-    dynamics = LAMMPSDynamics(simulation)
-
-    dynamics.run(100)

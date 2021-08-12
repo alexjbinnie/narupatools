@@ -14,26 +14,24 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
-
-lammps = pytest.importorskip("lammps")
-
-from narupatools.core.units import calorie, electronvolt, kilo, mole
-from narupatools.lammps.converter import atoms_from_lammps_simulation
-from narupatools.lammps.simulation import LAMMPSSimulation
+import numpy as np
 
 
-@pytest.fixture(scope="module")
-def simulation():
-    return LAMMPSSimulation.from_file("./in.peptide")
+def test_gather_fix_atom_1d(lammps):
+    lammps.command("fix my_fix all ave/atom 1 10 10 vx")
+    lammps.command("run 100")
+    value = lammps.gather_fix("my_fix")
+    assert isinstance(value, np.ndarray)
+    assert value.shape == (2004,)
+    assert value.dtype == np.float64
+    assert not value.flags.writeable
 
 
-@pytest.fixture
-def atoms(simulation):
-    return atoms_from_lammps_simulation(simulation)
-
-
-def test_energy(atoms):
-    # energy output by LAMMPS
-    initial_energy = -6372.3759 * ((kilo * calorie / mole) >> (electronvolt))
-    assert atoms.get_potential_energy() == pytest.approx(initial_energy, rel=1e-3)
+def test_gather_fix_atom_3d(lammps):
+    lammps.command("fix my_fix all ave/atom 1 10 10 vx vy vz")
+    lammps.command("run 100")
+    value = lammps.gather_fix("my_fix")
+    assert isinstance(value, np.ndarray)
+    assert value.shape == (2004, 3)
+    assert value.dtype == np.float64
+    assert not value.flags.writeable

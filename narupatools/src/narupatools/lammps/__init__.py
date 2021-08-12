@@ -18,6 +18,8 @@
 
 import importlib
 
+from .exceptions import LAMMPSError, LAMMPSWarning
+
 has_lammps = importlib.util.find_spec("lammps") is not None
 
 if not has_lammps:
@@ -26,7 +28,7 @@ if not has_lammps:
 from .calculator import LAMMPSCalculator
 from .converter import atoms_from_lammps_simulation
 from .dynamics import LAMMPSDynamics
-from .simulation import LAMMPSError, LAMMPSSimulation, LAMMPSWarning
+from .simulation import LAMMPSSimulation
 from .units import (
     UnitsLAMMPSCGS,
     UnitsLAMMPSElectron,

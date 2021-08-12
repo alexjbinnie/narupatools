@@ -14,11 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Custom warnings that wrap LAMMPS warnings printed to the console."""
+import pytest
+
+from narupatools.lammps.exceptions import ComputeNotFoundError
 
 
-class LAMMPSWarning(UserWarning):
-    """Warning raised by LAMMPS."""
+def test_extract_local_compute_1d(lammps):
+    lammps.command("compute bond1 all property/local btype")
+    value = lammps.extract_local_compute("bond1")
+    assert value.shape == (1365,)
+    assert not value.flags.writeable
 
-    def __init__(self, message: str):
-        super().__init__(message)
+
+def test_extract_local_compute_2d(lammps):
+    lammps.command("compute bond1 all property/local btype batom1 batom2")
+    value = lammps.extract_local_compute("bond1")
+    assert value.shape == (1365, 3)
+    assert not value.flags.writeable
+
+
+def test_extract_local_compute_missing(lammps):
+    with pytest.raises(ComputeNotFoundError):
+        lammps.extract_local_compute("bond1")
