@@ -17,21 +17,12 @@
 """Low-level wrapper around PyLAMMPS to expose some methods in a more pythonic way."""
 
 import abc
-import collections
 import ctypes
 import datetime
+import typing
 from abc import abstractmethod
 from ctypes import POINTER, c_char
-from typing import (
-    Any,
-    Generic,
-    Literal,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import Any, Generic, Literal, Optional, Tuple, TypeVar, Union, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -76,12 +67,67 @@ class LAMMPSWrapper:
         self._check_version()
 
         self.computes = _Category(self, "compute")
+        """Set of currently defined compute IDs."""
+
         self.dumps = _Category(self, "dump")
+        """Set of currently defined dump IDs."""
+
         self.fixes = _Category(self, "fix")
+        """Set of currently defined fix IDs."""
+
         self.groups = _Category(self, "group")
+        """Set of currently defined group IDs."""
+
         self.molecules = _Category(self, "molecule")
+        """Set of currently defined molecule IDs."""
+
         self.regions = _Category(self, "region")
+        """Set of currently defined region IDs."""
+
         self.variables = _Category(self, "variables")
+        """Set of currently defined variable IDs."""
+
+        self.atom_styles = _StyleCategory(self, "atom")
+        """Set of possible atom styles."""
+
+        self.integrate_styles = _StyleCategory(self, "integrate")
+        """Set of possible integrate styles."""
+
+        self.minimize_styles = _StyleCategory(self, "minimize")
+        """Set of possible minimize styles."""
+
+        self.pair_styles = _StyleCategory(self, "pair")
+        """Set of possible pair styles."""
+
+        self.bond_styles = _StyleCategory(self, "bond")
+        """Set of possible bond styles."""
+
+        self.angle_styles = _StyleCategory(self, "angle")
+        """Set of possible angle styles."""
+
+        self.dihedral_styles = _StyleCategory(self, "dihedral")
+        """Set of possible dihedral styles."""
+
+        self.improper_styles = _StyleCategory(self, "improper")
+        """Set of possible improper styles."""
+
+        self.kspace_styles = _StyleCategory(self, "kspace")
+        """Set of possible k-space styles."""
+
+        self.compute_styles = _StyleCategory(self, "compute")
+        """Set of possible compute styles."""
+
+        self.fix_styles = _StyleCategory(self, "fix")
+        """Set of possible fix styles."""
+
+        self.region_styles = _StyleCategory(self, "region")
+        """Set of possible region styles."""
+
+        self.dump_styles = _StyleCategory(self, "dump")
+        """Set of possible dump styles."""
+
+        self.command_styles = _StyleCategory(self, "command")
+        """Set of possible command styles."""
 
     @property
     def version_date(self) -> datetime.date:
@@ -542,14 +588,31 @@ class LAMMPSWrapper:
     def _has_id(self, category: str, id: str) -> bool:
         return self.__lammps.has_id(category, id)
 
+    def _has_style(self, category: str, id: str) -> bool:
+        return self.__lammps.has_style(category, id)
+
     def _id_count(self, category: str) -> int:
         return self.__lammps_clib.lammps_id_count(  # type:ignore[no-any-return]
+            self.__lammps_handle, category.encode()
+        )
+
+    def _style_count(self, category: str) -> int:
+        return self.__lammps_clib.lammps_style_count(  # type:ignore[no-any-return]
             self.__lammps_handle, category.encode()
         )
 
     def _id_name(self, category: str, index: int) -> str:
         sb = ctypes.create_string_buffer(100)
         result = self.__lammps_clib.lammps_id_name(
+            self.__lammps_handle, category.encode(), index, sb, 100
+        )
+        if result == 0:
+            raise IndexError(index)
+        return sb.value.decode()
+
+    def _style_name(self, category: str, index: int) -> str:
+        sb = ctypes.create_string_buffer(100)
+        result = self.__lammps_clib.lammps_style_name(
             self.__lammps_handle, category.encode(), index, sb, 100
         )
         if result == 0:
@@ -571,7 +634,24 @@ class LAMMPSWrapper:
             self.__pylammps.command(command)
 
 
-class _Category(collections.Sequence[str]):
+class _StyleCategory(typing.Sequence[str]):
+    def __init__(self, lammps: LAMMPSWrapper, category: str):
+        self.__lammps = lammps
+        self.__category = category
+
+    def __contains__(self, id: object) -> bool:
+        return isinstance(id, str) and self.__lammps._has_style(self.__category, id)
+
+    def __len__(self) -> int:
+        return self.__lammps._style_count(self.__category)
+
+    def __getitem__(self, index: object) -> str:
+        if not isinstance(index, int):
+            raise IndexError(index)
+        return self.__lammps._style_name(self.__category, index)
+
+
+class _Category(typing.Sequence[str]):
     def __init__(self, lammps: LAMMPSWrapper, category: str):
         self.__lammps = lammps
         self.__category = category
