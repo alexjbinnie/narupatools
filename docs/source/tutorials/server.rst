@@ -10,11 +10,11 @@ The session represents the server you create and which people connect to. The se
 .. testcode::
 
    from narupatools.openmm import OpenMMDynamics
-   from narupatools.core import NarupaSession
+   from narupatools.app import Session
 
    dynamics = OpenMMDynamics.from_xml_file("./nanotube.xml")
 
-   with NarupaSession.start() as session:
+   with Session.start() as session:
        print(f"Session started on port {session.port}")
 
        # Start showing the dynamics on the server. Note it still hasn't been started yet
@@ -23,8 +23,9 @@ The session represents the server you create and which people connect to. The se
        # Start running the dynamics indefinitely
        dynamics.run()
 
-       # Run until ctrl-C is pressed
-       session.start_loop()
+.. testoutput::
+
+   ...
 
 .. testcleanup::
 
@@ -39,7 +40,7 @@ When running in a notebook, you won't want to use the `with` construct, and inst
 
 .. testcode::
 
-   session = NarupaSession.start()
+   session = Session()
 
 .. testcode::
 

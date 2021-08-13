@@ -44,7 +44,7 @@ def random_vector(*, max_magnitude: float = 1.0) -> Vector3:
 
     :param max_magnitude: Maximum magnitude of the vector.
     """
-    return random_sphere() * max_magnitude  # type: ignore
+    return random_sphere() * max_magnitude
 
 
 def random_quaternion() -> QuaternionLike:

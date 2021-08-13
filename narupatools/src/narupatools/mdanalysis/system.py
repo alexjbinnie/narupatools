@@ -16,8 +16,8 @@
 
 """Wrapper around an MDAnalysis universe."""
 
-from MDAnalysis import Universe
 from infinite_sets import InfiniteSet
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
 from narupatools.frame.frame_source import FrameSource

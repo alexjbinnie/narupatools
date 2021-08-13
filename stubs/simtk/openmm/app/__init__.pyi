@@ -15,7 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 from .element import Element
-from .forcefield import ForceField, HBonds, PME
+from .forcefield import PME, ForceField, HBonds
 from .pdbfile import PDBFile
 from .simulation import Simulation
 from .topology import Atom, Chain, Residue, Topology

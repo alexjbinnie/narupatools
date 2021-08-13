@@ -32,6 +32,7 @@ from tables import EArray, Float32Atom, Group
 
 import narupatools
 from narupatools.imd import InteractiveSimulationDynamics
+
 from .utils import generate_topology
 
 

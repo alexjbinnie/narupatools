@@ -22,9 +22,9 @@
 
 from typing import Optional, Sequence
 
-from MDAnalysis import Universe
 from ase.atoms import Atoms
 from infinite_sets import InfiniteSet
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
 from narupatools.ase import ase_atoms_to_frame

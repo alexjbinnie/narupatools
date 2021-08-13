@@ -32,6 +32,7 @@ from narupatools.core.dynamics import (
     OnResetCallback,
 )
 from narupatools.core.event import Event, EventListener
+
 from .interaction import Interaction
 from .interaction_source import InteractionsSource
 

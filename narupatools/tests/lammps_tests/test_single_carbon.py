@@ -19,6 +19,8 @@ from ase.md import VelocityVerlet
 
 lammps = pytest.importorskip("lammps")
 
+from test_classes.single_carbon import SingleCarbonSystemTests
+
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.core import UnitsNarupa
 from narupatools.lammps.converter import atoms_from_lammps_simulation
@@ -26,7 +28,6 @@ from narupatools.lammps.dynamics import LAMMPSDynamics
 from narupatools.lammps.region import Box
 from narupatools.lammps.simulation import LAMMPSSimulation
 from narupatools.physics.vector import vector
-from test_classes.single_carbon import SingleCarbonSystemTests
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

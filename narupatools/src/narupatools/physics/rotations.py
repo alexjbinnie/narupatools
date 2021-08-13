@@ -61,7 +61,7 @@ def quaternion_inverse(quaternion: QuaternionLike, /) -> Quaternion:
     :param quaternion: Quaternion :math:`q` to invert.
     :return: Inverse :math:`q^{-1}` of the quaternion :math:`q`.
     """
-    return quaternion_conjugate(quaternion) / sqr_magnitude(quaternion)  # type: ignore
+    return quaternion_conjugate(quaternion) / sqr_magnitude(quaternion)
 
 
 def quaternion_as_rotation_matrix(quaternion: QuaternionLike, /) -> Matrix3x3:

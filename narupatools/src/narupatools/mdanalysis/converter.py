@@ -20,6 +20,8 @@ import contextlib
 from typing import List, Optional, Type, TypeVar, Union
 
 import numpy as np
+from ase.geometry import cell_to_cellpar, cellpar_to_cell
+from infinite_sets import InfiniteSet, everything
 from MDAnalysis import AtomGroup, NoDataError, Universe
 from MDAnalysis.coordinates.memory import MemoryReader
 from MDAnalysis.core.topology import Topology
@@ -32,8 +34,6 @@ from MDAnalysis.core.topologyattrs import (
     Resnames,
     TopologyAttr,
 )
-from ase.geometry import cell_to_cellpar, cellpar_to_cell
-from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.units import UnitsNarupa

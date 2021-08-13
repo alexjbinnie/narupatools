@@ -20,15 +20,15 @@ from __future__ import annotations
 import contextlib
 from abc import ABCMeta, abstractmethod
 from io import StringIO
-from typing import Any, List, Optional, Type, TypeVar, Union, overload
-from typing import Dict
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, overload
 
 import numpy as np
-from MDAnalysis.topology.tables import Z2SYMB
 from infinite_sets import InfiniteSet, everything
+from MDAnalysis.topology.tables import Z2SYMB
 from narupa.trajectory import FrameData
 
 from narupatools.state.typing import Serializable
+
 from .fields import (
     BondPairs,
     ParticleCharges,
@@ -156,15 +156,15 @@ class DictConverter(FrameConverter):
     """Converter between a Narupa FrameData and a python dictionary."""
 
     @classmethod
-    def convert_to_frame(
+    def convert_to_frame(  # noqa: D102
         cls, object: _T, *, fields: InfiniteSet[str], existing: Optional[FrameData]
-    ) -> FrameData:  # noqa: D102
+    ) -> FrameData:
         raise NotImplementedError()
 
     @classmethod
-    def convert_from_frame(
+    def convert_from_frame(  # noqa: D102
         cls, frame: FrameData, type: Union[Type[_T], _T], *, fields: InfiniteSet[str]
-    ) -> _T:  # noqa: D102
+    ) -> _T:
         if type == Dict:
             return frame_data_to_dictionary(frame, fields=fields)  # type: ignore
         elif isinstance(type, dict):

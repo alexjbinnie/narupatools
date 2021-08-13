@@ -17,6 +17,7 @@ from narupatools.frame import (
     ResidueIds,
     ResidueNames,
 )
+
 from .base import BaseTestConverter
 
 

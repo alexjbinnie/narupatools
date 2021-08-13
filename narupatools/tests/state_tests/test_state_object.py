@@ -18,16 +18,16 @@ import copy
 from typing import Generator, MutableMapping
 
 import pytest
-from hypothesis import given
-
 from fixtures import SHARED_STATE_WRAPPERS
+from hypothesis import given
+from strategies import keys, serializable, serializable_dictionaries
+
 from narupatools.state import (
     SerializableObject,
     SharedStateDictionaryView,
     SharedStateObject,
 )
 from narupatools.state.typing import Serializable
-from strategies import keys, serializable, serializable_dictionaries
 
 
 class ExampleStateObject(SharedStateObject):

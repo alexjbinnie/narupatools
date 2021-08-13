@@ -26,7 +26,7 @@ from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from .playable import Playable
+
 from ..frame import (
     SimulationElapsedSteps,
     SimulationElapsedTime,
@@ -34,6 +34,7 @@ from ..frame import (
     SimulationTotalTime,
 )
 from ..frame.frame_source import FrameSource
+from .playable import Playable
 
 
 class OnResetCallback(Protocol):

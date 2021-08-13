@@ -113,4 +113,4 @@ class LAMMPSCalculator(Calculator):
         self._simulation.run(0)
 
     def _extract_forces(self) -> np.ndarray:
-        return self._simulation.forces * _NarupaToASE.force
+        return self._simulation.forces * _NarupaToASE.force  # type: ignore

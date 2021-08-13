@@ -18,8 +18,8 @@ import copy
 from typing import Generator
 
 import pytest
-
 from fixtures import SHARED_STATE_WRAPPERS
+
 from narupatools.state import (
     SharedStateCollectionView,
     SharedStateDictionaryView,

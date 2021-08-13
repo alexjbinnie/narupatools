@@ -15,7 +15,6 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-
 from test_classes.dynamics import VillinDynamicsTests
 
 
