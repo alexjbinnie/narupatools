@@ -48,3 +48,11 @@ def test_gather_atoms_compute(lammps):
     lammps.command("compute atom1 all property/atom x")
     with pytest.raises(UnknownAtomPropertyError):
         lammps.gather_atoms("c_atom1", dimension=1)
+
+
+def test_positions(lammps):
+    value = lammps.gather_atoms("x", dimension=3)
+    assert value.shape == (2004, 3)
+    assert value[0] == pytest.approx(
+        np.array([43.99993, 58.52678, 36.7855])
+    )

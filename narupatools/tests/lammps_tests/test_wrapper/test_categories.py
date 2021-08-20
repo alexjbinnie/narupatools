@@ -43,7 +43,7 @@ def test_change_dumps(lammps):
     assert len(lammps.dumps) == 1
     assert "1" in lammps.dumps
     lammps.command("undump 1")
-    assert len(lammps.dumps) == 1
+    assert len(lammps.dumps) == 0
     assert "1" not in lammps.dumps
 
 
@@ -73,3 +73,33 @@ def test_change_groups(lammps):
     lammps.command("group water delete")
     assert len(lammps.groups) == 1
     assert "water" not in lammps.groups
+
+
+def test_initial_molecules(lammps):
+    assert len(lammps.molecules) == 0
+
+
+def test_initial_regions(lammps):
+    assert len(lammps.regions) == 0
+
+
+def test_change_regions(lammps):
+    lammps.command("region my_region block -3.0 5.0 INF 10.0 INF INF")
+    assert len(lammps.regions) == 1
+    assert "my_region" in lammps.regions
+    lammps.command("region my_region delete")
+    assert len(lammps.regions) == 0
+    assert "my_region" not in lammps.regions
+
+
+def test_initial_variables(lammps):
+    assert len(lammps.variables) == 0
+
+
+def test_change_variables(lammps):
+    lammps.command("variable beta equal temp/3.0")
+    assert len(lammps.variables) == 1
+    assert "beta" in lammps.variables
+    lammps.command("variable beta delete")
+    assert len(lammps.variables) == 0
+    assert "beta" not in lammps.variables

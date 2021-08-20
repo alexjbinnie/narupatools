@@ -84,7 +84,7 @@ class LAMMPSWrapper:
         self.regions = _Category(self, "region")
         """Set of currently defined region IDs."""
 
-        self.variables = _Category(self, "variables")
+        self.variables = _Category(self, "variable")
         """Set of currently defined variable IDs."""
 
         self.atom_styles = _StyleCategory(self, "atom")
@@ -452,9 +452,11 @@ class LAMMPSWrapper:
             if type in [VariableType.DOUBLE, VariableType.DOUBLE_ARRAY]:
                 dtype: npt.DTypeLike = np.float64
                 ctype: Any = ctypes.c_double
+                type = VariableType.DOUBLE
             elif type in [VariableType.INTEGER, VariableType.INTEGER_ARRAY]:
                 dtype = np.int32
                 ctype = ctypes.c_int
+                type = VariableType.INTEGER
             else:
                 raise LAMMPSError(f"Invalid variable type {type}")
             with catch_lammps_warnings_and_exceptions():
