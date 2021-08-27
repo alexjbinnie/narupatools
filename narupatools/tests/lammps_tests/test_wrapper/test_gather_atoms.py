@@ -53,6 +53,4 @@ def test_gather_atoms_compute(lammps):
 def test_positions(lammps):
     value = lammps.gather_atoms("x", dimension=3)
     assert value.shape == (2004, 3)
-    assert value[0] == pytest.approx(
-        np.array([43.99993, 58.52678, 36.7855])
-    )
+    assert value[0] == pytest.approx(np.array([43.99993, 58.52678, 36.7855]))
