@@ -56,7 +56,7 @@ from narupatools.core.units import (
     statvolt,
     volt,
 )
-from narupatools.lammps.units import (
+from narupatools.lammps._units import (
     UnitsLAMMPSCGS,
     UnitsLAMMPSElectron,
     UnitsLAMMPSMetal,

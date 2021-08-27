@@ -22,7 +22,7 @@ from narupatools.lammps.atom_properties import AtomID
 lammps = pytest.importorskip("lammps")
 
 
-from narupatools.lammps.simulation import LAMMPSSimulation
+from narupatools.lammps._simulation import LAMMPSSimulation
 
 
 @pytest.fixture(scope="module")

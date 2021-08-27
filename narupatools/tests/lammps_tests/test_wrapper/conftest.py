@@ -17,7 +17,7 @@
 import pytest
 from lammps import PyLammps
 
-from narupatools.lammps.wrapper import LAMMPSWrapper
+from narupatools.lammps._wrapper import LAMMPSWrapper
 
 
 @pytest.fixture

@@ -38,7 +38,7 @@ from narupatools.physics.typing import (
     Vector3ArrayLike,
 )
 
-from .simulation import LAMMPSSimulation
+from ._simulation import LAMMPSSimulation
 
 
 class LAMMPSDynamics(InteractiveSimulationDynamics):

@@ -29,7 +29,7 @@ import numpy.typing as npt
 from lammps import LMP_SIZE_COLS, LMP_SIZE_ROWS, LMP_VAR_ATOM, LMP_VAR_EQUAL, PyLammps
 
 from narupatools.lammps import LAMMPSError
-from narupatools.lammps.constants import VariableDimension, VariableStyle, VariableType
+from narupatools.lammps._constants import VariableDimension, VariableStyle, VariableType
 from narupatools.lammps.exceptions import (
     ComputeNotFoundError,
     FixNotFoundError,

@@ -21,8 +21,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, TypeVar, Union, overload
 
-from narupatools.lammps.constants import VariableType
-from narupatools.lammps.wrapper import Extractable, LAMMPSWrapper
+from narupatools.lammps._constants import VariableType
+from narupatools.lammps._wrapper import Extractable, LAMMPSWrapper
 
 _TReturnType = TypeVar("_TReturnType")
 

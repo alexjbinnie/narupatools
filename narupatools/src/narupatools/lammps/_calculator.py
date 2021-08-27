@@ -26,7 +26,7 @@ from ase.calculators.calculator import Calculator, all_changes
 from narupatools.ase.constraints.observer import ASEObserver
 from narupatools.ase.units import UnitsASE
 from narupatools.core.units import UnitsNarupa
-from narupatools.lammps.simulation import LAMMPSSimulation
+from narupatools.lammps._simulation import LAMMPSSimulation
 from narupatools.physics.typing import Vector3Array
 
 _NarupaToASE = UnitsNarupa >> UnitsASE

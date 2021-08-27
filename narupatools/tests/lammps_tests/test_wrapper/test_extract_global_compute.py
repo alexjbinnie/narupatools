@@ -17,7 +17,7 @@
 import numpy as np
 import pytest
 
-from narupatools.lammps.constants import VariableDimension
+from narupatools.lammps._constants import VariableDimension
 from narupatools.lammps.exceptions import ComputeNotFoundError
 
 

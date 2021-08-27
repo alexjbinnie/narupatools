@@ -24,7 +24,7 @@ from typing import Generic, Literal, TypeVar, Union, overload
 import numpy as np
 import numpy.typing as npt
 
-from .constants import VariableType
+from ._constants import VariableType
 from .exceptions import LAMMPSError
 
 _TReturnType = TypeVar("_TReturnType")

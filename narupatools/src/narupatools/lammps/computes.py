@@ -24,8 +24,8 @@ from typing import Generic, Literal, TypeVar, Union, overload
 import numpy as np
 import numpy.typing as npt
 
-from narupatools.lammps.constants import VariableDimension, VariableType
-from narupatools.lammps.wrapper import LAMMPSWrapper
+from narupatools.lammps._constants import VariableDimension, VariableType
+from narupatools.lammps._wrapper import LAMMPSWrapper
 
 _TReturnType = TypeVar("_TReturnType")
 

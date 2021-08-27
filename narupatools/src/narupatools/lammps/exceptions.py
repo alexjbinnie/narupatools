@@ -22,7 +22,7 @@ from typing import Generator
 
 from lammps import OutputCapture
 
-from .constants import VariableDimension, VariableStyle
+from ._constants import VariableDimension, VariableStyle
 
 ILLEGAL_COMMAND_REGEX = re.compile(r"illegal \w+ command", re.IGNORECASE)
 UNKNOWN_COMMAND_REGEX = re.compile(r"unknown command", re.IGNORECASE)

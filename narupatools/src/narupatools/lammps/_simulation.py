@@ -45,13 +45,13 @@ from narupatools.frame import (
     PotentialEnergy,
 )
 from narupatools.frame.utils import mass_to_element
-from narupatools.lammps.units import get_unit_system
+from narupatools.lammps._units import get_unit_system
 from narupatools.physics.typing import Vector3
 
-from .constants import VariableDimension, VariableType
+from ._constants import VariableDimension, VariableType
+from ._wrapper import Extractable, LAMMPSWrapper
 from .exceptions import UnknownAtomPropertyError, catch_lammps_warnings_and_exceptions
 from .region import Region, RegionSpecification
-from .wrapper import Extractable, LAMMPSWrapper
 
 _TReturnType = TypeVar("_TReturnType")
 

@@ -19,7 +19,7 @@
 
 from dataclasses import dataclass
 
-from narupatools.lammps.wrapper import Extractable, LAMMPSWrapper
+from narupatools.lammps._wrapper import Extractable, LAMMPSWrapper
 
 
 @dataclass
