@@ -1,6 +1,6 @@
 from MDAnalysis import Universe
 
-from narupatools.frame import (
+from narupatools.frame.fields import (
     BondCount,
     BondPairs,
     BoxVectors,

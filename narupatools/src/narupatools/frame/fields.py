@@ -43,12 +43,13 @@ from narupa.trajectory.frame_data import (
 )
 from typing_extensions import Final
 
-from narupatools.frame.utils import atomic_numbers_to_masses
+from narupatools.frame._utils import atomic_numbers_to_masses
 
 PARTICLE_MASSES = "particle.masses"
 PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
 BOND_COUNT = "bond.count"
+BOND_TYPES = "bond.types"
 
 _TFrom = TypeVar("_TFrom")
 _TTo = TypeVar("_TTo")
@@ -150,7 +151,7 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         except KeyError:
             if calculate:
                 return self._calculate(frame_data)
-        raise KeyError
+        raise KeyError(f"Frame does not contain key {self.key}")
 
     def get_with_default(
         self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
@@ -340,6 +341,11 @@ Array of bonds as pairs of particle indices, as a N by 2 NumPy array of integers
 BondOrders = _IntegerArrayKey(BOND_ORDERS)
 """
 Array of bond orders, as a NumPy array of integers.
+"""
+
+BondTypes = _StringArrayKey(BOND_TYPES)
+"""
+Array of bond types, as a NumPy array of strings.
 """
 
 BondCount = _IntegerKey(BOND_COUNT)

@@ -6,13 +6,14 @@ from ase.geometry import cellpar_to_cell
 from infinite_sets import InfiniteSet, everything
 
 from narupatools.core.random import random_integer, random_word
-from narupatools.frame import (
+from narupatools.frame import NarupaFrame
+from narupatools.frame.fields import (
     BondCount,
     BondPairs,
     BoxVectors,
     ChainCount,
     ChainNames,
-    NarupaFrame,
+    FrameKey,
     ParticleCharges,
     ParticleCount,
     ParticleElements,
@@ -29,7 +30,6 @@ from narupatools.frame import (
     ResidueIds,
     ResidueNames,
 )
-from narupatools.frame.fields import FrameKey
 from narupatools.physics.random import random_scalar, random_vector
 
 

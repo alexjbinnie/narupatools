@@ -19,7 +19,7 @@ from MDAnalysis import AtomGroup, Universe
 from narupa.trajectory import FrameData
 from test_classes.converter import NeuraminidaseTestConverter
 
-from narupatools.frame import (
+from narupatools.frame.fields import (
     BondCount,
     ChainCount,
     ParticleCount,

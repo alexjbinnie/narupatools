@@ -6,7 +6,7 @@ from infinite_sets import everything
 
 from narupatools.app import Client, Session
 from narupatools.core.timing import wait_for
-from narupatools.frame import ParticlePositions
+from narupatools.frame.fields import ParticlePositions
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import dot_product, sqr_magnitude, vector, zero_vector
 

@@ -19,7 +19,7 @@ from narupa.trajectory import FrameData
 from simtk.openmm.app import PDBFile, Topology
 from test_classes.converter import NeuraminidaseTestConverter
 
-from narupatools.frame import ParticlePositions
+from narupatools.frame.fields import ParticlePositions
 from narupatools.openmm import openmm_topology_to_frame
 
 

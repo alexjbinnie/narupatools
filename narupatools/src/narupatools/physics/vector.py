@@ -65,7 +65,13 @@ def cross_product(a: Vector3Like, b: Vector3Like, /) -> Vector3:
     :param b: Vector :math:`b`.
     :return: Cross product :math:`a \times b` of the vectors :math:`a` and :math:`b`.
     """
-    return np.cross(a, b)
+    return np.array(
+        [
+            a[1] * b[2] - b[1] * a[2],
+            a[2] * b[0] - b[2] * a[0],
+            a[0] * b[1] - b[0] * a[1],
+        ]
+    )
 
 
 def zero_vector() -> Vector3:
@@ -83,14 +89,14 @@ def magnitude(vector: VectorNLike, /) -> float:
     return np.linalg.norm(vector)  # type: ignore
 
 
-def normalized(vector: VectorNLike, /) -> float:
+def normalized(vector: VectorNLike, /) -> VectorN:
     """Normalize an n-dimensional vector."""
     vector_np: VectorN = np.asfarray(vector)
     mag = magnitude(vector_np)
     if mag == 0.0:
-        return vector_np / 1.0  # type: ignore
+        return vector_np / 1.0
     else:
-        return vector_np / mag  # type: ignore
+        return vector_np / mag
 
 
 def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:

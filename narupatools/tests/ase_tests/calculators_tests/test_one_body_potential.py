@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from ase import Atom
-from ase.calculators.calculator import CalculatorSetupError
 
 from narupatools.ase import OneBodyPotentialCalculator
 from narupatools.physics.typing import Vector3
@@ -27,20 +26,15 @@ def well_calculator():
     return HarmonicWellPotentialCalculator()
 
 
-def test_no_atoms(well_calculator):
-    with pytest.raises(CalculatorSetupError):
-        well_calculator.calculate()
-
-
 def test_has_forces(carbon_atoms, well_calculator):
-    well_calculator.calculate(carbon_atoms, properties=("forces"))
+    well_calculator.calculate(carbon_atoms)
     assert well_calculator.results["forces"] == pytest.approx(
         np.array([[-4.0, 0.0, 0.0]])
     )
 
 
 def test_has_energies(carbon_atoms, well_calculator):
-    well_calculator.calculate(carbon_atoms, properties=("energy"))
+    well_calculator.calculate(carbon_atoms)
     assert well_calculator.results["energy"] == pytest.approx(4.0)
 
 

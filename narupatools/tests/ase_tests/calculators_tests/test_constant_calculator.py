@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from ase import Atoms
 from ase.calculators.calculator import CalculatorSetupError, PropertyNotImplementedError
+from ase.calculators.mixing import AverageCalculator
 from ase.data.g2 import data
 
 from narupatools.ase.calculators import ConstantCalculator
@@ -28,6 +29,14 @@ def test_no_args(benzene):
         benzene.get_potential_energy()
     with pytest.raises(PropertyNotImplementedError):
         benzene.get_charges()
+
+
+def test_energy_avg(benzene):
+    calc1 = ConstantCalculator(energy=10.0)
+    calc2 = ConstantCalculator(energy=20.0)
+    AverageCalculator([calc1, calc2], benzene)
+
+    assert benzene.get_potential_energy() == pytest.approx(15.0)
 
 
 def test_valid(benzene):
@@ -67,13 +76,13 @@ def test_forces_invalid(benzene):
         vector(0, 0, 1),
         vector(0, 0, 2),
     ]
-    calc = ConstantCalculator(forces=forces)
+    benzene.calc = ConstantCalculator(forces=forces)
     with pytest.raises(CalculatorSetupError):
-        benzene.calc = calc
+        benzene.get_forces()
 
 
 def test_charges_invalid(benzene):
     charges = [0, 2, 5, -2, 1, 0, 0, 2, 0]
-    calc = ConstantCalculator(charges=charges)
+    benzene.calc = ConstantCalculator(charges=charges)
     with pytest.raises(CalculatorSetupError):
-        benzene.calc = calc
+        benzene.get_charges()

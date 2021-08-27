@@ -2,7 +2,7 @@ from typing import Type
 
 from simtk.openmm.app import Topology
 
-from narupatools.frame import (
+from narupatools.frame.fields import (
     BondCount,
     BondPairs,
     BoxVectors,

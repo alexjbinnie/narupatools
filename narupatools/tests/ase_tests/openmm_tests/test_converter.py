@@ -19,8 +19,10 @@ from simtk.openmm import LangevinIntegrator
 from simtk.openmm.app import Simulation
 from simtk.unit import kelvin, picosecond, picoseconds
 
-from narupatools.ase.openmm.converter import openmm_simulation_to_ase_molecular_dynamics
-from narupatools.ase.units import UnitsASE
+from narupatools.ase._units import UnitsASE
+from narupatools.ase.openmm._converter import (
+    openmm_simulation_to_ase_molecular_dynamics,
+)
 from narupatools.core.units import UnitsNarupa
 
 

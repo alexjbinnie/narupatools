@@ -22,6 +22,6 @@ __all__ = [
     "SharedStateReference",
 ]
 
-from .collection_view import SharedStateCollectionView
-from .dictionary_view import SharedStateDictionaryView
-from .reference import SharedStateReference
+from ._collection_view import SharedStateCollectionView
+from ._dictionary_view import SharedStateDictionaryView
+from ._reference import SharedStateReference

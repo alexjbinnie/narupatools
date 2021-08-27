@@ -21,7 +21,8 @@ from abc import ABCMeta, abstractmethod
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from ..frame.frame_source import FrameSource
+from narupatools.frame._frame_source import FrameSource
+
 from .playable import Playable
 
 

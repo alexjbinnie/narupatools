@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any
+from typing import Any, Optional
+
+import numpy as np
 
 class Structure:
     def __init__(self): ...
@@ -27,4 +29,8 @@ class Trajectory:
     def n_frames(self): ...
 
 class NGLWidget:
-    def __init__(self, structure: Structure, **kwargs: Any) -> None: ...
+    def __init__(self, structure: Optional[Structure] = ..., **kwargs: Any) -> None: ...
+    def add_structure(self, structure: Structure) -> ComponentViewer: ...
+
+class ComponentViewer:
+    def set_coordinates(self, coordinates: np.ndarray) -> None: ...

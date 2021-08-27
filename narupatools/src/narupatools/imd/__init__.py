@@ -16,17 +16,20 @@
 
 """Module for code relating to interactive molecular dynamics."""
 
-from .dynamics import InteractiveSimulationDynamics
-from .forces import calculate_imd_force, register_imd_force_type
-from .interaction import Interaction
-from .interactions import constant_interaction, gaussian_interaction, spring_interaction
+from ._dynamics import InteractiveSimulationDynamics
+from .interactions import (
+    Interaction,
+    constant_interaction,
+    gaussian_interaction,
+    rigidmotion_interaction,
+    spring_interaction,
+)
 
 __all__ = [
-    "calculate_imd_force",
-    "constant_interaction",
-    "spring_interaction",
-    "gaussian_interaction",
-    "Interaction",
     "InteractiveSimulationDynamics",
-    "register_imd_force_type",
+    "Interaction",
+    "gaussian_interaction",
+    "spring_interaction",
+    "constant_interaction",
+    "rigidmotion_interaction",
 ]

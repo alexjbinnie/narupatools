@@ -8,7 +8,6 @@ import pytest
 
 from narupatools.frame.hdf5 import HDF5Trajectory, add_hdf5_writer
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
-from narupatools.imd.interaction_source import wrap_interaction_source
 from narupatools.physics.vector import vector
 
 
@@ -150,9 +149,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         dynamics.run(25)
 
         interactions = {}
-        dynamics.imd.add_dynamic_interactions_source(
-            wrap_interaction_source(interactions)
-        )
+        dynamics.imd.add_source(interactions)
 
         key = "my_interaction"
         interactions[key] = constant_interaction(

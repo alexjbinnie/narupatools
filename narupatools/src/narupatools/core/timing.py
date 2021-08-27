@@ -15,8 +15,10 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Code for managing timings."""
+
 import time
-from typing import Callable
+from threading import Timer
+from typing import Any, Callable
 
 
 def wait_for(
@@ -35,3 +37,33 @@ def wait_for(
         time.sleep(check_interval)
     if not passed:
         raise TimeoutError(f"{predicate} did not return True within timeout.")
+
+
+def throttle(wait: float) -> Any:
+    """Decorator that prevents a function from being called more than once every wait period."""
+
+    def decorator(fn: Any) -> Any:
+        time_of_last_call: float = time.monotonic()
+        scheduled, timer = False, None
+        new_args, new_kwargs = None, None
+
+        def throttled(*args: Any, **kwargs: Any) -> Any:
+            nonlocal new_args, new_kwargs, time_of_last_call, scheduled, timer
+
+            def call_it() -> Any:
+                nonlocal new_args, new_kwargs, time_of_last_call, scheduled, timer
+                time_of_last_call = time.monotonic()
+                fn(*new_args, **new_kwargs)
+                scheduled = False
+
+            time_since_last_call = time.monotonic() - time_of_last_call
+            new_args, new_kwargs = args, kwargs
+            if not scheduled:
+                scheduled = True
+                new_wait = max(0.0, wait - time_since_last_call)
+                timer = Timer(new_wait, call_it)
+                timer.start()
+
+        return throttled
+
+    return decorator

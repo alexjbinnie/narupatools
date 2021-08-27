@@ -19,7 +19,7 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
-from narupatools.lammps.simulation import (
+from narupatools.lammps._simulation import (
     Compute,
     ComputeNotFoundError,
     InvalidComputeSpecificationError,

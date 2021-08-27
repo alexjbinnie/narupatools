@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
 
 import numpy as np
 from ase.calculators.calculator import Calculator
@@ -64,3 +64,10 @@ class Atoms:
     def calc(self) -> Optional[Calculator]: ...
     @calc.setter
     def calc(self, calc: Optional[Calculator]) -> None: ...
+    @property
+    def symbols(self) -> Symbols: ...
+    def has(self, name: str) -> Any: ...
+    def get_array(self, name: str, copy: bool = ...) -> np.ndarray: ...
+
+class Symbols:
+    def __iter__(self) -> Iterator[str]: ...

@@ -23,7 +23,7 @@ from simtk.openmm.app.forcefield import PME
 from simtk.unit import kelvin, nanometer, picosecond, picoseconds
 from test_classes.dynamics import VillinDynamicsTests
 
-from narupatools.openmm.dynamics import OpenMMDynamics
+from narupatools.openmm._dynamics import OpenMMDynamics
 
 
 @pytest.fixture(scope="module")

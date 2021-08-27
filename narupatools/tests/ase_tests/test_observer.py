@@ -17,7 +17,7 @@
 import pytest
 from testing import assert_event_called
 
-from narupatools.ase.constraints.observer import ASEObserver
+from narupatools.ase.constraints._observer import ASEObserver
 
 
 @pytest.fixture

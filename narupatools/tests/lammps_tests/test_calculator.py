@@ -19,8 +19,8 @@ import pytest
 lammps = pytest.importorskip("lammps")
 
 from narupatools.core.units import calorie, electronvolt, kilo, mole
-from narupatools.lammps.converter import atoms_from_lammps_simulation
-from narupatools.lammps.simulation import LAMMPSSimulation
+from narupatools.lammps._converter import atoms_from_lammps_simulation
+from narupatools.lammps._simulation import LAMMPSSimulation
 
 
 @pytest.fixture(scope="module")

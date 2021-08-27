@@ -32,8 +32,12 @@ if importlib.util.find_spec("mdtraj") is not None:
 if importlib.util.find_spec("lammps") is not None:
     import narupatools.lammps  # noqa: F401
 
+
+if importlib.util.find_spec("rdkit") is not None:
+    import narupatools.rdkit  # noqa: F401
+
 __location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-with open(__location + "/VERSION") as version_file:
-    __version__ = version_file.read().strip()
+with open(__location + "/VERSION") as _version_file:
+    __version__ = _version_file.read().strip()
 
 __author__ = "Alex Jamieson-Binnie"

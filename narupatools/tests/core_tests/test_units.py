@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pytest
 
-from narupatools.ase.units import UnitsASE
+from narupatools.ase._units import UnitsASE
 from narupatools.core.units import (
     UnfinishedUnitOrQuantity,
     Unit,
@@ -37,9 +37,9 @@ from narupatools.core.units import (
     statcoulomb,
     volt,
 )
-from narupatools.mdanalysis.units import UnitsMDAnalysis
-from narupatools.mdtraj.units import UnitsMDTraj
-from narupatools.openmm.units import UnitsOpenMM
+from narupatools.mdanalysis._units import UnitsMDAnalysis
+from narupatools.mdtraj._units import UnitsMDTraj
+from narupatools.openmm._units import UnitsOpenMM
 
 
 def test_general():

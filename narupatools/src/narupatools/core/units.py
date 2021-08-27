@@ -170,6 +170,7 @@ r"""The second (:math:`\text{s}`), the SI unit of time."""
 
 meter = Unit(1e9)
 r"""The meter (:math:`\text{m}`), the SI unit of length."""
+metre = meter
 
 dalton = Unit(1)
 r"""The dalton (:math:`\text{Da}`) unit of mass."""
@@ -194,6 +195,10 @@ r"""The radian (:math:`\text{rad}`), the natural unit of angle."""
 
 degree = Unit(math.pi / 180.0)
 r"""The degree (:math:`^{\circ}`) unit of angle."""
+
+liter = (deci * meter) ** 3
+r"""The liter (:math:`l`) unit of volume."""
+litre = liter
 
 joule = Unit(kilo * gram * meter * meter / (second * second))
 r"""The joule (:math:`\text{J}`), the SI unit of energy defined as :math:`1 \text{J}
@@ -257,6 +262,7 @@ r"""The atomic time unit of time."""
 
 amp = Unit(coulomb / second)
 r"""The ampere (:math:`\text{A}`) unit of current."""
+ampere = amp
 
 erg = Unit(1e-7 * joule)
 r"""The erg (:math:`\text{erg}`) unit of energy."""
@@ -412,3 +418,40 @@ UnitsNarupa = UnitSystem(
     angle=radian,
 )
 """Unit system used by Narupa/narupatools."""
+
+__prefixes = [
+    "yotta",
+    "zetta",
+    "exa",
+    "peta",
+    "tera",
+    "giga",
+    "mega",
+    "kilo",
+    "hecto",
+    "deca",
+    "deci",
+    "centi",
+    "milli",
+    "micro",
+    "nano",
+    "pico",
+    "femto",
+    "atto",
+    "zepto",
+    "yocto",
+]
+
+__vars = locals()
+
+
+def __getattr__(name: str) -> Unit:
+    for si_prefix in __prefixes:
+        if name.startswith(si_prefix):
+            prefix: Prefix = __vars[si_prefix]
+            unit_name = name[len(si_prefix) :]
+            if unit_name in __vars and isinstance(unit := __vars[unit_name], Unit):
+                return prefix * unit
+            else:
+                raise AttributeError
+    raise AttributeError

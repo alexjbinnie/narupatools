@@ -15,7 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Custom exceptions that wrap LAMMPS output."""
-from .constants import VariableStyle, VariableType
+from ._constants import VariableStyle, VariableType
 
 
 class LAMMPSError(RuntimeError):

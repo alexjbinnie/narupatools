@@ -4,8 +4,8 @@ from typing import AbstractSet
 import numpy as np
 import pytest
 
-from narupatools.frame import BondPairs, NarupaFrame, convert
-from narupatools.frame.fields import FrameKey
+from narupatools.frame import NarupaFrame, convert
+from narupatools.frame.fields import BondPairs, FrameKey
 
 
 def check_equal(property, original, new):

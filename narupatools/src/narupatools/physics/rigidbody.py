@@ -20,7 +20,7 @@ Methods for dealing with systems of particles, such as center of mass.
 Methods here are not specific with units - as long as arguments are provided in
 consistent units, then the calculated result will be correct.
 """
-
+import math
 from typing import Optional
 
 import numpy as np
@@ -35,7 +35,12 @@ from .typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from .vector import left_vector_triple_product_matrix, sqr_magnitude, zero_vector
+from .vector import (
+    cross_product,
+    left_vector_triple_product_matrix,
+    sqr_magnitude,
+    zero_vector,
+)
 
 
 def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> Vector3:
@@ -131,7 +136,7 @@ def spin_angular_momentum(
     com_velocity = center_of_mass_velocity(masses=masses, velocities=velocities)
     angular_momentum = np.array([0.0, 0.0, 0.0], dtype=float)
     for i in range(0, len(masses)):
-        angular_momentum += masses[i] * np.cross(
+        angular_momentum += masses[i] * cross_product(
             positions[i] - com, velocities[i] - com_velocity
         )
     return angular_momentum
@@ -171,6 +176,73 @@ def orbital_angular_momentum(
     com_velocity = center_of_mass_velocity(masses=masses, velocities=velocities)
     total_mass = np.sum(np.asfarray(masses))
     return total_mass * np.cross(com - origin, com_velocity)  # type: ignore
+
+
+def radius_of_gyration(
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    axis: Vector3,
+    origin: Optional[Vector3Like] = None,
+) -> float:
+    r"""
+    Calculate the radius of gyration about an axis.
+
+    The radius of gyration :math:`R` about an axis is the radius at which a fictitious particle of total mass :math:`M`
+    would have the same moment of inertia as the provided system does about the axis and origin.
+
+    It is the solution to the equation:
+
+    .. math:: M R^2 = I
+
+    where :math:`M` is the total mass and :math:`I` is the moment of inertia about the axis (see
+    :func:`moment_of_inertia`) for more details.
+
+    By default, the origin is taken to be the center of mass.
+
+    :param masses: List of masses :math:`m_i` of each particle.
+    :param positions: List of positions :math:`R_i` of each particle.
+    :param axis: Axis about which to calculate the radius of gyration.
+    :param origin: Optional origin to calculate the moment of inertia around. Defaults
+                   to the center of mass.
+    :return: Radius of gyration :math:`R` with respect to the given axis and origin, in
+             units of [distance].
+    """
+    return math.sqrt(
+        moment_of_inertia(masses=masses, positions=positions, axis=axis, origin=origin)
+        / masses.sum()
+    )
+
+
+def moment_of_inertia(
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    axis: Vector3,
+    origin: Optional[Vector3Like] = None,
+) -> float:
+    r"""
+    Calculate the moment of inertia of a set of particles about an axis.
+
+    The moment of inertia acts similarly to a rotational analogue to mass, and describes the distribution of mass
+    about the provided axis.
+
+    .. math:: I = \sum_i m_i |r_i^\perp|^2
+
+    where :math:`m_i` is the mass of each particle and :math:`r_i^\perp` is the distance of the particle from the axis.
+
+    By default, the origin is taken to be the center of mass.
+
+    :param masses: List of masses :math:`m_i` of each particle.
+    :param positions: List of positions :math:`R_i` of each particle.
+    :param axis: Axis about which to calculate the radius of gyration.
+    :param origin: Optional origin to calculate the moment of inertia around. Defaults
+                   to the center of mass.
+    :return: Moment of inertia :math:`I` with respect to the given axis and origin, in
+             units of [mass] * [distance] squared
+    """
+    tensor = moment_of_inertia_tensor(masses=masses, positions=positions, origin=origin)
+    return np.dot(axis, np.matmul(tensor, axis)) / np.dot(axis, axis)  # type: ignore[no-any-return]
 
 
 def moment_of_inertia_tensor(

@@ -20,9 +20,10 @@ import math
 import random
 
 import numpy as np
+from .quaternion import quaternion
 
 from narupatools.core.random import random_float
-from narupatools.physics.typing import QuaternionLike, Vector3
+from narupatools.physics.typing import Vector3
 
 
 def random_sphere() -> Vector3:
@@ -47,9 +48,9 @@ def random_vector(*, max_magnitude: float = 1.0) -> Vector3:
     return random_sphere() * max_magnitude
 
 
-def random_quaternion() -> QuaternionLike:
+def random_quaternion() -> quaternion:
     """Generate a random vector of length 3."""
-    return [random_scalar(min=-1.0, max=1.0) for _ in range(4)]
+    return quaternion(*[random_scalar(min=-1.0, max=1.0) for _ in range(4)])
 
 
 random_scalar = random_float

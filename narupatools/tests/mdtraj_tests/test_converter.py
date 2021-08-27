@@ -20,7 +20,7 @@ from mdtraj import Trajectory
 from narupa.trajectory import FrameData
 from test_classes.converter import NeuraminidaseTestConverter
 
-from narupatools.mdtraj.converter import (
+from narupatools.mdtraj._converter import (
     mdtraj_topology_to_frame,
     mdtraj_trajectory_to_frame,
 )

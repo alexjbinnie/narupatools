@@ -16,7 +16,8 @@
 
 """Application-level code for clients and servers."""
 
-from .client import Client
-from .session import Session
+from ._client import Client
+from ._session import Session
+from ._shared_state import SessionSharedState
 
-__all__ = ["Client", "Session"]
+__all__ = ["Client", "Session", "SessionSharedState"]

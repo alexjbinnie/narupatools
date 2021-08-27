@@ -16,11 +16,13 @@
 
 """Code for interface with the MDAnalysis package."""
 
-from .converter import mdanalysis_atomgroup_to_frame, mdanalysis_universe_to_frame
-from .units import UnitsMDAnalysis
+from ._converter import mdanalysis_atomgroup_to_frame, mdanalysis_universe_to_frame
+from ._system import MDAnalysisSystem
+from ._units import UnitsMDAnalysis
 
 __all__ = [
     "mdanalysis_atomgroup_to_frame",
     "mdanalysis_universe_to_frame",
+    "MDAnalysisSystem",
     "UnitsMDAnalysis",
 ]

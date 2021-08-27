@@ -18,7 +18,7 @@ from typing import Collection
 
 import pytest
 
-from narupatools.frame import (
+from narupatools.frame.fields import (
     BondCount,
     BondPairs,
     BoxVectors,

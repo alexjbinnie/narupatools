@@ -22,10 +22,10 @@ from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.core import UnitsNarupa
-from narupatools.lammps.converter import atoms_from_lammps_simulation
-from narupatools.lammps.dynamics import LAMMPSDynamics
-from narupatools.lammps.region import Box
-from narupatools.lammps.simulation import LAMMPSSimulation
+from narupatools.lammps._converter import atoms_from_lammps_simulation
+from narupatools.lammps._dynamics import LAMMPSDynamics
+from narupatools.lammps._region import Box
+from narupatools.lammps._simulation import LAMMPSSimulation
 from narupatools.physics.vector import vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE

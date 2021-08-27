@@ -22,7 +22,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 from .matrix import zero_matrix
-from .rigidbody import angular_velocity, center_of_mass
+from .rigidbody import angular_velocity, center_of_mass, moment_of_inertia
 from .typing import (
     ScalarArray,
     ScalarArrayLike,
@@ -272,8 +272,10 @@ def damped_rotational_spring_forces(
     omega = angular_velocity(masses=masses, positions=positions, velocities=velocities)
     # Create the matrix K that applies all three forces
     K = zero_matrix()
-    K += spring_constant * cross_product_matrix(angle)
-    K += -damping_coefficient * cross_product_matrix(omega)
+    moment_tau = moment_of_inertia(masses=masses, positions=positions, axis=angle)
+    moment_omega = moment_of_inertia(masses=masses, positions=positions, axis=angle)
+    K += spring_constant * cross_product_matrix(angle) / moment_tau
+    K += -damping_coefficient * cross_product_matrix(omega) / moment_omega
     K += left_vector_triple_product_matrix(omega, omega)
     return np.array(
         [
@@ -281,4 +283,50 @@ def damped_rotational_spring_forces(
             for i in range(0, len(positions))
         ],
         dtype=float,
+    )
+
+
+def critically_damped_rotational_spring_forces(
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    velocities: Vector3Array,
+    angle: Vector3,
+    spring_constant: float,
+) -> Vector3Array:
+    r"""
+    Calculate the forces on a set of particles from a critically damped rotational spring.
+
+    This consists of three forces:
+
+    A rotational torque to rotate the system in the direction of angle
+
+    .. math:: F_i = m_i k \theta \times r_i
+
+    A rotational torque opposing the current angular velocity of the system
+
+    .. math:: F_i = - m_i \gamma \omega \times r_i
+
+    A centripetal force holding the system together
+
+    .. math:: F_i = m_i \omega \times (\omega \times r_i)
+
+    :param masses: List of masses :math:`m_i` of each particle.
+    :param positions: List of positions :math:`R_i` of each particle.
+    :param velocities: List of velocities :math:`v_i` of each particle.
+    :param angle: 3D vector indicating the angle :math:`\theta` to rotate around and
+                  which axis to do so.
+    :param spring_constant: Spring constant :math:`k` which scales the force used to
+                            rotate the system in the desired direction.
+    :return: List of forces :math:`F_i` for each particle.
+    """
+    moment = moment_of_inertia(masses=masses, positions=positions, axis=angle)
+    damping_coefficient = 2 * math.sqrt(moment * spring_constant)
+    return damped_rotational_spring_forces(
+        masses=masses,
+        velocities=velocities,
+        positions=positions,
+        angle=angle,
+        damping_coefficient=damping_coefficient,
+        spring_constant=spring_constant,
     )

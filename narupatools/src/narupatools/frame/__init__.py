@@ -16,65 +16,11 @@
 
 """Code for handling FrameData and other related objects."""
 
-from .converter import convert
-from .fields import (
-    BondCount,
-    BondOrders,
-    BondPairs,
-    BoxVectors,
-    ChainCount,
-    ChainNames,
-    KineticEnergy,
-    ParticleCharges,
-    ParticleCount,
-    ParticleElements,
-    ParticleForces,
-    ParticleMasses,
-    ParticleNames,
-    ParticlePositions,
-    ParticleResidues,
-    ParticleTypes,
-    ParticleVelocities,
-    PotentialEnergy,
-    ResidueChains,
-    ResidueCount,
-    ResidueIds,
-    ResidueNames,
-    SimulationElapsedSteps,
-    SimulationElapsedTime,
-    SimulationTotalSteps,
-    SimulationTotalTime,
-)
-from .frame import NarupaFrame
-from .patch import *  # noqa: F401, F403
+from ._converter import convert
+from ._frame import NarupaFrame
+from ._patch import *  # noqa: F401, F403
 
 __all__ = [
     "convert",
-    "ParticlePositions",
-    "ParticleCount",
-    "ParticleElements",
-    "ParticleNames",
-    "ParticleTypes",
-    "ParticleResidues",
-    "ParticleMasses",
-    "ParticleVelocities",
-    "ParticleForces",
-    "ParticleCharges",
-    "ResidueNames",
-    "ResidueChains",
-    "ResidueCount",
-    "ResidueIds",
-    "ChainCount",
-    "ChainNames",
-    "BondCount",
-    "BondPairs",
-    "BoxVectors",
-    "BondOrders",
-    "PotentialEnergy",
-    "KineticEnergy",
-    "SimulationTotalTime",
-    "SimulationElapsedTime",
-    "SimulationTotalSteps",
-    "SimulationElapsedSteps",
     "NarupaFrame",
 ]

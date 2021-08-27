@@ -1,6 +1,6 @@
 from ase import Atoms
 
-from narupatools.frame import (
+from narupatools.frame.fields import (
     BoxVectors,
     KineticEnergy,
     ParticleCharges,

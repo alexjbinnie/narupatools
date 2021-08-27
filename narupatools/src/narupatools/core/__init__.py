@@ -16,7 +16,7 @@
 
 """Core code that is useful across narupatools."""
 
-from .patch import *  # noqa: F401, F403
+from ._patch import *  # noqa: F401, F403
 from .units import UnitsNarupa
 
 __all__ = ["UnitsNarupa"]

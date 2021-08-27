@@ -19,7 +19,7 @@ import pytest
 lammps = pytest.importorskip("lammps")
 
 from narupatools.lammps import LAMMPSSimulation
-from narupatools.lammps.constants import PropertyType
+from narupatools.lammps._constants import PropertyType
 from narupatools.lammps.exceptions import (
     CannotOpenFileError,
     IllegalCommandError,
