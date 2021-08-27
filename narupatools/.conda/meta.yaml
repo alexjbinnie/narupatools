@@ -21,6 +21,7 @@ requirements:
     - mdtraj>=1.9.*
     - lxml>=4.6.*
     - infinite-sets==1.0.*
+    - quaternion
 
 about:
   home: https://github.com/alexjbinnie/narupatools
