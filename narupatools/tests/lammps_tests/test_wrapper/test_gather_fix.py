@@ -14,11 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Custom warnings that wrap LAMMPS warnings printed to the console."""
+import numpy as np
+import pytest
+
+pytest.importorskip("lammps")
 
 
-class LAMMPSWarning(UserWarning):
-    """Warning raised by LAMMPS."""
+def test_gather_fix_atom_1d(lammps):
+    lammps.command("fix my_fix all ave/atom 1 10 10 vx")
+    lammps.command("run 100")
+    value = lammps.gather_fix("my_fix")
+    assert isinstance(value, np.ndarray)
+    assert value.shape == (2004,)
+    assert value.dtype == np.float64
+    assert not value.flags.writeable
 
-    def __init__(self, message: str):
-        super().__init__(message)
+
+def test_gather_fix_atom_3d(lammps):
+    lammps.command("fix my_fix all ave/atom 1 10 10 vx vy vz")
+    lammps.command("run 100")
+    value = lammps.gather_fix("my_fix")
+    assert isinstance(value, np.ndarray)
+    assert value.shape == (2004, 3)
+    assert value.dtype == np.float64
+    assert not value.flags.writeable

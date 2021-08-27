@@ -123,6 +123,11 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         """Shared state of the session."""
         return self._shared_state
 
+    @property
+    def last_frame(self) -> FrameData:
+        """The last frame sent by the server."""
+        return self._server.frame_publisher.last_frame  # type: ignore[no-any-return]
+
     def _on_frame_produced(self, *, frame: FrameData, **kwargs: Any) -> None:
         self._server.frame_publisher.send_frame(self.frame_index, frame)
         self.frame_index += 1

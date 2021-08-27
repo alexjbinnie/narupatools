@@ -14,27 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Quaternions provided by the quaternion python package.
+import pytest
 
-Importing it through this module supresses the warning it produces without numba, as
-we don't use those features and hence don't need it.
-"""
+pytest.importorskip("lammps")
 
-import warnings
+from narupatools.lammps.exceptions import ComputeNotFoundError
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from quaternion import (
-        as_rotation_matrix,
-        as_rotation_vector,
-        from_rotation_vector,
-        quaternion,
-    )
 
-__all__ = [
-    "quaternion",
-    "as_rotation_vector",
-    "as_rotation_matrix",
-    "from_rotation_vector",
-]
+def test_gather_compute_atom_1d(lammps):
+    lammps.command("compute atom1 all property/atom x")
+    value = lammps.gather_compute("atom1")
+    assert value.shape == (2004,)
+    assert value[0] == pytest.approx(43.99993)
+
+
+def test_gather_compute_atom_2d(lammps):
+    lammps.command("compute atom1 all property/atom x y z")
+    value = lammps.gather_compute("atom1")
+    assert value.shape == (2004, 3)
+    assert value[0][0] == pytest.approx(43.99993)
+
+
+def test_gather_atom_compute_missing(lammps):
+    with pytest.raises(ComputeNotFoundError):
+        lammps.gather_compute("atom1")

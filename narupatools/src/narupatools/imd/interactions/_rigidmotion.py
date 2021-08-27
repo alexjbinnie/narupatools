@@ -26,7 +26,7 @@ from narupatools.physics.rigidbody import (
     center_of_mass_velocity,
 )
 from narupatools.physics.transformation import Rotation, Translation
-from narupatools.physics.typing import Vector3, Vector3Array, ScalarArray
+from narupatools.physics.typing import ScalarArray, Vector3, Vector3Array
 from narupatools.physics.vector import (
     cross_product_matrix,
     left_vector_triple_product_matrix,
@@ -84,11 +84,15 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         velocities = self.dynamics.velocities[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]
 
-        self._forces = self._calculate_force(positions=positions, velocities=velocities, masses=masses)
+        self._forces = self._calculate_force(
+            positions=positions, velocities=velocities, masses=masses
+        )
 
         return self._forces, 0.0
 
-    def _calculate_force(self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray ) -> Vector3Array:
+    def _calculate_force(
+        self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
+    ) -> Vector3Array:
         forces = np.zeros(shape=(len(self.particle_indices), 3))
 
         k = self.scale
@@ -104,9 +108,9 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             )
             theta = (~desired_rotation).rotation_vector
             rotation_matrix = (
-                    -(k / M) * cross_product_matrix(theta)
-                    - (gamma / M) * cross_product_matrix(omega)
-                    + left_vector_triple_product_matrix(omega, omega)
+                -(k / M) * cross_product_matrix(theta)
+                - (gamma / M) * cross_product_matrix(omega)
+                + left_vector_triple_product_matrix(omega, omega)
             )
 
         if self.translation is not None:

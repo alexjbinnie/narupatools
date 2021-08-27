@@ -26,8 +26,8 @@ from narupatools.lammps import (
 )
 
 
-def test_ase_lammps(neuraminidase_openmm_xml_filename):
-    simulation = LAMMPSSimulation.from_file("in.peptide", "data.peptide")
+def test_ase_lammps():
+    simulation = LAMMPSSimulation.from_file("in.peptide")
 
     atoms = atoms_from_lammps_simulation(simulation)
 
@@ -36,8 +36,8 @@ def test_ase_lammps(neuraminidase_openmm_xml_filename):
     dynamics.run(100)
 
 
-def test_lammps(neuraminidase_openmm_xml_filename):
-    simulation = LAMMPSSimulation.from_file("in.peptide", "data.peptide")
+def test_lammps():
+    simulation = LAMMPSSimulation.from_file("in.peptide")
 
     dynamics = LAMMPSDynamics(simulation)
 

@@ -18,12 +18,15 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
+from narupatools.lammps.atom_properties import AtomProperty
+
 from narupatools.lammps import LAMMPSSimulation
-from narupatools.lammps._constants import PropertyType
+from narupatools.lammps._constants import VariableType
 from narupatools.lammps.exceptions import (
     CannotOpenFileError,
     IllegalCommandError,
     MissingInputScriptError,
+    UnknownAtomPropertyError,
     UnknownCommandError,
     UnrecognizedStyleError,
 )
@@ -107,5 +110,9 @@ def test_illegal_command():
 
 
 def test_invalid_gather_atoms_name():
-    simulation = LAMMPSSimulation.from_file("in.peptide", "data.peptide")
-    simulation.gather_atoms("unknown_key", PropertyType.DOUBLE, 3)
+    simulation = LAMMPSSimulation.from_file("in.peptide")
+    property = AtomProperty.define(
+        "unknown_key", type=VariableType.DOUBLE, components=3
+    )
+    with pytest.raises(UnknownAtomPropertyError):
+        simulation.gather_atoms(property)

@@ -15,11 +15,16 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Constants used by the LAMMPS API."""
-from ctypes import c_double, c_int
-from enum import IntEnum
-from typing import Any
 
-from lammps import LAMMPS_DOUBLE, LAMMPS_INT
+from enum import IntEnum
+
+from lammps import (
+    LAMMPS_DOUBLE,
+    LAMMPS_DOUBLE_2D,
+    LAMMPS_INT,
+    LAMMPS_INT_2D,
+    LAMMPS_STRING,
+)
 
 
 class VariableStyle(IntEnum):
@@ -33,28 +38,31 @@ class VariableStyle(IntEnum):
     """Local variable."""
 
 
-class PropertyType(IntEnum):
-    """Property styles that can be used for get_atom_property."""
-
-    INT = LAMMPS_INT
-    """Property consists of one or more integers."""
-    DOUBLE = LAMMPS_DOUBLE
-    """Property consists of one or more floating point numbers."""
-
-    def get_ctype(self) -> Any:
-        """Get the C type represented by this property type."""
-        if self == PropertyType.INT:
-            return c_int
-        elif self == PropertyType.DOUBLE:
-            return c_double
-
-
 class VariableType(IntEnum):
+    """Variable types that can be used for extracting data from LAMMPS."""
+
+    INTEGER = LAMMPS_INT
+    """LAMMPS 32-bit integer."""
+
+    INTEGER_ARRAY = LAMMPS_INT_2D
+    """LAMMPS 32-bit integer."""
+
+    DOUBLE = LAMMPS_DOUBLE
+    """LAMMPS 64-bit double."""
+
+    DOUBLE_ARRAY = LAMMPS_DOUBLE_2D
+    """LAMMPS 64-bit double."""
+
+    STRING = LAMMPS_STRING
+    """LAMMPS String."""
+
+
+class VariableDimension(IntEnum):
     """Variable types that can be used for extract_compute."""
 
     SCALAR = 0
     """Variable is a single scalar value."""
-    VECTOR = 1
+    VECTOR1D = 1
     """Variable is a 1D array."""
-    ARRAY = 2
+    ARRAY2D = 2
     """Variable is a 2D array."""

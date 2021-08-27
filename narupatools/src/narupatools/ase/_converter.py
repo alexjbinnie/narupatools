@@ -75,8 +75,6 @@ ASE_PROPERTIES = frozenset(
     )
 )
 
-ALL_PROPERTIES = everything()
-
 _TType = TypeVar("_TType")
 
 

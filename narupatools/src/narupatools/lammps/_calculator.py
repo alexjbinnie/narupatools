@@ -26,8 +26,9 @@ from ase.calculators.calculator import Calculator, all_changes
 from narupatools.ase._units import UnitsASE
 from narupatools.ase.constraints._observer import ASEObserver
 from narupatools.core.units import UnitsNarupa
-from narupatools.lammps._simulation import LAMMPSSimulation
 from narupatools.physics.typing import Vector3Array
+
+from ._simulation import LAMMPSSimulation
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
@@ -112,5 +113,5 @@ class LAMMPSCalculator(Calculator):
     def _run_system(self) -> None:
         self._simulation.run(0)
 
-    def _extract_forces(self) -> np.ndarray:
-        return self._simulation.forces * _NarupaToASE.force  # type: ignore
+    def _extract_forces(self) -> Vector3Array:
+        return self._simulation.forces * _NarupaToASE.force

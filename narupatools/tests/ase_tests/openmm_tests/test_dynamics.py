@@ -36,4 +36,3 @@ class TestVillinASEOpenMMDynamics(VillinDynamicsTests):
     @pytest.fixture(autouse=True)
     def dynamics(self, villin_dynamics):
         return villin_dynamics
-

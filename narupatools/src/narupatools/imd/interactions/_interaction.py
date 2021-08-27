@@ -63,8 +63,6 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._particles = interaction.particles
         self.update(interaction)
 
-        self._c = 0.0
-
     @classmethod
     def register_interaction_type(
         cls, interaction_type: str, type: Type[Interaction]

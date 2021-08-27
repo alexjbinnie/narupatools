@@ -228,7 +228,6 @@ def test_centripetal_force_single_particle_arbitrary_axis(
         origin=origin,
     )
     rperp = vector_rejection(np.subtract(position, origin), angular_velocity)
-    print(rperp)
     assert force == pytest.approx(
         np.asfarray([-mass * sqr_magnitude(angular_velocity) * rperp])
     )

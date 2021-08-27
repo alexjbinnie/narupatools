@@ -5,12 +5,6 @@ from __future__ import annotations
 from typing import ClassVar, Union, overload
 
 import numpy as np
-from .quaternion import (
-    quaternion,
-    as_rotation_vector,
-    as_rotation_matrix,
-    from_rotation_vector,
-)
 
 from narupatools.physics.rigidbody import center_of_mass
 from narupatools.physics.typing import (
@@ -22,6 +16,13 @@ from narupatools.physics.typing import (
     Vector3Like,
 )
 from narupatools.physics.vector import vector
+
+from .quaternion import (
+    as_rotation_matrix,
+    as_rotation_vector,
+    from_rotation_vector,
+    quaternion,
+)
 
 
 class Translation:

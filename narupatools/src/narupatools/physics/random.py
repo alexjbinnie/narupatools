@@ -20,10 +20,11 @@ import math
 import random
 
 import numpy as np
-from .quaternion import quaternion
 
 from narupatools.core.random import random_float
 from narupatools.physics.typing import Vector3
+
+from .quaternion import quaternion
 
 
 def random_sphere() -> Vector3:

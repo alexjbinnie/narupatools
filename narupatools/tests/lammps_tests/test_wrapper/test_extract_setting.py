@@ -14,27 +14,18 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Quaternions provided by the quaternion python package.
+import pytest
 
-Importing it through this module supresses the warning it produces without numba, as
-we don't use those features and hence don't need it.
-"""
+pytest.importorskip("lammps")
 
-import warnings
+from narupatools.lammps.exceptions import SettingNotFoundError
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from quaternion import (
-        as_rotation_matrix,
-        as_rotation_vector,
-        from_rotation_vector,
-        quaternion,
-    )
 
-__all__ = [
-    "quaternion",
-    "as_rotation_vector",
-    "as_rotation_matrix",
-    "from_rotation_vector",
-]
+def test_extract_setting(lammps):
+    value = lammps.extract_setting("nlocal")
+    assert value == 2004
+
+
+def test_extract_setting_missing(lammps):
+    with pytest.raises(SettingNotFoundError):
+        lammps.extract_setting("missing_setting")

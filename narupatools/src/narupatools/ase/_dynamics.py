@@ -29,7 +29,6 @@ from infinite_sets import InfiniteSet
 from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
-from .calculators import NullCalculator
 from narupatools.core.units import UnitsNarupa
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.imd._feature import InteractionFeature
@@ -39,6 +38,7 @@ from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLi
 from ._converter import ase_atoms_to_frame
 from ._system import ASESystem
 from ._units import UnitsASE
+from .calculators import NullCalculator
 from .constraints import InteractionConstraint
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
@@ -243,9 +243,7 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
             start_time=start_time,
             dynamics=ASESystem(self.dynamics.atoms),
         )
-        constraint = InteractionConstraint(
-            interaction=instance
-        )
+        constraint = InteractionConstraint(interaction=instance)
         self.constraints[key] = constraint
         self.dynamics.atoms.constraints.append(constraint)
         return instance

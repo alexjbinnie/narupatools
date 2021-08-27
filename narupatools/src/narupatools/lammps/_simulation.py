@@ -19,86 +19,78 @@
 from __future__ import annotations
 
 import contextlib
-import re
-import warnings
-from contextlib import contextmanager
-from ctypes import Array, c_double
-from typing import Any, Dict, Generator, List, Literal, Optional, Union, overload
+from typing import Dict, List, Literal, Optional, TypeVar, Union
 
 import numpy as np
+import numpy.typing as npt
 from infinite_sets import InfiniteSet
-from lammps import PyLammps
-from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
+import narupatools.lammps.atom_properties as PROPERTIES
+import narupatools.lammps.computes as COMPUTES
+import narupatools.lammps.globals as GLOBALS
+import narupatools.lammps.settings as SETTINGS
 from narupatools.core.units import UnitsNarupa
+from narupatools.frame import NarupaFrame
+from narupatools.frame._utils import mass_to_element
 from narupatools.frame.fields import (
+    BondPairs,
     ParticleCharges,
     ParticleCount,
+    ParticleElements,
     ParticleForces,
     ParticleMasses,
     ParticlePositions,
+    ParticleResidues,
     ParticleVelocities,
     PotentialEnergy,
 )
 from narupatools.lammps._units import get_unit_system
-from narupatools.mdanalysis import mdanalysis_universe_to_frame
 from narupatools.physics.typing import Vector3
 
-from ._constants import PropertyType, VariableStyle, VariableType
-from ._region import Region, RegionSpecification
-from ._warnings import LAMMPSWarning
+from ._constants import VariableDimension, VariableType
+from ._exception_wrapper import catch_lammps_warnings_and_exceptions
+from ._wrapper import Extractable, LAMMPSWrapper
 from .exceptions import (
-    AtomIDsNotDefinedError,
-    CannotOpenFileError,
-    ComputeNotFoundError,
-    IllegalCommandError,
-    InvalidComputeSpecificationError,
-    LAMMPSError,
-    MissingInputScriptError,
     UnknownAtomPropertyError,
-    UnknownCommandError,
-    UnknownPropertyNameError,
-    UnrecognizedStyleError,
 )
-from .output_capture import OutputCapture
+from .regions import Region, RegionSpecification
+
+_TReturnType = TypeVar("_TReturnType")
 
 
 class LAMMPSSimulation:
     """Wrapper around a LAMMPS simulation."""
 
-    def __init__(self, lammps: PyLammps, universe: Universe = None):
+    def __init__(self, lammps: LAMMPSWrapper):
         self.__lammps = lammps
-        self.__lammps.enable_cmd_history = True
-        self._universe = universe
-        self._index_to_id: Dict[int, int] = {}
-        unit_system = get_unit_system(self.__lammps.system.units)
+
+        unit_system = get_unit_system(self.extract(GLOBALS.UnitStyle))
         self._lammps_to_narupa = unit_system >> UnitsNarupa
         self._narupa_to_lammps = UnitsNarupa >> unit_system
+        self.indexing = LAMMPSIndexing(self)
+        self.bond_compute: Optional[COMPUTES.ComputeReference] = None
 
-        self._potential_energy: Optional[float] = None
-        self._kinetic_energy: Optional[float] = None
-        self._forces: Optional[np.ndarray] = None
-        self._charges: Optional[np.ndarray] = None
-        self._positions: Optional[np.ndarray] = None
-        self._velocities: Optional[np.ndarray] = None
-        self._atom_ids: Optional[np.ndarray] = None
-        self._masses: Optional[np.ndarray] = None
-        self._size: Optional[int] = None
-        self._temperature: Optional[float] = None
-        self._pressure: Optional[float] = None
         self._needs_pre_run = True
-        self._timestep: Optional[float] = None
 
-        self.command("compute mass all property/atom mass")
-        self.command("compute thermo_ke all ke")
+        self.mass_compute = self.create_atom_compute(
+            id="mass", properties=["mass"], type=VariableType.DOUBLE
+        )
 
-        self._clear_cache()
+        self._kinetic_energy_compute = COMPUTES.KineticEnergy.create(
+            self.__lammps, id="ke"
+        )
 
-    @property
-    def command_history(self) -> List[str]:
-        """List of commands run on the simulation."""
-        return self.__lammps._cmd_history
+        self._potential_energy_compute = COMPUTES.ComputeGlobalReference.create(
+            self.__lammps, id="thermo_pe", dimension=VariableDimension.SCALAR
+        )
+
+        self._temperature_compute = COMPUTES.ComputeGlobalReference.create(
+            self.__lammps, id="thermo_temp", dimension=VariableDimension.SCALAR
+        )
+        self._pressure_compute = COMPUTES.ComputeGlobalReference.create(
+            self.__lammps, id="thermo_press", dimension=VariableDimension.SCALAR
+        )
 
     @classmethod
     def create_new(
@@ -110,148 +102,61 @@ class LAMMPSSimulation:
 
         This automatically runs the 'atom_modify map yes' command required to use atom
         IDs and hence allow certain operations such as setting positions.
-
         :param units: LAMMPS unit system to use.
         :return: LAMMPS simulation in provided units.
         """
-        lammps = PyLammps()
+        lammps = LAMMPSWrapper()
         with catch_lammps_warnings_and_exceptions():
-            lammps.atom_modify("map yes")
-            lammps.units(units)
+            lammps.command("atom_modify map yes")
+            lammps.command(f"units {units}")
         return cls(lammps)
 
     @classmethod
-    def from_file(cls, filename: str, data_filename: str) -> LAMMPSSimulation:
+    def from_file(cls, filename: str) -> LAMMPSSimulation:
         """
         Load LAMMPS simulation from a file.
 
         This automatically runs the 'atom_modify map yes' command required to use atom
         IDs and hence allow certain operations such as setting positions.
-
         :param filename: Filename of LAMMPS input.
-        :param data_filename: Filename of LAMMPS data file, used to generate MDAnalysis
-                              universe.
         :return: LAMMPS simulation based on file.
         """
-        lammps = PyLammps()
+        lammps = LAMMPSWrapper()
         with catch_lammps_warnings_and_exceptions():
-            lammps.atom_modify("map yes")
+            lammps.command("atom_modify map yes")
             lammps.file(filename)
             lammps.command("run 0")
-        universe = Universe(data_filename, format="DATA")
-        simulation = cls(lammps, universe)
+        simulation = cls(lammps)
         return simulation
 
-    def eval(self, expression: str) -> Any:
-        """
-        Evaluate an arbitrary expression.
-
-        :param expression: Expression to be evaluated using the eval command.
-        """
-        return self.__lammps.eval(expression)
-
-    @property
-    def universe(self) -> Universe:
-        """An MDAnalysis Universe containing topology information."""
-        if self._universe is None:
-            raise AttributeError("Simulation does not have MDAnalysis universe")
-        return self._universe
-
-    def _clear_cache(self) -> None:
-        self._positions = None
-        self._velocities = None
-        self._forces = None
-        self._charges = None
-        self._masses = None
-        self._atom_ids = None
-        self._potential_energy = None
-        self._needs_pre_run = True
-        self._temperature = None
-        self._size = None
-
     def __len__(self) -> int:
-        if self._size is None:
-            self._size = self.__lammps.lmp.get_natoms()
-        return self._size
+        return self.extract(SETTINGS.NumberAllAtoms)
 
-    @overload
-    def extract_compute(
-        self, key: str, style: VariableStyle, type: Literal[VariableType.SCALAR]
-    ) -> float:
-        ...
-
-    @overload
-    def extract_compute(
-        self, key: str, style: VariableStyle, type: Literal[VariableType.ARRAY]
-    ) -> np.ndarray:
-        ...
-
-    @overload
-    def extract_compute(
-        self, key: str, style: VariableStyle, type: Literal[VariableType.VECTOR]
-    ) -> np.ndarray:
-        ...
-
-    def extract_compute(
-        self, key: str, style: VariableStyle, type: VariableType
-    ) -> Union[float, np.ndarray]:
+    def gather_atoms(
+        self, property: PROPERTIES.AtomProperty[_TReturnType]
+    ) -> _TReturnType:
         """
-        Extract value of a compute.
+        Gather an atom property from across all processors, and order by Atom ID.
 
-        :param key: ID of the compute.
-        :param style: Style of the variable.
-        :param type: Type of the variable.
-        :raises ComputeNotFoundError: Key does not match any known computes.
-        :raises InvalidComputeSpecificationError: Compute exists but doesn't match style
-                                                  and type provided.
-        :return: Value of the compute.
+        :param property: The atom property to gather.
+        :return: The atom data as a numpy array.
         """
-        value = self.__lammps.lmp.numpy.extract_compute(key, style, type)
-        if value is None:
-            computes = self.__lammps.computes
-            if not any(compute["name"] == key for compute in computes):
-                raise ComputeNotFoundError(key)
-            else:
-                raise InvalidComputeSpecificationError(key, style, type)
-        return value
+        return self.__lammps.gather_atoms(  # type: ignore[return-value]
+            property.key, property.components
+        )
 
-    def gather_atoms(self, key: str, type: PropertyType, dimension: int) -> np.ndarray:
-        """
-        Gather a per-atom property from all the processors.
-
-        :param key: Id of the property.
-        :param type: Type of the variable.
-        :param dimension: Dimension of the variable.
-        :raises UnknownAtomPropertyError: Property was not found in the simulation.
-        :return: Value of the atom property.
-        """
-        dtype = float if type == PropertyType.DOUBLE else int
-        try:
-            with catch_lammps_warnings_and_exceptions():
-                natoms = self.__lammps.lmp.get_natoms()
-                data = ((dimension * natoms) * type.get_ctype())()
-
-                self.__lammps.lmp.lib.lammps_gather_atoms(  # type: ignore[attr-defined]
-                    self.__lammps.lmp.lmp, key.encode(), type, dimension, data  # type: ignore[attr-defined]
-                )
-
-            if dimension == 1:
-                return np.array(data, dtype=dtype).reshape((-1,))
-            else:
-                return np.array(data, dtype=dtype).reshape((-1, dimension))
-        except UnknownPropertyNameError:
-            # Reraise as a different error so we know what key caused the error.
-            raise UnknownAtomPropertyError(key)
-
-    def _scatter_atoms(
-        self, name: str, type: PropertyType, dimensions: int, value: np.ndarray
+    def scatter_atoms(
+        self, property: PROPERTIES.AtomProperty, value: np.ndarray
     ) -> None:
-        n_atoms = self.__lammps.lmp.get_natoms()
-        with catch_lammps_warnings_and_exceptions():
-            self.__lammps.lmp.scatter_atoms(
-                name, type, dimensions, _to_ctypes(value, n_atoms)
-            )
-        self._clear_cache()
+        """
+        Scatter an atom property across all processors.
+
+        :param property: The atom property to scatter.
+        :param value: The value to distribute.
+        """
+        self.__lammps.scatter_atoms(
+            property.key, property.type, property.components, value
+        )
 
     def run(self, steps: int = 1) -> None:
         """
@@ -260,7 +165,7 @@ class LAMMPSSimulation:
         :param steps: Number of steps to run.
         """
         pre = "yes" if self._needs_pre_run else "no"
-        self.command(f"run {steps} pre {pre} post no")
+        self.__lammps.command(f"run {steps} pre {pre} post no")
         self._needs_pre_run = False
 
     @property
@@ -273,26 +178,12 @@ class LAMMPSSimulation:
         includes contributions from pairs, bonds, angles, dihedrals, impropers, kspace
         and various fixes.
         """
-        if self._potential_energy is None:
-            self._potential_energy = (
-                self.extract_compute(
-                    "thermo_pe", VariableStyle.GLOBAL, VariableType.SCALAR
-                )
-                * self._lammps_to_narupa.energy
-            )
-        return self._potential_energy
+        return self._potential_energy_compute.extract() * self._lammps_to_narupa.energy
 
     @property
     def kinetic_energy(self) -> float:
         """Kinetic energy of the system in kilojoules per mole."""
-        if self._kinetic_energy is None:
-            self._kinetic_energy = (
-                self.extract_compute(
-                    "thermo_ke", VariableStyle.GLOBAL, VariableType.SCALAR
-                )
-                * self._lammps_to_narupa.energy
-            )
-        return self._kinetic_energy
+        return self._kinetic_energy_compute.extract() * self._lammps_to_narupa.energy
 
     @property
     def temperature(self) -> float:
@@ -311,110 +202,83 @@ class LAMMPSSimulation:
 
         This removes degrees of freedom due to other fixes that limit molecular motion.
         """
-        if self._temperature is None:
-            self._temperature = (
-                self.extract_compute(
-                    "thermo_temp", VariableStyle.GLOBAL, VariableType.SCALAR
-                )
-                * self._lammps_to_narupa.temperature
-            )
-        return self._temperature
+        return self._temperature_compute.extract() * self._lammps_to_narupa.temperature
 
     @property
     def pressure(self) -> float:
         """Pressure of the system in kilojoules per nanometers cubed."""
-        if self._pressure is None:
-            self._pressure = (
-                self.extract_compute(
-                    "thermo_press", VariableStyle.GLOBAL, VariableType.SCALAR
-                )
-                * self._lammps_to_narupa.pressure
-            )
-        return self._pressure
+        return self._pressure_compute.extract() * self._lammps_to_narupa.pressure
 
     @property
-    def forces(self) -> np.ndarray:
+    def forces(self) -> npt.NDArray[np.float64]:
         """Forces on each atom in kilojoules per mole per nanometer."""
-        if self._forces is None:
-            self._forces = (
-                self.gather_atoms("f", PropertyType.DOUBLE, 3)
-                * self._lammps_to_narupa.force
-            )
-        return self._forces
+        return self.gather_atoms(PROPERTIES.Force) * self._lammps_to_narupa.force.value
 
     @property
-    def atom_ids(self) -> np.ndarray:
-        """ID of each atom."""
-        if self._atom_ids is None:
-            self._atom_ids = self.gather_atoms("id", PropertyType.INT, 1)
-        return self._atom_ids
+    def atom_ids(self) -> npt.NDArray[np.int64]:
+        """Atom ID of each atom as defined by LAMMPS."""
+        return self.gather_atoms(PROPERTIES.AtomID)
 
     @property
-    def charges(self) -> np.ndarray:
+    def charges(self) -> npt.NDArray[np.float64]:
         """Charge of each atom in elementary charges."""
-        if self._charges is None:
-            try:
-                self._charges = (
-                    self.gather_atoms("q", PropertyType.DOUBLE, 1)
-                    * self._lammps_to_narupa.charge
-                )
-            except UnknownAtomPropertyError:
-                raise AttributeError
-        return self._charges
+        try:
+            return (
+                self.gather_atoms(PROPERTIES.Charge)
+                * self._lammps_to_narupa.charge.value
+            )
+        except UnknownAtomPropertyError:
+            raise AttributeError
 
     @property
-    def masses(self) -> np.ndarray:
+    def masses(self) -> npt.NDArray[np.float64]:
         """Masses of each atom in daltons."""
-        if self._masses is None:
-            self._masses = (
-                self.extract_compute("mass", VariableStyle.ATOM, VariableType.VECTOR)
-                * self._lammps_to_narupa.mass
-            )
-        return self._masses
+        return self.mass_compute.gather()
 
     @property
-    def positions(self) -> np.ndarray:
+    def positions(self) -> npt.NDArray[np.float64]:
         """Positions of each atom in nanometers."""
-        if self._positions is None:
-            self._positions = (
-                self.gather_atoms("x", PropertyType.DOUBLE, 3)
-                * self._lammps_to_narupa.length
-            )
-        return self._positions
+        return (
+            self.gather_atoms(PROPERTIES.Position) * self._lammps_to_narupa.length.value
+        )
 
     @positions.setter
     def positions(self, positions: np.ndarray) -> None:
-        self._scatter_atoms(
-            "x", PropertyType.DOUBLE, 3, positions * self._narupa_to_lammps.length
+        self.scatter_atoms(
+            PROPERTIES.Position, positions * self._narupa_to_lammps.length
         )
 
     @property
-    def velocities(self) -> np.ndarray:
+    def velocities(self) -> npt.NDArray[np.float64]:
         """Velocities of each atom in nanometers per picoseconds."""
-        if self._velocities is None:
-            self._velocities = (
-                self.gather_atoms("v", PropertyType.DOUBLE, 3)
-                * self._lammps_to_narupa.velocity
-            )
-        return self._velocities
+        return self.gather_atoms(PROPERTIES.Velocity) * self._lammps_to_narupa.velocity
 
     @velocities.setter
     def velocities(self, velocities: np.ndarray) -> None:
-        self._scatter_atoms(
-            "v", PropertyType.DOUBLE, 3, velocities * self._narupa_to_lammps.velocity
+        self.scatter_atoms(
+            PROPERTIES.Velocity, velocities * self._narupa_to_lammps.velocity
         )
 
-    def get_imd_forces(self) -> np.ndarray:
+    def add_imd_force(self) -> None:
+        """Define an IMD force for the LAMMPS simulation."""
+        self.command("fix imdprop all property/atom d_imdfx d_imdfy d_imdfz")
+        self.command("set atom * d_imdfx 0 d_imdfy 0 d_imdfz 0")
+        self.imd_compute = self.create_atom_compute(
+            id="imdf",
+            properties=["d_imdfx", "d_imdfy", "d_imdfz"],
+            type=VariableType.DOUBLE,
+        )
+        self.command("variable imdfx atom c_imdf[1]")
+        self.command("variable imdfy atom c_imdf[2]")
+        self.command("variable imdfz atom c_imdf[3]")
+        self.command("fix imd_force all addforce v_imdfx v_imdfy v_imdfz")
+        self.command("fix_modify imd_force energy yes")
+
+    def get_imd_forces(self) -> npt.NDArray[np.float64]:
         """Get the IMD forces on each atom in kilojoules per mole per angstrom."""
-        imd_extracted = self.__lammps.lmp.numpy.extract_compute(
-            "imdf", VariableStyle.ATOM, VariableType.ARRAY
-        )
-        return imd_extracted * self._lammps_to_narupa.force  # type: ignore
-
-    def _generate_index_to_id(self) -> None:
-        ids = self.atom_ids
-        for index, id in enumerate(ids):
-            self._index_to_id[index] = id
+        if self.imd_compute is None:
+            raise ValueError("IMD Force not defined.")
+        return self.imd_compute.gather() * self._lammps_to_narupa.force
 
     def set_imd_force(self, index: int, force: Vector3) -> None:
         """
@@ -423,14 +287,12 @@ class LAMMPSSimulation:
         :param index: Index of the particle to set.
         :param force: IMD force to apply, in kilojoules per mole per nanometer.
         """
-        if len(self._index_to_id) == 0:
-            self._generate_index_to_id()
-        id = self._index_to_id[index]
+        self.indexing.recompute()
+        id = self.indexing.ordered_to_atom_id(index)
         force = force * self._narupa_to_lammps.force
         self.command(
             f"set atom {id} d_imdfx {force[0]} d_imdfy {force[1]} d_imdfz {force[2]}"
         )
-        self._clear_cache()
 
     def clear_imd_force(self, index: int) -> None:
         """
@@ -438,27 +300,18 @@ class LAMMPSSimulation:
 
         :param index: Index of the particle to clear.
         """
-        if len(self._index_to_id) == 0:
-            self._generate_index_to_id()
-        id = self._index_to_id[index]
+        self.indexing.recompute()
+        id = self.indexing.ordered_to_atom_id(index)
         self.command(f"set atom {id} d_imdfx 0 d_imdfy 0 d_imdfz 0")
-        self._clear_cache()
 
-    def command(self, command: str, clear_cache: bool = True) -> None:
+    def command(self, command: str) -> None:
         """
         Run an arbitrary LAMMPS command.
 
-        Running it through this interface means that all previously cached data such as
-        positions etc. are cleared. If you are sure running the command will not affect
-        any data, set clear_cache to False.
-
         :param command: LAMMPS command to run.
-        :param clear_cache: Should all cached information be cleared.
         """
-        with catch_lammps_warnings_and_exceptions():
-            self.__lammps.command(command)
-        if clear_cache:
-            self._clear_cache()
+        self.__lammps.command(command)
+        self._needs_pre_run = True
 
     def get_frame(
         self, *, fields: InfiniteSet[str], existing: Optional[FrameData] = None
@@ -471,14 +324,10 @@ class LAMMPSSimulation:
         :return: FrameData with the appropriate fields.
         """
         if existing is None:
-            frame = FrameData()
+            frame: FrameData = NarupaFrame()
         else:
             frame = existing
 
-        if self._universe is not None:
-            frame = mdanalysis_universe_to_frame(
-                self._universe, fields=fields, frame=frame
-            )
         if ParticleCount.key in fields:
             ParticleCount.set(frame, len(self))
         if ParticlePositions.key in fields:
@@ -487,6 +336,10 @@ class LAMMPSSimulation:
             ParticleVelocities.set(frame, self.velocities)
         if ParticleMasses.key in fields:
             ParticleMasses.set(frame, self.masses)
+        if ParticleElements.key in fields:
+            elements = np.vectorize(mass_to_element)(self.masses)
+            if np.all(elements is not None):
+                ParticleElements.set(frame, elements)
         if ParticleCharges.key in fields:
             with contextlib.suppress(AttributeError):
                 ParticleCharges.set(frame, self.charges)
@@ -494,32 +347,74 @@ class LAMMPSSimulation:
             ParticleForces.set(frame, self.forces)
         if PotentialEnergy.key in fields:
             PotentialEnergy.set(frame, self.potential_energy)
+
+        if BondPairs.key in fields and self.extract(
+            SETTINGS.AtomStylesIncludesMolecularTopology
+        ):
+            self.indexing.recompute()
+            if self.bond_compute is None:
+                self.bond_compute = self.create_local_compute(
+                    id="bonds",
+                    properties=["btype", "batom1", "batom2"],
+                )
+            bonds = self.bond_compute.extract()
+            BondPairs.set(frame, self.indexing.atom_id_to_ordered(bonds[:, 1:]))
+
+        if ParticleResidues.key in fields and self.extract(
+            SETTINGS.AtomStylesIncludesMolecularTopology
+        ):
+            self.indexing.recompute()
+            mol_ids = self.gather_atoms(PROPERTIES.MoleculeID)
+
+            unique_mol_ids = np.unique(mol_ids)
+            mol_id_to_index = {
+                mol_id: mol_index
+                for mol_index, mol_id in zip(np.argsort(unique_mol_ids), unique_mol_ids)
+            }
+            ParticleResidues.set(frame, np.vectorize(mol_id_to_index.get)(mol_ids))
+
         return frame
 
-    @property
-    def lammps_packages(self) -> List[str]:
-        """List of installed LAMMPS packages."""
-        return self.__lammps.lmp.installed_packages
+    def create_local_compute(
+        self,
+        *,
+        id: str,
+        properties: List[str],
+    ) -> COMPUTES.ComputeReference[npt.NDArray[np.float64]]:
+        """Create a local compute."""
+        self.__lammps.command(f"compute {id} all property/local {' '.join(properties)}")
+        return COMPUTES.ComputeLocalReference(
+            self.__lammps,
+            id=id,
+        )
 
-    @property
-    def computes(self) -> Dict[str, Compute]:
-        """Dictionary of computes indexed by their names."""
-        return {
-            compute["name"]: Compute(
-                simulation=self,
-                group=compute["group"],
-                name=compute["name"],
-                style=compute["style"],
-            )
-            for compute in self.__lammps.computes
-        }
+    def create_atom_compute(
+        self,
+        *,
+        id: str,
+        properties: List[str],
+        type: Literal[VariableType.INTEGER, VariableType.DOUBLE],
+    ) -> COMPUTES.ComputeAtomReference[npt.NDArray[np.float64]]:
+        """
+        Create a per-atom compute.
+
+        :param id: Compute ID to do.
+        :param properties: Atom properties to compute.
+        :param type: Variable type to return.
+        :return: Reference to the compute.
+        """
+        self.command(f"compute {id} all property/atom {' '.join(properties)}")
+        return COMPUTES.ComputeAtomReference(
+            self.__lammps,
+            id=id,
+            type=type,
+            count=len(properties),
+        )
 
     @property
     def timestep(self) -> float:
         """Timestep of the simulation in picoseconds."""
-        if self._timestep is None:
-            self._timestep = self.eval("dt") * self._lammps_to_narupa.time
-        return self._timestep
+        return self.extract(GLOBALS.TimestepLength) * self._lammps_to_narupa.time
 
     @timestep.setter
     def timestep(self, value: float) -> None:
@@ -549,26 +444,11 @@ class LAMMPSSimulation:
         :return: Region object.
         """
         if id is None:
-            x = 1
-            ids = self.region_ids
-            while str(x) in ids:
-                x += 1
-            id = str(x)
+            id = self.__lammps.regions.generate_id()
         self.command(
             f"region {id} {region.style} {region.args(self._narupa_to_lammps)}"
         )
         return Region(self, id, region)
-
-    @property
-    def region_ids(self) -> List[str]:
-        """List of region ids currently in use for the simulation."""
-        ids = []
-        info = self.__lammps.info("regions")
-        pattern = re.compile(r"Region\[\s*\d+\]:\s*([\w\-_]+)")
-        for line in info:
-            if (match := pattern.match(line)) is not None:
-                ids.append(match.group(1))
-        return ids
 
     def create_box(
         self, n_types: int, region: Union[Region, RegionSpecification]
@@ -595,17 +475,6 @@ class LAMMPSSimulation:
         """
         self.command(f"mass {type} {mass * self._narupa_to_lammps.mass}")
 
-    def add_imd_force(self) -> None:
-        """Define an IMD force for the LAMMPS simulation."""
-        self.command("fix imdprop all property/atom d_imdfx d_imdfy d_imdfz")
-        self.command("set atom * d_imdfx 0 d_imdfy 0 d_imdfz 0")
-        self.command("compute imdf all property/atom d_imdfx d_imdfy d_imdfz")
-        self.command("variable imdfx atom c_imdf[1]")
-        self.command("variable imdfy atom c_imdf[2]")
-        self.command("variable imdfz atom c_imdf[3]")
-        self.command("fix imd_force all addforce v_imdfx v_imdfy v_imdfz")
-        self.command("fix_modify imd_force energy yes")
-
     def setup_langevin(self, *, temperature: float, friction: float, seed: int) -> None:
         """
         Setup a Langevin thermostat.
@@ -629,97 +498,52 @@ class LAMMPSSimulation:
         with catch_lammps_warnings_and_exceptions():
             self.__lammps.file(filename)
 
+    def extract(self, obj: Extractable[_TReturnType]) -> _TReturnType:
+        """Extract a value from the simulation."""
+        return obj.extract(self.__lammps)
 
-class Compute:
-    """Represents a compute defined in a LAMMPS simulation."""
 
-    def __init__(
-        self, *, simulation: LAMMPSSimulation, group: str, name: str, style: str
-    ):
-        self._simulation = simulation
-        self._group = group
-        self._name = name
-        self._style = style
+class LAMMPSIndexing:
+    """
+    Manages mappings between different ways that atoms are indexed.
 
-    def __eq__(self, other: Any) -> bool:
-        return (
-            isinstance(other, Compute)
-            and self._simulation is other._simulation
-            and self._group == other._group
-            and self._name == other._name
-            and self._style == other._style
+    There are three important orderings to consider when using LAMMPS with narupatools. They are:
+
+    * The actual ordering of the atoms that LAMMPS uses internally.
+    * Each atom has a unique integer Atom ID.
+    * The ordering that narupatools exposes the atoms as.
+
+    Importantly, using gather_atoms orders the atoms by Atom ID, whilst extract_compute does not.
+    """
+
+    def __init__(self, simulation: LAMMPSSimulation):
+        self.__simulation = simulation
+        self.__atom_ids = simulation.create_atom_compute(
+            id="atomids", properties=["id"], type=VariableType.INTEGER
         )
+        self._unordered_to_atom_ids: np.ndarray = np.array([])
+        self._ordered_to_unordered: np.ndarray = np.array([])
+        self._ordered_to_atom_ids: np.ndarray = np.array([])
+        self._atom_ids_to_ordered: Dict[int, int] = {}
 
-    def __hash__(self) -> int:
-        return hash((self._simulation, self._group, self._name, self._style))
+    def recompute(self) -> None:
+        """Recompute the indexing of atom ids."""
+        self._unordered_to_atom_ids = self.__atom_ids.extract()
+        self._ordered_to_unordered = np.argsort(self._unordered_to_atom_ids)
+        self._ordered_to_atom_ids = self._unordered_to_atom_ids[
+            self._ordered_to_unordered
+        ]
+        for ordered_index, atom_id in enumerate(self._ordered_to_atom_ids):
+            self._atom_ids_to_ordered[atom_id] = ordered_index
 
+    def unordered_to_ordered(self, array: np.ndarray) -> np.ndarray:
+        """Take an array ordered by LAMMPS and sort it by Atom ID."""
+        return array[self._ordered_to_unordered]  # type: ignore[no-any-return]
 
-def _to_ctypes(array: np.ndarray, natoms: int) -> Array:
-    n3 = 3 * natoms
-    x = (n3 * c_double)()
-    for i, f in enumerate(array.flat):
-        x[i] = f
-    return x
+    def atom_id_to_ordered(self, array: np.ndarray) -> np.ndarray:
+        """Maps Atom IDs to zero-based ordered index."""
+        return np.vectorize(self._atom_ids_to_ordered.get)(array)  # type: ignore[no-any-return]
 
-
-ILLEGAL_COMMAND_REGEX = re.compile(r"illegal \w+ command", re.IGNORECASE)
-UNKNOWN_COMMAND_REGEX = re.compile(r"unknown command", re.IGNORECASE)
-MISSING_INPUT_SCRIPT_REGEX = re.compile(
-    r"cannot open input script [\w.]+: No such file or directory", re.IGNORECASE
-)
-CANNOT_OPEN_FILE_REGEX = re.compile(
-    r"cannot open file [\w.]+: No such file or directory", re.IGNORECASE
-)
-UNRECOGNIZED_STYLE_REGEX = re.compile(r"Unrecognized \w+ style", re.IGNORECASE)
-
-
-def _handle_error(message: str) -> None:
-    if MISSING_INPUT_SCRIPT_REGEX.match(message) is not None:
-        raise MissingInputScriptError(message)
-    if CANNOT_OPEN_FILE_REGEX.match(message) is not None:
-        raise CannotOpenFileError(message)
-    if ILLEGAL_COMMAND_REGEX.match(message) is not None:
-        raise IllegalCommandError(message)
-    if UNKNOWN_COMMAND_REGEX.match(message) is not None:
-        raise UnknownCommandError(message)
-    if UNRECOGNIZED_STYLE_REGEX.match(message) is not None:
-        raise UnrecognizedStyleError(message)
-    raise LAMMPSError(message)
-
-
-@contextmanager
-def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
-    """
-    Capture output and raises logged warnings and errors in a pythonic way.
-
-    Any line starting with 'WARNING: ' will be raised as a LAMMPSWarning, except certain
-    warnings which are instead treated as errors.
-
-    Any line starting with 'ERROR:' will be raised as a LAMMPSError, unless a more
-    specific error message exists.
-
-    :raises AtomIDsNotDefinedError: Library error raises in gather/scatter atoms.
-    :raises LAMMPSError: An ERROR: is logged to the console by LAMMPS.
-    """
-    with OutputCapture() as o:
-        try:
-            yield
-        except Exception as e:
-            if e.args[0].startswith("ERROR on proc 0: "):
-                _handle_error(e.args[0][17:])
-            if e.args[0].startswith("ERROR: "):
-                _handle_error(e.args[0][7:])
-            raise LAMMPSError(e.args[0])
-        output = o.output
-    for line in output.splitlines():
-        if line.startswith("WARNING: "):
-            warning = line[9:]
-            if warning.startswith("Library error in lammps_gather_atoms"):
-                raise AtomIDsNotDefinedError(func_name="gather_atoms")
-            elif warning.startswith("Library error in lammps_scatter_atoms"):
-                raise AtomIDsNotDefinedError(func_name="scatter_atoms")
-            else:
-                warnings.warn(LAMMPSWarning(warning))
-        if line.startswith("ERROR: "):
-            error = line[7:]
-            _handle_error(error)
+    def ordered_to_atom_id(self, index: int) -> int:
+        """Maps a zero-based index to an Atom ID."""
+        return self._ordered_to_atom_ids[index]  # type: ignore[no-any-return]

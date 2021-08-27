@@ -23,13 +23,14 @@ from ase import Atoms
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from .calculators import NullCalculator
-from ._units import UnitsASE
-from ._converter import ase_atoms_to_frame
 from narupatools.core import UnitsNarupa
 from narupatools.core.dynamics import DynamicsProperties
 from narupatools.frame._frame_source import FrameSource
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+
+from ._converter import ase_atoms_to_frame
+from ._units import UnitsASE
+from .calculators import NullCalculator
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa

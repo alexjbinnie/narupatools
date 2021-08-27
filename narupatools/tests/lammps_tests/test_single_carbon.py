@@ -23,10 +23,12 @@ from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.core import UnitsNarupa
-from narupatools.lammps._converter import atoms_from_lammps_simulation
-from narupatools.lammps._dynamics import LAMMPSDynamics
-from narupatools.lammps._region import Box
-from narupatools.lammps._simulation import LAMMPSSimulation
+from narupatools.lammps import (
+    LAMMPSDynamics,
+    LAMMPSSimulation,
+    atoms_from_lammps_simulation,
+)
+from narupatools.lammps.regions import Box
 from narupatools.physics.vector import vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE

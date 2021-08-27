@@ -13,28 +13,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-Quaternions provided by the quaternion python package.
-
-Importing it through this module supresses the warning it produces without numba, as
-we don't use those features and hence don't need it.
-"""
-
-import warnings
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from quaternion import (
-        as_rotation_matrix,
-        as_rotation_vector,
-        from_rotation_vector,
-        quaternion,
-    )
-
-__all__ = [
-    "quaternion",
-    "as_rotation_vector",
-    "as_rotation_matrix",
-    "from_rotation_vector",
-]

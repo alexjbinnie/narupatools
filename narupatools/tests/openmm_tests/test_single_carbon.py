@@ -13,15 +13,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-import copy
 
 import pytest
 from ase.md import VelocityVerlet
 from simtk.openmm import System
 from simtk.openmm.app import Element, Simulation, Topology
-
-from narupatools.ase._system import ASESystem
-from narupatools.imd import constant_interaction
 from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE

@@ -28,8 +28,6 @@ from narupatools.frame.fields import (
     ParticleNames,
     ParticlePositions,
     ParticleResidues,
-    BondPairs,
-    BondCount,
 )
 
 

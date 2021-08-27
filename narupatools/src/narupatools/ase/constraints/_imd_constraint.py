@@ -16,8 +16,7 @@
 
 from __future__ import annotations
 
-import copy
-from typing import Optional, Protocol, Union
+from typing import Any, Dict, Optional, Protocol
 
 import numpy as np
 from ase.atoms import Atoms
@@ -75,7 +74,7 @@ class InteractionConstraint(ASEEnergyConstraint, ASEMomentaConstraint):
         self._forces: Optional[Vector3Array] = None
         self._energy: Optional[float] = None
 
-    def _invalidate(self):
+    def _invalidate(self) -> None:
         self._forces = None
         self._energy = None
 
@@ -102,7 +101,7 @@ class InteractionConstraint(ASEEnergyConstraint, ASEMomentaConstraint):
             self._forces, self._energy = self.interaction.calculate_forces_and_energy()
         return self._energy * _NarupaToASE.energy
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict: Dict[Any, Any] = None) -> Any:
         # Deep copying an IMD constraint destroys it. This is because the interaction itself
         # has a reference to the atoms object, and this leads to deep copying of the atoms
         # object and its calculator, which may not be designed to be deep copied.
