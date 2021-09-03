@@ -26,7 +26,8 @@ from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
 from infinite_sets import InfiniteSet
-from MDAnalysis import Universe
+import numpy.typing as npt
+from narupatools.physics.quaternion import quaternion
 from narupa.trajectory import FrameData
 
 from narupatools.core.units import UnitsNarupa
@@ -36,10 +37,13 @@ from narupatools.imd.interactions._interactiondata import InteractionData
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 
 from ._converter import ase_atoms_to_frame
+from ._rotational_velocity_verlet import get_rotations, set_rotations, get_angular_momenta, set_angular_momenta, \
+    get_principal_moments, set_principal_moments
 from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
 from .constraints import InteractionConstraint
+from ..core.dynamics import SimulationRotationProperties
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
 
@@ -47,7 +51,7 @@ _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
-class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
+class ASEDynamics(InteractiveSimulationDynamics, SimulationRotationProperties, Generic[TIntegrator]):
     """
     Run dynamics using an ASE `MolecularDynamics` object.
 
@@ -78,7 +82,7 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
 
     @staticmethod
     def from_ase_dynamics(
-        dynamics: TIntegrator, *, universe: Optional[Universe] = None
+        dynamics: TIntegrator
     ) -> ASEDynamics[TIntegrator]:
         """
         Create ASE dynamics from an existing dynamics object.
@@ -96,7 +100,6 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
     def create_langevin(
         atoms: Atoms,
         *,
-        universe: Optional[Universe] = None,
         friction: float = 1e-2,
         temperature: float = 300,
         timestep: float = 1,
@@ -105,8 +108,6 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
         Create ASE Langevin dynamics with the provided ASE atoms object.
 
         :param atoms: An ASE atoms object to simulate.
-        :param universe: Optional MDAnalysis universe with additional system
-                         information.
         :param friction: Friction of the Langevin integrator in inverse picoseconds.
         :param temperature: Temperature of the Langevin integrator in kelvin.
         :param timestep: Timestep of the Langevin integrator in picoseconds.
@@ -122,18 +123,16 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
             friction=friction / _NarupaToASE.time,
             fixcm=False,
         )
-        return ASEDynamics.from_ase_dynamics(dynamics, universe=universe)
+        return ASEDynamics.from_ase_dynamics(dynamics)
 
     @staticmethod
     def create_velocity_verlet(
-        atoms: Atoms, *, universe: Optional[Universe] = None, timestep: float = 1
+        atoms: Atoms, timestep: float = 1
     ) -> ASEDynamics[VelocityVerlet]:
         """
         Create ASE velocity verlet dynamics for the provided ASE atoms object.
 
         :param atoms: An ASE atoms object to simulate.
-        :param universe: Optional MDAnalysis universe with additional system
-                         information.
         :param timestep: Timestep of the Velocity Verlet integrator in picoseconds.
         :return: An ASEDynamics object which wraps a Velocity Verlet integrator running
                  on the specified system.
@@ -141,7 +140,7 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
         if atoms.get_calculator() is None:
             atoms.set_calculator(NullCalculator())
         dynamics = VelocityVerlet(atoms, timestep=timestep * _NarupaToASE.time)
-        return ASEDynamics.from_ase_dynamics(dynamics, universe=universe)
+        return ASEDynamics.from_ase_dynamics(dynamics)
 
     @property
     def imd(self) -> ASEIMDFeature:  # noqa:D102
@@ -220,6 +219,38 @@ class ASEDynamics(InteractiveSimulationDynamics, Generic[TIntegrator]):
     @property
     def potential_energy(self) -> float:  # noqa: D102
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
+
+    @property
+    def orientations(self) -> npt.NDArray[quaternion]:
+        return get_rotations(self.atoms)
+
+    @orientations.setter
+    def orientations(self, value):
+        set_rotations(self.atoms, value)
+
+    @property
+    def angular_momenta(self) -> Vector3Array:
+        return get_angular_momenta(self.atoms)
+
+    @angular_momenta.setter
+    def angular_momenta(self, value):
+        set_angular_momenta(self.atoms, value) * _ASEToNarupa.angular_momenta
+
+    @property
+    def angular_velocities(self) -> Vector3Array:
+        """
+        Angular velocity of each particle abouts its center of mass.
+        :return: Array of angular velocities in radians per picoseconds.
+        """
+        raise AttributeError
+
+    @property
+    def moments_of_inertia(self) -> Vector3Array:
+        return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
+
+    @moments_of_inertia.setter
+    def moments_of_inertia(self, value):
+        set_principal_moments(self.atoms, value)
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):

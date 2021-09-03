@@ -296,6 +296,10 @@ class UnitSystem:
         for name, value in kwargs.items():
             self._units[name] = Unit(value)
         with contextlib.suppress(AttributeError):
+            self._add_if_missing(
+                "time", (self.mass * self.length ** 2 / self.energy) ** 0.5
+            )
+        with contextlib.suppress(AttributeError):
             self._add_if_missing("velocity", Unit(self.length / self.time))
         with contextlib.suppress(AttributeError):
             self._add_if_missing(
@@ -321,6 +325,14 @@ class UnitSystem:
             self._add_if_missing("density", Unit(self.mass / (self.length ** 3)))
         with contextlib.suppress(AttributeError):
             self._add_if_missing("density2d", Unit(self.mass / (self.length ** 2)))
+        with contextlib.suppress(AttributeError):
+            self._add_if_missing("momentum", Unit(self.mass * self.velocity))
+        with contextlib.suppress(AttributeError):
+            self._add_if_missing("angular_momentum", Unit(self.momentum * self.length))
+        with contextlib.suppress(AttributeError):
+            self._add_if_missing("moment_inertia", Unit(self.mass * self.length * self.length))
+        with contextlib.suppress(AttributeError):
+            self._add_if_missing("angular_velocity", Unit(self.time ** -1))
 
     def __rshift__(self, other: "UnitSystem") -> "UnitConversion":
         return UnitConversion(self, other)
@@ -328,85 +340,11 @@ class UnitSystem:
     def __lshift__(self, other: "UnitSystem") -> "UnitConversion":
         return UnitConversion(other, self)
 
-    @property
-    def length(self) -> Unit:
-        """Length unit in nanometers."""
-        return self._units["length"]
-
-    @property
-    def time(self) -> Unit:
-        """Time unit in picoseconds."""
-        return self._units["time"]
-
-    @property
-    def mass(self) -> Unit:
-        """Mass unit in a.m.u."""
-        return self._units["mass"]
-
-    @property
-    def charge(self) -> Unit:
-        """Charge unit in elementary charge."""
-        return self._units["charge"]
-
-    @property
-    def temperature(self) -> Unit:
-        """Absolute temperature unit in kelvin."""
-        return self._units["temperature"]
-
-    @property
-    def angle(self) -> Unit:
-        """Angle unit in radians."""
-        return self._units["angle"]
-
-    @property
-    def velocity(self) -> Unit:
-        """Velocity unit in nanometers per picosecond."""
-        return self._units["velocity"]
-
-    @property
-    def force(self) -> Unit:
-        """Force unit in kilojoules per mole per nanometer."""
-        return self._units["force"]
-
-    @property
-    def energy(self) -> Unit:
-        """Energy unit in kilojoules per mole."""
-        return self._units["energy"]
-
-    @property
-    def torque(self) -> Unit:
-        """Torque unit in kilojoules per mole."""
-        return self._units["torque"]
-
-    @property
-    def dipole_moment(self) -> Unit:
-        """Dipole moment in elementary charge nano meters."""
-        return self._units["dipole_moment"]
-
-    @property
-    def electric_field(self) -> Unit:
-        """Electric field in kilojoules per mole per elemetary charge per nanometer."""
-        return self._units["electric_field"]
-
-    @property
-    def pressure(self) -> Unit:
-        """Pressure unit in kilojoules per mole per nanometers cubed."""
-        return self._units["pressure"]
-
-    @property
-    def dynamic_viscosity(self) -> Unit:
-        """Dynamic viscosity in kilojoules picosecond per mole per nanometers cubed."""
-        return self._units["dynamic_viscosity"]
-
-    @property
-    def density(self) -> Unit:
-        """Density unit in a.m.u. per cubic nanometer."""
-        return self._units["density"]
-
-    @property
-    def density2d(self) -> Unit:
-        """2D density unit in a.m.u. per square nanometer."""
-        return self._units["density2d"]
+    def __getattr__(self, name: str):
+        try:
+            return self._units[name]
+        except KeyError:
+            raise AttributeError
 
 
 UnitsNarupa = UnitSystem(

@@ -59,7 +59,7 @@ of object that's storable in the shared state dictionary.
     # Check that y was also stored
     print(myobj['y'])
 """
-
+import contextlib
 from collections.abc import Mapping
 from typing import Any, ClassVar, Dict, Union
 
@@ -107,9 +107,11 @@ class SharedStateObject(SerializableObject):
     def serialize(self) -> Dict[str, Serializable]:  # noqa: D102
         dictionary = {k: v for k, v in self._arbitrary_data.items()}
         for key, python_property in self.__class__._serializable_properties.items():
-            value = python_property.fget(self)  # type: ignore
-            if value is not None:  # Only save non None values
-                dictionary[key] = value
+            with contextlib.suppress(AttributeError):
+                value = python_property.fget(self)  # type: ignore
+                if value is not None:  # Only save non None values
+                    dictionary[key] = value
+
         return dictionary
 
     def __setitem__(self, key: str, value: Union[Serializable, Any]) -> None:

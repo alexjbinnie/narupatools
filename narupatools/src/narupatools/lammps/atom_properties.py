@@ -25,13 +25,14 @@ import numpy as np
 import numpy.typing as npt
 
 from ._constants import VariableType
+from ._wrapper import Extractable, LAMMPSWrapper
 from .exceptions import LAMMPSError
 
 _TReturnType = TypeVar("_TReturnType")
 
 
 @dataclass
-class AtomProperty(Generic[_TReturnType]):
+class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
     """
     Definition of an atom property defined by LAMMPS.
 
@@ -44,6 +45,10 @@ class AtomProperty(Generic[_TReturnType]):
     """Enum which informs LAMMPS what data type the property is internally."""
     components: int
     """Number of components for each atom value."""
+
+    def extract(self, lammps: LAMMPSWrapper) -> _TReturnType:
+        """Extract the value of the property from a LAMMPS wrapper."""
+        return lammps.extract_atom(self.key)  # type: ignore[return-value]
 
     @overload
     @classmethod

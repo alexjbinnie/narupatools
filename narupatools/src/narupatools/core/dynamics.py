@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
-from typing import Optional, Protocol, Union
+from typing import Optional, Protocol, Union, Set
 
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
@@ -31,11 +31,14 @@ from narupatools.frame.fields import (
     SimulationElapsedSteps,
     SimulationElapsedTime,
     SimulationTotalSteps,
-    SimulationTotalTime,
+    SimulationTotalTime, DYNAMIC_FIELDS,
 )
 from narupatools.physics.typing import ScalarArray, Vector3Array
 
 from .playable import Playable
+import numpy.typing as npt
+
+from ..physics import quaternion
 
 
 class OnResetCallback(Protocol):
@@ -83,6 +86,40 @@ class DynamicsProperties(Protocol):
         raise AttributeError()
 
 
+class SimulationRotationProperties:
+    @property
+    def orientations(self) -> npt.NDArray[quaternion]:
+        """Orientations of each atom as unit quaternions."""
+        raise AttributeError
+
+    @property
+    def angular_momenta(self) -> Vector3Array:
+        """
+        Angular momentum of each particle abouts its center of mass.
+
+        :raises AttributeError: Angular momenta is not defined for this system.
+        :return: Array of angular momenta in dalton nanometer squared per picosecond.
+        """
+        raise AttributeError
+
+    @property
+    def angular_velocities(self) -> Vector3Array:
+        """
+        Angular velocity of each particle abouts its center of mass.
+        :return: Array of angular velocities in radians per picoseconds.
+        """
+        raise AttributeError
+
+    @property
+    def moments_of_inertia(self) -> Vector3Array:
+        """
+        Moments of inertia for each particle abouts its origin in its local frame.
+
+        :return:
+        """
+        raise AttributeError
+
+
 class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=ABCMeta):
     """
     Base class for an implementation of dynamics driven by Narupa.
@@ -118,6 +155,7 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         self._elapsed_time = 0.0
         self._elapsed_steps = 0
         self._remaining_steps = None
+        self.dynamic_fields: Set[str] = set(DYNAMIC_FIELDS)
 
     @property
     def on_reset(self) -> EventListener[OnResetCallback]:

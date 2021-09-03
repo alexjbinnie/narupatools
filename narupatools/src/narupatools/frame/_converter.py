@@ -304,10 +304,11 @@ def frame_to_pdb_string(frame_data: FrameData) -> str:
         range(count), atomnames, atomresidues, positions, elements, charges
     ):
         record_type = "ATOM  " if resnames[residue] in PDB_STD_RESIDUES else "HETATM"
+        symb = Z2SYMB[element] if element > 0 else "X"
         file.write(
             f"{record_type}{index + 1:5} {name:4.4} {resnames[residue]:3.3} "
             f"A{residue + 1:4}    {position[0]:8.3f}{position[1]:8.3f}"
-            f"{position[2]:8.3f}  1.00  0.00          {Z2SYMB[element]:2.2}"
+            f"{position[2]:8.3f}  1.00  0.00          {symb:2.2}"
             f"{int(charge):2}\n"
         )
     bonded: Dict[int, List[int]] = {}

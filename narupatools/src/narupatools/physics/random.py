@@ -21,7 +21,7 @@ import random
 
 import numpy as np
 
-from narupatools.core.random import random_float
+from narupatools.core.random import random_float, random_integer
 from narupatools.physics.typing import Vector3
 
 from .quaternion import quaternion
@@ -51,7 +51,9 @@ def random_vector(*, max_magnitude: float = 1.0) -> Vector3:
 
 def random_quaternion() -> quaternion:
     """Generate a random vector of length 3."""
-    return quaternion(*[random_scalar(min=-1.0, max=1.0) for _ in range(4)])
+    return quaternion(*[random_float(min=-1.0, max=1.0) for _ in range(4)])
 
 
-random_scalar = random_float
+def random_unit_quaternion() -> quaternion:
+    """Generate a random vector of length 3."""
+    return np.normalized(random_quaternion())

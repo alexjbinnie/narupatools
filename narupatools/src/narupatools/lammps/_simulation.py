@@ -19,10 +19,14 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Dict, List, Literal, Optional, TypeVar, Union
+import sys
+import uuid
+from abc import abstractmethod, ABCMeta
+from typing import Dict, List, Literal, Optional, TypeVar, Union, Any, overload, Set
 
 import numpy as np
 import numpy.typing as npt
+import quaternion
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
@@ -30,7 +34,7 @@ import narupatools.lammps.atom_properties as PROPERTIES
 import narupatools.lammps.computes as COMPUTES
 import narupatools.lammps.globals as GLOBALS
 import narupatools.lammps.settings as SETTINGS
-from narupatools.core.units import UnitsNarupa
+from narupatools.core.units import UnitsNarupa, radian, degree, UnitSystem
 from narupatools.frame import NarupaFrame
 from narupatools.frame._utils import mass_to_element
 from narupatools.frame.fields import (
@@ -51,10 +55,10 @@ from narupatools.physics.typing import Vector3
 from ._constants import VariableDimension, VariableType
 from ._exception_wrapper import catch_lammps_warnings_and_exceptions
 from ._wrapper import Extractable, LAMMPSWrapper
-from .exceptions import (
-    UnknownAtomPropertyError,
-)
+from .exceptions import UnknownAtomPropertyError
 from .regions import Region, RegionSpecification
+from ..physics.transformation import Rotation
+from ..physics.vector import magnitude, normalized, vector
 
 _TReturnType = TypeVar("_TReturnType")
 
@@ -62,10 +66,22 @@ _TReturnType = TypeVar("_TReturnType")
 class LAMMPSSimulation:
     """Wrapper around a LAMMPS simulation."""
 
-    def __init__(self, lammps: LAMMPSWrapper):
+    def __init__(self, lammps: LAMMPSWrapper, units: Optional[UnitSystem] = None):
         self.__lammps = lammps
 
-        unit_system = get_unit_system(self.extract(GLOBALS.UnitStyle))
+        unit_str = self.extract(GLOBALS.UnitStyle)
+        if unit_str == "lj":
+            if units is None:
+                raise ValueError(
+                    "LAMMPS simulation uses 'lj' units but no UnitSystem provided."
+                )
+            unit_system = units
+        else:
+            if units is not None:
+                raise ValueError(
+                    "LAMMPS simulation does not use 'lj' units but UnitSystem provided."
+                )
+            unit_system = get_unit_system(unit_str)
         self._lammps_to_narupa = unit_system >> UnitsNarupa
         self._narupa_to_lammps = UnitsNarupa >> unit_system
         self.indexing = LAMMPSIndexing(self)
@@ -73,7 +89,7 @@ class LAMMPSSimulation:
 
         self._needs_pre_run = True
 
-        self.mass_compute = self.create_atom_compute(
+        self.mass_compute = COMPUTES.AtomProperty(self.__lammps,
             id="mass", properties=["mass"], type=VariableType.DOUBLE
         )
 
@@ -92,10 +108,31 @@ class LAMMPSSimulation:
             self.__lammps, id="thermo_press", dimension=VariableDimension.SCALAR
         )
 
+        self.atoms = AtomArray(self)
+        self.types = TypeArray(self)
+        self.mols = MolArray(self)
+
+        self._imd_torques: Optional[npt.NDArray[np.float64]] = None
+        self._imd_forces: Optional[npt.NDArray[np.float64]] = None
+
+        self._quat_compute: Optional[
+            COMPUTES.ComputeAtomReference[npt.NDArray[np.float64]]
+        ] = None
+        self._angmom_compute: Optional[
+            COMPUTES.ComputeAtomReference[npt.NDArray[np.float64]]
+        ] = None
+
+    @property
+    def _wrapper(self) -> LAMMPSWrapper:
+        return self.__lammps
+
     @classmethod
     def create_new(
         cls,
-        units: Literal["lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"],
+        units: Union[
+            UnitSystem,
+            Literal["real", "metal", "si", "cgs", "electron", "micro", "nano"],
+        ],
     ) -> LAMMPSSimulation:
         """
         Create a new LAMMPS simulation with the given units system.
@@ -108,17 +145,26 @@ class LAMMPSSimulation:
         lammps = LAMMPSWrapper()
         with catch_lammps_warnings_and_exceptions():
             lammps.command("atom_modify map yes")
-            lammps.command(f"units {units}")
-        return cls(lammps)
+            if isinstance(units, UnitSystem):
+                lammps.command("units lj")
+            else:
+                lammps.command(f"units {units}")
+        if isinstance(units, UnitSystem):
+            return cls(lammps, units)
+        else:
+            return cls(lammps)
 
     @classmethod
-    def from_file(cls, filename: str) -> LAMMPSSimulation:
+    def from_file(
+        cls, filename: str, units: Optional[UnitSystem] = None
+    ) -> LAMMPSSimulation:
         """
         Load LAMMPS simulation from a file.
 
         This automatically runs the 'atom_modify map yes' command required to use atom
         IDs and hence allow certain operations such as setting positions.
         :param filename: Filename of LAMMPS input.
+        :param units: If the file uses LJ units, a UnitSystem must be provided.
         :return: LAMMPS simulation based on file.
         """
         lammps = LAMMPSWrapper()
@@ -126,7 +172,7 @@ class LAMMPSSimulation:
             lammps.command("atom_modify map yes")
             lammps.file(filename)
             lammps.command("run 0")
-        simulation = cls(lammps)
+        simulation = cls(lammps, units)
         return simulation
 
     def __len__(self) -> int:
@@ -233,7 +279,7 @@ class LAMMPSSimulation:
     @property
     def masses(self) -> npt.NDArray[np.float64]:
         """Masses of each atom in daltons."""
-        return self.mass_compute.gather()
+        return self.mass_compute.gather() * self._lammps_to_narupa.mass.value
 
     @property
     def positions(self) -> npt.NDArray[np.float64]:
@@ -259,26 +305,125 @@ class LAMMPSSimulation:
             PROPERTIES.Velocity, velocities * self._narupa_to_lammps.velocity
         )
 
+    @property
+    def orientations(self) -> npt.NDArray[quaternion.quaternion]:
+        """Orientations of each atom as unit quaternions."""
+        if self._quat_compute is None:
+            if not self.extract(SETTINGS.AtomStylesCanBeEllipsoid):
+                raise AttributeError("orientations not supported for this simulation.")
+            self._quat_compute = COMPUTES.AtomProperty(self.__lammps,
+                id="quat",
+                properties=["quatw", "quati", "quatj", "quatk"],
+                type=VariableType.DOUBLE,
+            )
+        return quaternion.as_quat_array(self._quat_compute.gather())
+
+    @property
+    def ellipsoid_axes(self) -> npt.NDArray[np.float64]:
+        """Principle moments of inertia of each atom ."""
+        if not hasattr(self, "_shape_compute"):
+            if not self.extract(SETTINGS.AtomStylesCanBeEllipsoid):
+                raise AttributeError(
+                    "ellipsoid_axes not supported for this simulation."
+                )
+            self._shape_compute = COMPUTES.AtomProperty(self.__lammps,
+                id="shape",
+                properties=["shapex", "shapey", "shapez"],
+                type=VariableType.DOUBLE,
+            )
+        return self._shape_compute.gather() * self._lammps_to_narupa.length
+
+    @property
+    def angular_momenta(self) -> npt.NDArray[np.float64]:
+        """Angular momentum of each particle."""
+        if self._angmom_compute is None:
+            if not self.extract(SETTINGS.AtomStylesCanBeEllipsoid):
+                raise AttributeError(
+                    "angular momenta not supported for this simulation."
+                )
+            self._angmom_compute = COMPUTES.AtomProperty(self.__lammps,
+                id="angmom",
+                properties=["angmomx", "angmomy", "angmomz"],
+                type=VariableType.DOUBLE,
+            )
+        return self._angmom_compute.gather() * self._lammps_to_narupa.angular_momentum
+
+    @property
+    def bond_energies(self) -> npt.NDArray[np.float64]:
+        if not hasattr(self, "_bond_energy_compute"):
+            self._bond_energy_compute = COMPUTES.BondLocal(self.__lammps,
+                id="bond_energy", properties=["engpot"]
+            )
+        return self._bond_energy_compute.extract() * self._lammps_to_narupa.energy
+
+    def _inject_python_function(self, func: Any) -> str:
+        """
+        Inject a given function into the __main__ module and generate a unique name.
+
+        This allows a function to then be called by LAMMPS in a callback.
+
+        :param func: Function to be called.
+        """
+        name = "_narupatools_lammps_func_" + str(uuid.uuid4())
+        setattr(sys.modules["__main__"], name, func)
+        return name
+
+    def _update_torques(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Updates the torques of the simulation.
+
+        This needs to be called when forces are recalculated.
+        """
+        if self._imd_torques is not None:
+            self.scatter_atoms(
+                PROPERTIES.Torque, self._imd_torques * self._narupa_to_lammps.torque
+            )
+
+    def _update_forces(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Updates the forces of the simulation.
+
+        This needs to be called when forces are recalculated.
+        """
+        if self._imd_forces is not None:
+            self.scatter_atoms(
+                PROPERTIES.Force, (self.forces + self._imd_forces) * self._narupa_to_lammps.force
+            )
+
+    def add_imd_torque(self) -> None:
+        """Define an IMD torque for the LAMMPS simulation."""
+        self._imd_torques = np.zeros(shape=(len(self), 3))
+        func_name = self._inject_python_function(self._update_torques)
+        self.command(
+            f"fix _narupatools_torque_callback all python/invoke 1 post_force {func_name}"
+        )
+
+
     def add_imd_force(self) -> None:
         """Define an IMD force for the LAMMPS simulation."""
-        self.command("fix imdprop all property/atom d_imdfx d_imdfy d_imdfz")
-        self.command("set atom * d_imdfx 0 d_imdfy 0 d_imdfz 0")
-        self.imd_compute = self.create_atom_compute(
-            id="imdf",
-            properties=["d_imdfx", "d_imdfy", "d_imdfz"],
-            type=VariableType.DOUBLE,
+        self._imd_forces = np.zeros(shape=(len(self), 3))
+        func_name = self._inject_python_function(self._update_forces)
+        self.command(
+            f"fix _narupatools_force_callback all python/invoke 1 post_force {func_name}"
         )
-        self.command("variable imdfx atom c_imdf[1]")
-        self.command("variable imdfy atom c_imdf[2]")
-        self.command("variable imdfz atom c_imdf[3]")
-        self.command("fix imd_force all addforce v_imdfx v_imdfy v_imdfz")
-        self.command("fix_modify imd_force energy yes")
+
 
     def get_imd_forces(self) -> npt.NDArray[np.float64]:
         """Get the IMD forces on each atom in kilojoules per mole per angstrom."""
-        if self.imd_compute is None:
+        if self._imd_forces is None:
             raise ValueError("IMD Force not defined.")
-        return self.imd_compute.gather() * self._lammps_to_narupa.force
+        return self._imd_forces
+
+    def set_imd_torque(self, index: int, torque: Vector3) -> None:
+        """
+        Set the IMD force on a specific atom.
+
+        :param index: Index of the particle to set.
+        :param torque: IMD torque to apply, in kilojoules per mole.
+        """
+        if self._imd_torques is None:
+            self.add_imd_torque()
+        self._imd_torques[index] = torque  # type: ignore[index]
 
     def set_imd_force(self, index: int, force: Vector3) -> None:
         """
@@ -287,12 +432,9 @@ class LAMMPSSimulation:
         :param index: Index of the particle to set.
         :param force: IMD force to apply, in kilojoules per mole per nanometer.
         """
-        self.indexing.recompute()
-        id = self.indexing.ordered_to_atom_id(index)
-        force = force * self._narupa_to_lammps.force
-        self.command(
-            f"set atom {id} d_imdfx {force[0]} d_imdfy {force[1]} d_imdfz {force[2]}"
-        )
+        if self._imd_forces is None:
+            self.add_imd_force()
+        self._imd_forces[index] = force
 
     def clear_imd_force(self, index: int) -> None:
         """
@@ -300,9 +442,9 @@ class LAMMPSSimulation:
 
         :param index: Index of the particle to clear.
         """
-        self.indexing.recompute()
-        id = self.indexing.ordered_to_atom_id(index)
-        self.command(f"set atom {id} d_imdfx 0 d_imdfy 0 d_imdfz 0")
+        if self._imd_forces is None:
+            return
+        self._imd_forces[index] = vector(0,0,0)
 
     def command(self, command: str) -> None:
         """
@@ -338,7 +480,7 @@ class LAMMPSSimulation:
             ParticleMasses.set(frame, self.masses)
         if ParticleElements.key in fields:
             elements = np.vectorize(mass_to_element)(self.masses)
-            if np.all(elements is not None):
+            if not np.any(np.equal(elements, None)):
                 ParticleElements.set(frame, elements)
         if ParticleCharges.key in fields:
             with contextlib.suppress(AttributeError):
@@ -353,7 +495,7 @@ class LAMMPSSimulation:
         ):
             self.indexing.recompute()
             if self.bond_compute is None:
-                self.bond_compute = self.create_local_compute(
+                self.bond_compute = COMPUTES.LocalProperty(self.__lammps,
                     id="bonds",
                     properties=["btype", "batom1", "batom2"],
                 )
@@ -375,41 +517,6 @@ class LAMMPSSimulation:
 
         return frame
 
-    def create_local_compute(
-        self,
-        *,
-        id: str,
-        properties: List[str],
-    ) -> COMPUTES.ComputeReference[npt.NDArray[np.float64]]:
-        """Create a local compute."""
-        self.__lammps.command(f"compute {id} all property/local {' '.join(properties)}")
-        return COMPUTES.ComputeLocalReference(
-            self.__lammps,
-            id=id,
-        )
-
-    def create_atom_compute(
-        self,
-        *,
-        id: str,
-        properties: List[str],
-        type: Literal[VariableType.INTEGER, VariableType.DOUBLE],
-    ) -> COMPUTES.ComputeAtomReference[npt.NDArray[np.float64]]:
-        """
-        Create a per-atom compute.
-
-        :param id: Compute ID to do.
-        :param properties: Atom properties to compute.
-        :param type: Variable type to return.
-        :return: Reference to the compute.
-        """
-        self.command(f"compute {id} all property/atom {' '.join(properties)}")
-        return COMPUTES.ComputeAtomReference(
-            self.__lammps,
-            id=id,
-            type=type,
-            count=len(properties),
-        )
 
     @property
     def timestep(self) -> float:
@@ -421,17 +528,36 @@ class LAMMPSSimulation:
         self.command(f"timestep {value * self._narupa_to_lammps.time}")
         self._timestep = None
 
-    def create_atom(self, *, type: int, position: Vector3) -> None:
+    def create_atom(
+        self, *, type: int, position: Vector3, rotation: Optional[Rotation] = None
+    ) -> SingleAtomReference:
         """
         Insert an atom into the simulation.
 
         :param type: Type of the atom to insert.
         :param position: Position of the atom in nanometers.
+        :param rotation: Initial rotation of the atom.
         """
+        if len(self) == 0:
+            prev_ids: Set[np.int64] = set()
+        else:
+            prev_ids = set(self.gather_atoms(PROPERTIES.AtomID))  # type: ignore[arg-type]
         position = position * self._narupa_to_lammps.length
-        self.command(
+        command = (
             f"create_atoms {type} single {position[0]} {position[1]} {position[2]}"
         )
+        if rotation is not None:
+            rot_vec = rotation.rotation_vector
+            theta = magnitude(rot_vec) * (radian >> degree)
+            axis = normalized(rot_vec)
+            if theta == 0:
+                axis = vector(1, 0, 0)
+            command += f" rotate {theta} {axis[0]} {axis[1]} {axis[2]}"
+        self.command(command)
+        new_ids: Set[np.int64] = set(self.gather_atoms(PROPERTIES.AtomID))  # type: ignore[arg-type]
+        diff = new_ids - prev_ids
+        assert len(diff) == 1
+        return self.atoms[int(list(diff)[0])]
 
     def create_region(
         self, region: RegionSpecification, *, id: Optional[str] = None
@@ -465,15 +591,6 @@ class LAMMPSSimulation:
         elif region._simulation is not self:
             raise ValueError("Region does not belong to this simulation!")
         self.command(f"create_box {n_types} {region.id}")
-
-    def set_mass(self, *, type: Union[int, slice], mass: float) -> None:
-        """
-        Set the mass of a specified atom type.
-
-        :param type: Atom type.
-        :param mass: Mass in daltons.
-        """
-        self.command(f"mass {type} {mass * self._narupa_to_lammps.mass}")
 
     def setup_langevin(self, *, temperature: float, friction: float, seed: int) -> None:
         """
@@ -517,8 +634,8 @@ class LAMMPSIndexing:
     """
 
     def __init__(self, simulation: LAMMPSSimulation):
-        self.__simulation = simulation
-        self.__atom_ids = simulation.create_atom_compute(
+        self._simulation = simulation
+        self.__atom_ids = COMPUTES.AtomProperty(simulation._wrapper,
             id="atomids", properties=["id"], type=VariableType.INTEGER
         )
         self._unordered_to_atom_ids: np.ndarray = np.array([])
@@ -547,3 +664,250 @@ class LAMMPSIndexing:
     def ordered_to_atom_id(self, index: int) -> int:
         """Maps a zero-based index to an Atom ID."""
         return self._ordered_to_atom_ids[index]  # type: ignore[no-any-return]
+
+
+def _slice_to_lammps(slice_: slice) -> str:
+    """Convert a python slice to a LAMMPS representation."""
+    if slice_.start is None:
+        if slice_.stop is None:
+            return "*"
+        else:
+            return f"*{slice_.stop}"
+    else:
+        if slice_.stop is None:
+            return f"{slice_.start}*"
+        else:
+            return f"{slice_.start}*{slice_.stop}"
+
+
+class AtomArray:
+    """Structure allowing access to atoms of a simulation by ID."""
+
+    def __init__(self, simulation: LAMMPSSimulation):
+        self._simulation = simulation
+
+    @overload
+    def __getitem__(self, item: int) -> SingleAtomReference:
+        pass
+
+    @overload
+    def __getitem__(self, range: slice) -> AtomRangeReference:
+        pass
+
+    def __getitem__(self, range: Union[int, slice]) -> AtomSetReference:
+        if isinstance(range, (int, np.integer)):
+            return SingleAtomReference(self._simulation, int(range))
+        else:
+            return AtomRangeReference(self._simulation, range)
+
+
+class TypeArray:
+    """Structure allowing access to atom types of a simulation by ID."""
+
+    def __init__(self, simulation: LAMMPSSimulation):
+        self._simulation = simulation
+
+    def __getitem__(
+        self, range: Union[int, slice]
+    ) -> Union[SingleTypeReference, TypeRangeReference]:
+        if isinstance(range, int):
+            return SingleTypeReference(self._simulation, range)
+        else:
+            return TypeRangeReference(self._simulation, range)
+
+
+class MolArray:
+    """Structure allowing access to mols of a simulation by ID."""
+
+    def __init__(self, simulation: LAMMPSSimulation):
+        self._simulation = simulation
+
+    def __getitem__(
+        self, range: Union[int, slice]
+    ) -> Union[SingleMolReference, MolRangeReference]:
+        if isinstance(range, int):
+            return SingleMolReference(self._simulation, range)
+        else:
+            return MolRangeReference(self._simulation, range)
+
+
+class AtomSetReference(metaclass=ABCMeta):
+    """Base class for a reference to a set of atoms."""
+
+    def __init__(self, simulation: LAMMPSSimulation):
+        self._simulation = simulation
+
+    @abstractmethod
+    def _selection_str(self) -> str:
+        ...
+
+    @abstractmethod
+    def _type_str(self) -> str:
+        ...
+
+    def _set(self, command: str) -> None:
+        self._simulation.command(
+            f"set {self._type_str()} {self._selection_str()} {command}"
+        )
+
+    def set_type(self, *, type: int) -> None:
+        """
+        Set the atom type of the given atom(s).
+
+        :param type: Atom type.
+        """
+        self._set(f"type {type}")
+
+    def set_quat(self, *, rotation: Rotation) -> None:
+        """
+        Set the orientation of the given atom(s).
+
+        :param rotation: Rotation to assign to the atom(s).
+        """
+        rot_vec = rotation.rotation_vector
+        axis = normalized(rot_vec)
+        angle = magnitude(rot_vec) * (radian >> degree)
+        self._set(f"quat {axis[0]} {axis[1]} {axis[2]} {angle}")
+
+    def set_shape(self, *, shape: Vector3) -> None:
+        """
+        Set the shape of the given atom(s).
+
+        :param shape: Shape in nanometers.
+        """
+        shape = shape * self._simulation._narupa_to_lammps.length
+        self._set(f"shape {shape[0]} {shape[1]} {shape[2]}")
+
+    def set_peratom_mass(self, *, mass: float) -> None:
+        """
+        Set the mass of the given atom(s).
+
+        :param mass: Mass in daltons.
+        """
+        mass = mass * self._simulation._narupa_to_lammps.mass
+        self._set(f"mass {mass}")
+
+    def set_angular_momentum(self, *, angular_momentum: Vector3) -> None:
+        """
+        Set the angular momentum of the given atom(s).
+
+        :param angular_momentum: Angular momentum in dalton nanometer squared per picosecond.
+        """
+        angular_momentum = (
+            angular_momentum * self._simulation._narupa_to_lammps.angular_momentum
+        )
+        self._set(
+            f"angmom {angular_momentum[0]} {angular_momentum[1]} {angular_momentum[2]}"
+        )
+
+
+class SingleAtomReference(AtomSetReference):
+    """Reference to a single atom by its ID."""
+
+    def __init__(self, simulation: LAMMPSSimulation, id: int):
+        super().__init__(simulation)
+        self.__id = id
+
+    def _selection_str(self) -> str:
+        return f"{self.__id}"
+
+    def _type_str(self) -> str:
+        return "atom"
+
+
+class AtomRangeReference(AtomSetReference):
+    """Reference to a range of atoms between two IDs."""
+
+    def __init__(self, simulation: LAMMPSSimulation, range: slice):
+        super().__init__(simulation)
+        self.__range = range
+
+    def _selection_str(self) -> str:
+        return f"{_slice_to_lammps(self.__range)}"
+
+    def _type_str(self) -> str:
+        return "atom"
+
+
+class _TypeReferenceMixin:
+    """Mixin for methods that are valid for atom type references."""
+
+    def set_mass(self: AtomSetReference, mass: float) -> None:  # type: ignore[misc]
+        """
+        Set the per-type mass.
+
+        :param mass: Mass in daltons.
+        """
+        self._simulation.command(
+            f"mass {self._selection_str()} {mass * self._simulation._narupa_to_lammps.mass}"
+        )
+
+
+class SingleTypeReference(AtomSetReference, _TypeReferenceMixin):
+    """Reference to a single atom type and all atoms with that type."""
+
+    def __init__(self, simulation: LAMMPSSimulation, id: int):
+        super().__init__(simulation)
+        self.__id = id
+
+    def _selection_str(self) -> str:
+        return f"{self.__id}"
+
+    def _type_str(self) -> str:
+        return "type"
+
+
+class TypeRangeReference(AtomSetReference, _TypeReferenceMixin):
+    """Reference to a range of atom types and all atoms with those types."""
+
+    def __init__(self, simulation: LAMMPSSimulation, range: slice):
+        super().__init__(simulation)
+        self.__range = range
+
+    def _selection_str(self) -> str:
+        return f"{_slice_to_lammps(self.__range)}"
+
+    def _type_str(self) -> str:
+        return "type"
+
+
+class SingleMolReference(AtomSetReference):
+    """Reference to a single molecule ID and all atoms with that type."""
+
+    def __init__(self, simulation: LAMMPSSimulation, id: int):
+        super().__init__(simulation)
+        self.__id = id
+
+    def _selection_str(self) -> str:
+        return f"{self.__id}"
+
+    def _type_str(self) -> str:
+        return "mol"
+
+
+class MolRangeReference(AtomSetReference):
+    """Reference to a range of molecule IDs and all atoms with those types."""
+
+    def __init__(self, simulation: LAMMPSSimulation, range: slice):
+        super().__init__(simulation)
+        self.__range = range
+
+    def _selection_str(self) -> str:
+        return f"mol {_slice_to_lammps(self.__range)}"
+
+    def _type_str(self) -> str:
+        return "mol"
+
+
+class GroupReference(AtomSetReference):
+    """Reference to a group and all atoms within that group."""
+
+    def __init__(self, simulation: LAMMPSSimulation, id: int):
+        super().__init__(simulation)
+        self.__id = id
+
+    def _selection_str(self) -> str:
+        return f"group {self.__id}"
+
+    def _type_str(self) -> str:
+        return "group"

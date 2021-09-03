@@ -29,6 +29,7 @@ with warnings.catch_warnings():
         as_rotation_matrix,
         as_rotation_vector,
         from_rotation_vector,
+        as_quat_array,
         quaternion,
     )
 
@@ -37,4 +38,5 @@ __all__ = [
     "as_rotation_vector",
     "as_rotation_matrix",
     "from_rotation_vector",
+    "as_quat_array",
 ]

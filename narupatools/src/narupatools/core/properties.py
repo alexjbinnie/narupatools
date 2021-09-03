@@ -21,6 +21,8 @@ from typing import Any, Callable, TypeVar
 import numpy as np
 import numpy.typing as npt
 
+from narupatools.physics.quaternion import quaternion
+
 _TValue = TypeVar("_TValue")
 
 
@@ -69,7 +71,14 @@ def to_float(value: Any) -> float:
     return float(value)
 
 
+def to_quaternion(value: Any) -> quaternion:
+    if isinstance(value, quaternion):
+        return value
+    return quaternion(*value)
+
+
 float_property = to_property(to_float)
 
+quaternion_property = to_property(to_quaternion)
 
-__all__ = ["numpy_property", "str_property", "float_property"]
+__all__ = ["numpy_property", "str_property", "float_property", "quaternion_property"]

@@ -18,17 +18,25 @@
 
 from dataclasses import dataclass
 
+from narupatools.lammps._wrapper import Extractable, LAMMPSWrapper, _TReturnType
+
 
 @dataclass
-class FloatThermoKeyword:
+class FloatThermoKeyword(Extractable[float]):
     """Thermo keyword that returns a float."""
+
+    def extract(self, lammps: LAMMPSWrapper) -> float:
+        return lammps.get_thermo(self.key)
 
     key: str
 
 
 @dataclass
-class IntegerThermoKeyword:
+class IntegerThermoKeyword(Extractable[int]):
     """Thermo keyword that returns an integer."""
+
+    def extract(self, lammps: LAMMPSWrapper) -> int:
+        return int(lammps.get_thermo(self.key))
 
     key: str
 

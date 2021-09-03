@@ -6,8 +6,16 @@ from typing import Generator
 from lammps import OutputCapture
 
 from narupatools.lammps import LAMMPSError
-from narupatools.lammps.exceptions import AtomIDsNotDefinedError, UnknownPropertyNameError, LAMMPSWarning, \
-    MissingInputScriptError, CannotOpenFileError, IllegalCommandError, UnknownCommandError, UnrecognizedStyleError
+from narupatools.lammps.exceptions import (
+    AtomIDsNotDefinedError,
+    CannotOpenFileError,
+    IllegalCommandError,
+    LAMMPSWarning,
+    MissingInputScriptError,
+    UnknownCommandError,
+    UnknownPropertyNameError,
+    UnrecognizedStyleError,
+)
 
 ILLEGAL_COMMAND_REGEX = re.compile(r"illegal \w+ command", re.IGNORECASE)
 UNKNOWN_COMMAND_REGEX = re.compile(r"unknown command", re.IGNORECASE)

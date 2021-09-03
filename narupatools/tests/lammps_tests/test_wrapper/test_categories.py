@@ -17,6 +17,7 @@ import pytest
 
 pytest.importorskip("lammps")
 
+
 def test_initial_computes(lammps):
     assert len(lammps.computes) == 4
     assert set(lammps.computes) == {

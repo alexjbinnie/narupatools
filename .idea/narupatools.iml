@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/narupatools/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/narupatools/tests/testing" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.8 (narupatools)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="3.9 @ Ubuntu-20.04" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

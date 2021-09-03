@@ -26,9 +26,11 @@ if not has_ngl:
 from ._dynamics import show_dynamics
 from ._show import show_ase, show_narupa, show_narupatools_traj
 from ._structure import ASEStructure, FrameDataStructure
+from ._client import show_client
 
 __all__ = [
     "show_ase",
+    "show_client",
     "show_narupa",
     "show_dynamics",
     "show_narupatools_traj",

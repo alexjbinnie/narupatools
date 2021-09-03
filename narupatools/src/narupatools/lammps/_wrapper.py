@@ -22,6 +22,7 @@ import datetime
 import typing
 from abc import abstractmethod
 from ctypes import POINTER, c_char
+from threading import Lock
 from typing import Any, Generic, Literal, Optional, Tuple, TypeVar, Union, overload
 
 import numpy as np
@@ -63,6 +64,8 @@ class LAMMPSWrapper:
         self.__lammps = pylammps.lmp
         self.__lammps_clib = pylammps.lmp.lib
         self.__lammps_handle = pylammps.lmp.lmp
+
+        self._command_lock = Lock()
 
         self._check_version()
 
@@ -400,6 +403,15 @@ class LAMMPSWrapper:
         array.flags.writeable = False
         return array  # type: ignore
 
+    def extract_atom(self, name: str) -> np.ndarray:
+        """
+        Extract a per-atom value.
+
+        :param name: Name of the per-atom value.
+        :return: Value of the per-atom value.
+        """
+        return self.__lammps.numpy.extract_atom(name)  # type: ignore[no-any-return]
+
     def extract_atom_fix(self, fix_id: str) -> npt.NDArray[np.float64]:
         """
         Extract value of a fix which returns a per-atom variable.
@@ -630,10 +642,10 @@ class LAMMPSWrapper:
         any data, set clear_cache to False.
 
         :param command: LAMMPS command to run.
-        :param clear_cache: Should all cached information be cleared.
         """
-        with catch_lammps_warnings_and_exceptions():
-            self.__pylammps.command(command)
+        with self._command_lock:
+            with catch_lammps_warnings_and_exceptions():
+                self.__pylammps.command(command)
 
 
 class _StyleCategory(typing.Sequence[str]):

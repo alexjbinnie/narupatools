@@ -48,6 +48,7 @@ from narupatools.core.units import (
     second,
     statcoulomb,
     volt,
+    UnitsNarupa,
 )
 
 UnitsLAMMPSReal = UnitSystem(

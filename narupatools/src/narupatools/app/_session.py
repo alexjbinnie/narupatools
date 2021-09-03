@@ -22,7 +22,7 @@ import time
 from abc import ABCMeta
 from contextlib import contextmanager
 from types import TracebackType
-from typing import Any, Generator, Generic, Optional, Protocol, Type, TypeVar
+from typing import Any, Generator, Generic, Optional, Protocol, Type, TypeVar, Set
 
 from infinite_sets import InfiniteSet
 from narupa.app import NarupaImdApplication
@@ -44,7 +44,7 @@ from narupatools.core.health_check import HealthCheck
 from narupatools.core.playable import Playable
 from narupatools.frame._frame_producer import FrameProducer
 from narupatools.frame._frame_source import FrameSource
-from narupatools.frame.fields import KineticEnergy, ParticlePositions, PotentialEnergy
+from narupatools.frame.fields import KineticEnergy, ParticlePositions, PotentialEnergy, DYNAMIC_FIELDS
 from narupatools.state.view._wrappers import SharedStateServerWrapper
 
 from ._shared_state import SessionSharedState
@@ -211,9 +211,10 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._frame_producer.mark_dirty()
 
     def _on_target_step(self, **kwargs: Any) -> None:
-        self._frame_producer.mark_dirty(
-            {ParticlePositions.key, PotentialEnergy.key, KineticEnergy.key}
-        )
+        dynamic_fields: Set[str] = set(DYNAMIC_FIELDS)
+        if isinstance(self.target, SimulationDynamics):
+            dynamic_fields |= self.target.dynamic_fields
+        self._frame_producer.mark_dirty(dynamic_fields)
 
     def _produce_frame(self, fields: InfiniteSet[str]) -> FrameData:
         """

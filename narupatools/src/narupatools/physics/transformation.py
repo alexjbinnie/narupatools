@@ -15,7 +15,7 @@ from narupatools.physics.typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from narupatools.physics.vector import vector
+from narupatools.physics.vector import vector, magnitude, normalized
 
 from .quaternion import (
     as_rotation_matrix,
@@ -23,6 +23,7 @@ from .quaternion import (
     from_rotation_vector,
     quaternion,
 )
+from ..core.units import radian, degree
 
 
 class Translation:
@@ -146,6 +147,14 @@ class Rotation:
 
     def __array__(self) -> np.ndarray:
         return self.__quat.components
+
+    def __str__(self) -> str:
+        rot_vec = self.rotation_vector
+        angle = magnitude(rot_vec) * (radian >> degree)
+        axis = normalized(rot_vec)
+        if angle == 0:
+            return "Rotation of 0 degrees"
+        return f"Rotation of {angle:.1f} degrees about {axis}."
 
     def rotate_around_center_of_mass(
         self,

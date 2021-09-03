@@ -19,9 +19,8 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
-from narupatools.lammps.atom_properties import AtomID
-
 from narupatools.lammps._simulation import LAMMPSSimulation
+from narupatools.lammps.atom_properties import AtomID
 
 
 @pytest.fixture(scope="module")
@@ -60,6 +59,11 @@ def test_forces(simulation):
 def test_masses(simulation):
     assert len(simulation.masses) == 2004
     assert simulation.masses[0] > 0
+
+
+def test_orientations(simulation):
+    with pytest.raises(AttributeError):
+        _ = simulation.orientations
 
 
 def test_ids_sorted(simulation):

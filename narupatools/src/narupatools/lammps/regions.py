@@ -92,6 +92,17 @@ class Box(RegionSpecification):
             zhi=upper[2],
         )
 
+    @classmethod
+    def from_size(cls, *, size: Vector3, center: Vector3 = vector(0, 0, 0)) -> Box:
+        """
+        Create a specification for an axis-aligned box for a LAMMPS simulation.
+
+        :param size: Box sides in nanometers..
+        :param center: Box center in nanometers..
+        :return: Box specification with given size and center.
+        """
+        return cls.bounds(lower=center - size / 2.0, upper=center + size / 2.0)
+
     @property
     def style(self) -> str:  # noqa: D102
         return "block"

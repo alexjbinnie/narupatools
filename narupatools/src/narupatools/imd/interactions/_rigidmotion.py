@@ -19,11 +19,11 @@ from typing import Any, Optional, Tuple
 
 import numpy as np
 
-from narupatools.core.properties import float_property, numpy_property
+from narupatools.core.properties import float_property, numpy_property, quaternion_property
 from narupatools.physics.rigidbody import (
     angular_velocity,
     center_of_mass,
-    center_of_mass_velocity,
+    center_of_mass_velocity, moment_of_inertia_tensor, spin_angular_momentum,
 )
 from narupatools.physics.transformation import Rotation, Translation
 from narupatools.physics.typing import ScalarArray, Vector3, Vector3Array
@@ -45,9 +45,9 @@ class RigidMotionInteractionData(InteractionData):
         """Translation to apply, in nanometers."""
         ...
 
-    @numpy_property(dtype=float)
+    @quaternion_property
     def rotation(self) -> None:
-        """Rotation to apply, as a rotation vector in radians."""
+        """Rotation to apply, as a unit quaternion."""
         ...
 
     @float_property
@@ -74,7 +74,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         except AttributeError:
             self.translation = None
         try:
-            self.rotation = Rotation.from_rotation_vector(interaction.rotation)
+            self.rotation = Rotation(interaction.rotation)
         except AttributeError:
             self.rotation = None
         self.scale = interaction.scale
@@ -84,16 +84,27 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         velocities = self.dynamics.velocities[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]
 
-        self._forces = self._calculate_force(
-            positions=positions, velocities=velocities, masses=masses
-        )
+        try:
+            particle_angular_momenta = self.dynamics.angular_momenta[self.particle_indices]
+        except AttributeError:
+            particle_angular_momenta = None
 
-        return self._forces, 0.0
+        try:
+            particle_inertia = self.dynamics.moments_of_inertia[self.particle_indices]
+        except AttributeError:
+            particle_inertia = None
 
-    def _calculate_force(
-        self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
-    ) -> Vector3Array:
-        forces = np.zeros(shape=(len(self.particle_indices), 3))
+        inertia_tensor = moment_of_inertia_tensor(positions=positions, masses=masses)
+
+        system_angular_momentum = spin_angular_momentum(positions=positions, velocities=velocities, masses=masses)
+
+        if particle_angular_momenta is not None:
+            system_angular_momentum += particle_angular_momenta.sum()
+
+        if particle_inertia is not None:
+            if len(particle_inertia.shape) == 1:
+                inertia_tensor += particle_inertia.sum() * np.identity(3)
+
 
         k = self.scale
         M = masses.sum()
@@ -103,30 +114,30 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         if self.rotation is not None:
             desired_rotation = self.rotation * ~self._accumulated_rotation
-            omega = angular_velocity(
-                masses=masses, velocities=velocities, positions=positions
-            )
+            omega = np.linalg.inv(inertia_tensor) @ system_angular_momentum
             theta = (~desired_rotation).rotation_vector
             rotation_matrix = (
-                -(k / M) * cross_product_matrix(theta)
-                - (gamma / M) * cross_product_matrix(omega)
-                + left_vector_triple_product_matrix(omega, omega)
+                    -(k / M) * cross_product_matrix(theta)
+                    - (gamma / M) * cross_product_matrix(omega)
+                    + left_vector_triple_product_matrix(omega, omega)
             )
 
         if self.translation is not None:
             desired_translation = self.translation - self._accumulated_displacement
             translation_vector = -(k * -desired_translation + gamma * com_vel) / M
 
+        self._forces = np.zeros((len(self.particle_indices), 3))
+
         for i in range(len(self.particle_indices)):
 
             if self.rotation is not None:
                 r_i = positions[i] - com
-                forces[i] += masses[i] * np.matmul(rotation_matrix, r_i)
+                self._forces[i] += masses[i] * np.matmul(rotation_matrix, r_i)
 
             if self.translation is not None:
-                forces[i] += masses[i] * translation_vector
+                self._forces[i] += masses[i] * translation_vector
 
-        return forces
+        return self._forces, 0.0
 
     def on_post_step(self, timestep: float, **kwargs: Any) -> None:  # noqa: D102
         super().on_post_step(timestep=timestep, **kwargs)

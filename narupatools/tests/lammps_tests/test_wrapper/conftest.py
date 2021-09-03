@@ -20,7 +20,9 @@ import pytest
 @pytest.fixture
 def lammps():
     from lammps import PyLammps
+
     from narupatools.lammps._wrapper import LAMMPSWrapper
+
     pylammps = PyLammps()
     pylammps.file("in.peptide")
     pylammps.run(0)

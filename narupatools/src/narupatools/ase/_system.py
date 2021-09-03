@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import numpy as np
+import numpy.typing as npt
 from ase import Atoms
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
@@ -27,10 +28,12 @@ from narupatools.core import UnitsNarupa
 from narupatools.core.dynamics import DynamicsProperties
 from narupatools.frame._frame_source import FrameSource
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
-
 from ._converter import ase_atoms_to_frame
+from ._rotational_velocity_verlet import get_rotations, set_rotations, get_angular_momenta, set_angular_momenta, \
+    get_principal_moments, set_principal_moments, set_angular_velocities
 from ._units import UnitsASE
 from .calculators import NullCalculator
+from narupatools.physics.quaternion import quaternion
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
@@ -95,6 +98,10 @@ class ASESystem(FrameSource, DynamicsProperties):
     def masses(self) -> ScalarArray:  # noqa: D102
         return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
+    @masses.setter
+    def masses(self, value):
+        self.atoms.set_masses(value * _NarupaToASE.mass)
+
     @property
     def kinetic_energy(self) -> float:  # noqa: D102
         return self.atoms.get_kinetic_energy() * _ASEToNarupa.energy
@@ -102,3 +109,39 @@ class ASESystem(FrameSource, DynamicsProperties):
     @property
     def potential_energy(self) -> float:  # noqa: D102
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
+
+    @property
+    def orientations(self) -> npt.NDArray[quaternion]:
+        return get_rotations(self.atoms)
+
+    @orientations.setter
+    def orientations(self, value):
+        set_rotations(self.atoms, value)
+
+    @property
+    def angular_momenta(self) -> Vector3Array:
+        return get_angular_momenta(self.atoms)
+
+    @angular_momenta.setter
+    def angular_momenta(self, value):
+        set_angular_momenta(self.atoms, value) * _ASEToNarupa.angular_momenta
+
+    @property
+    def angular_velocities(self) -> Vector3Array:
+        """
+        Angular velocity of each particle abouts its center of mass.
+        :return: Array of angular velocities in radians per picoseconds.
+        """
+        raise AttributeError
+
+    @angular_velocities.setter
+    def angular_velocities(self, value):
+        set_angular_velocities(self.atoms, value * _NarupaToASE.angular_velocity)
+
+    @property
+    def moments_of_inertia(self) -> Vector3Array:
+        return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
+
+    @moments_of_inertia.setter
+    def moments_of_inertia(self, value):
+        set_principal_moments(self.atoms, value * _NarupaToASE.moment_inertia)
