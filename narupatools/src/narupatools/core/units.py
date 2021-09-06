@@ -340,7 +340,7 @@ class UnitSystem:
     def __lshift__(self, other: "UnitSystem") -> "UnitConversion":
         return UnitConversion(other, self)
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Unit:
         try:
             return self._units[name]
         except KeyError:

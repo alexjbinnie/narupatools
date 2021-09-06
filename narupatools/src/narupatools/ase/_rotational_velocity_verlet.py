@@ -2,7 +2,7 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 from ase.md.md import MolecularDynamics
-from quaternion import quaternion, as_quat_array, from_vector_part
+from narupatools.physics.quaternion import quaternion, as_quat_array, from_vector_part
 
 from narupatools.physics.typing import Vector3Array
 
@@ -54,11 +54,13 @@ def get_rotations(atoms: Atoms):
 
 
 def get_torques(atoms: Atoms, apply_constraint=True, md=False):
-    if atoms._calc is None:
+    if atoms.calc is None:
         raise RuntimeError('Atoms object has no calculator.')
 
-    torques = atoms._calc.get_property(TORQUES_PROPERTY, atoms)
-
+    try:
+        torques = atoms.calc.get_property(TORQUES_PROPERTY, atoms)
+    except PropertyNotImplementedError:
+        torques = np.zeros((len(atoms), 3))
     if apply_constraint:
         for constraint in atoms.constraints:
             if not md or hasattr(constraint, 'adjust_torques'):
@@ -105,10 +107,7 @@ class RotationalVelocityVerletIntegrator(MolecularDynamics):
             forces = atoms.get_forces(md=True)
 
         if torques is None:
-            try:
-                torques = get_torques(atoms, md=True)
-            except PropertyNotImplementedError:
-                torques = np.zeros((len(atoms), 3))
+            torques = get_torques(atoms, md=True)
 
         p = atoms.get_momenta()
         L = get_angular_momenta(atoms)

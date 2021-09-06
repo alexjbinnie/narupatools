@@ -74,6 +74,20 @@ class ASEMomentaConstraint(ASEConstraint, Protocol):
         raise NotImplementedError
 
 
+class ASETorqueConstraint(ASEConstraint, Protocol):
+    """Protocol for a Constraint that modifies the torques."""
+
+    @abstractmethod
+    def adjust_torques(self, atoms: Atoms, torques: np.ndarray, /) -> None:
+        """
+        Adjust the torques in-place for an ASE `Atoms` object.
+
+        :param atoms: The ASE `Atoms` object this constraint applies to.
+        :param torques: The torques to be modified by this constraint, in eV.
+        """
+        raise NotImplementedError
+
+
 class ASECellConstraint(ASEConstraint, Protocol):
     """Protocol for a constraint that modifies the unit cell."""
 

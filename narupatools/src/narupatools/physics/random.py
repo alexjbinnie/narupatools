@@ -23,6 +23,7 @@ import numpy as np
 
 from narupatools.core.random import random_float, random_integer
 from narupatools.physics.typing import Vector3
+from narupatools.physics.vector import normalized
 
 from .quaternion import quaternion
 
@@ -56,4 +57,4 @@ def random_quaternion() -> quaternion:
 
 def random_unit_quaternion() -> quaternion:
     """Generate a random vector of length 3."""
-    return np.normalized(random_quaternion())
+    return normalize(random_quaternion())  # type: ignore

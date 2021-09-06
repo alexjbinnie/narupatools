@@ -12,6 +12,7 @@ from narupatools.core.random import random_integer, random_float
 from narupatools.imd import rigidmotion_interaction
 from narupatools.physics.random import random_vector, random_quaternion, random_unit_quaternion
 from narupatools.physics.quaternion import from_rotation_vector, quaternion
+from narupatools.physics.transformation import Rotation
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 
@@ -126,7 +127,7 @@ def test_no_forces(mass, symmetric_inertia, angular_velocities, orientations, ve
 
 
 
-def test_rotate(mass, timestep, single_carbon_atoms):
+def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
     atoms = single_carbon_atoms
     atoms.calc = NullCalculator()
     integrator = RotationalVelocityVerletIntegrator(atoms, timestep = timestep * _NarupaToASE.time)
@@ -135,6 +136,10 @@ def test_rotate(mass, timestep, single_carbon_atoms):
 
     rotation = random_unit_quaternion()
 
-    dynamics.imd.add_interaction(rigidmotion_interaction(particles=[0], scale=100.0, rotation=rotation))
+    start = dynamics.orientations[0]
+
+    dynamics.imd.add_interaction(rigidmotion_interaction(particles=[0], scale=10.0, rotation=rotation))
 
     dynamics.run(100)
+
+    end = dynamics.orientations[0]

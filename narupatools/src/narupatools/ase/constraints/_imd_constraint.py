@@ -26,7 +26,7 @@ from narupatools.core import UnitsNarupa
 from narupatools.imd import Interaction
 from narupatools.physics.typing import Vector3Array
 
-from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint
+from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
 from ._null_constraint import NullConstraint
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
@@ -51,7 +51,7 @@ class _ASEAtomsWrapper(ASEAtomsWrapper):
         return self._atoms
 
 
-class InteractionConstraint(ASEEnergyConstraint, ASEMomentaConstraint):
+class InteractionConstraint(ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint):
     """
     An ASE constraint that applies an iMD force.
 
@@ -71,35 +71,28 @@ class InteractionConstraint(ASEEnergyConstraint, ASEMomentaConstraint):
         :param interaction: Initial parameters of the interaction.
         """
         self.interaction = interaction
-        self._forces: Optional[Vector3Array] = None
-        self._energy: Optional[float] = None
-
-    def _invalidate(self) -> None:
-        self._forces = None
-        self._energy = None
 
     def adjust_positions(  # noqa: D102
         self, atoms: Atoms, positions: np.ndarray, /
     ) -> None:
         # Assume all interactions depend on positions
-        self._invalidate()
+        self.interaction.calculate_forces_and_energy()
 
     def adjust_momenta(  # noqa: D102
         self, atoms: Atoms, momenta: np.ndarray, /
     ) -> None:
         # Assume no interactions depend on velocities
         # When they do, this should conditionally invalidate the cache
-        self._invalidate()
+        self.interaction.calculate_forces_and_energy()
 
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102
-        if self._forces is None:
-            self._forces, self._energy = self.interaction.calculate_forces_and_energy()
-        forces[self.interaction.particle_indices] += self._forces * _NarupaToASE.force
+        forces[self.interaction.particle_indices] += self.interaction.forces * _NarupaToASE.force
 
     def adjust_potential_energy(self, /, atoms: Atoms) -> float:  # noqa: D102
-        if self._energy is None:
-            self._forces, self._energy = self.interaction.calculate_forces_and_energy()
-        return self._energy * _NarupaToASE.energy
+        return self.interaction.potential_energy * _NarupaToASE.energy
+
+    def adjust_torques(self, atoms: Atoms, torques: np.ndarray, /) -> None:
+        torques[self.interaction.particle_indices] += self.interaction.torques * _NarupaToASE.force
 
     def __deepcopy__(self, memodict: Dict[Any, Any] = None) -> Any:
         # Deep copying an IMD constraint destroys it. This is because the interaction itself

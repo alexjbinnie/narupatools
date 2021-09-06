@@ -59,6 +59,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         self._energy: Optional[float] = None
         self._forces: Optional[Vector3Array] = None
+        self._torques: Optional[Vector3Array] = None
 
         self._particles = interaction.particles
         self.update(interaction)
@@ -135,7 +136,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     @property
     def potential_energy(self) -> float:
         """Potential energy of the interaction, in kilojoules per mole."""
-        self._forces, self._energy = self.calculate_forces_and_energy()
+        self.calculate_forces_and_energy()
         return self._energy
 
     @property
@@ -148,26 +149,38 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         This is a (N, 3) NumPy array, where N is the number of particles affected by
         this interaction.
         """
-        self._forces, self._energy = self.calculate_forces_and_energy()
+        self.calculate_forces_and_energy()
         return self._forces
+
+    @property
+    def torques(self) -> np.ndarray:
+        """
+        Torques that will be applied by the interaction.
+
+        The torques are in kilojoules per mole.
+
+        This is a (N, 3) NumPy array, where N is the number of particles affected by
+        this interaction.
+        """
+        self.calculate_forces_and_energy()
+        return self._torques
 
     def on_pre_step(self) -> None:
         """Perform any tasks necessary before a dynamics step."""
         self._previous_positions = self._dynamics.positions[self._particles]
-        self._forces, self._energy = self.calculate_forces_and_energy()
-        self._previous_forces = self._forces
+        self._previous_forces = self.forces
 
     def on_post_step(self, timestep: float, **kwargs: Any) -> None:
         """Perform any tasks necessary after a dynamics step."""
         _current_positions = self._dynamics.positions[self._particles]
 
-        self._forces, self._energy = self.calculate_forces_and_energy()
+        new_forces = self.forces
 
         work_this_step = 0.0
 
         for i in range(len(self._particles)):
             # Use trapezoidal rule to calculate single step of integral F.dS
-            F = 0.5 * (self._previous_forces[i] + self._forces[i])
+            F = 0.5 * (self._previous_forces[i] + new_forces[i])
             dS = _current_positions[i] - self._previous_positions[i]
             work_this_step += np.dot(F, dS)
 
@@ -177,13 +190,10 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._previous_positions = _current_positions
 
     @abstractmethod
-    def calculate_forces_and_energy(self) -> Tuple[Vector3Array, float]:
+    def calculate_forces_and_energy(self):
         """
-        Calculate the forces and energy of this interaction.
+        Calculate the forces, torques and energy of this interaction.
 
         Overriding this allows a subclass to implement features such as caching.
-
-        :return: Tuple of forces (in kilojoules per mole per nanometer) and energy (in
-                 kilojoules per mole).
         """
         pass

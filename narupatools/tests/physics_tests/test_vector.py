@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pytest
 
-from narupatools.physics.random import random_scalar, random_vector
+from narupatools.physics.random import random_float, random_vector
 from narupatools.physics.vector import (
     angle,
     cross_product,
@@ -24,17 +24,17 @@ from narupatools.physics.vector import (
 
 @pytest.fixture
 def x():
-    return random_scalar(min=-100.0, max=100.0)
+    return random_float(min=-100.0, max=100.0)
 
 
 @pytest.fixture
 def y():
-    return random_scalar(min=-100.0, max=100.0)
+    return random_float(min=-100.0, max=100.0)
 
 
 @pytest.fixture
 def z():
-    return random_scalar(min=-100.0, max=100.0)
+    return random_float(min=-100.0, max=100.0)
 
 
 @pytest.fixture
@@ -152,3 +152,8 @@ def test_projection_magnitude(vec1, vec2):
     assert magnitude(projection) == pytest.approx(
         abs(magnitude(vec1) * math.cos(angle(vec1, vec2)))
     )
+
+
+def test_normalize_vec(vec):
+    n = normalized(vec)
+    assert n[0] * n[0] + n[1] * n[1] + n[2] * n[2] == pytest.approx(1.0)

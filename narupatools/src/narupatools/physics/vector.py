@@ -17,10 +17,11 @@
 """Utility methods for using vectors."""
 
 import math
-from typing import Union
+from typing import Union, overload
 
 import numpy as np
 
+from .quaternion import quaternion
 from .typing import Matrix3x3, Vector3, Vector3Like, VectorN, VectorNLike
 
 
@@ -89,14 +90,23 @@ def magnitude(vector: VectorNLike, /) -> float:
     return np.linalg.norm(vector)  # type: ignore
 
 
+@overload
+def normalized(vector: quaternion, /) -> quaternion:
+    ...
+
+
+@overload
+def normalized(vector: VectorNLike, /) -> VectorN:
+    ...
+
+
 def normalized(vector: VectorNLike, /) -> VectorN:
     """Normalize an n-dimensional vector."""
-    vector_np: VectorN = np.asfarray(vector)
-    mag = magnitude(vector_np)
-    if mag == 0.0:
-        return vector_np / 1.0
+    arr = np.asarray(vector)
+    if arr.dtype == quaternion:
+        return np.normalized(vector)
     else:
-        return vector_np / mag
+        return np
 
 
 def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:

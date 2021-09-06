@@ -31,6 +31,7 @@ with warnings.catch_warnings():
         from_rotation_vector,
         as_quat_array,
         quaternion,
+    from_vector_part
     )
 
 __all__ = [
@@ -39,4 +40,5 @@ __all__ = [
     "as_rotation_matrix",
     "from_rotation_vector",
     "as_quat_array",
+    "from_vector_part"
 ]
