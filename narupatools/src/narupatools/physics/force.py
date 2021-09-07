@@ -225,8 +225,7 @@ def centripetal_force(
         origin = np.asfarray(origin)
     mat = left_vector_triple_product_matrix(angular_velocity, angular_velocity)
     forces = [
-        mass * np.matmul(mat, position - origin)
-        for mass, position in zip(masses, positions)
+        mass * mat @ (position - origin) for mass, position in zip(masses, positions)
     ]
     return np.array(forces, dtype=float)
 
@@ -278,10 +277,7 @@ def damped_rotational_spring_forces(
     K += -damping_coefficient * cross_product_matrix(omega) / moment_omega
     K += left_vector_triple_product_matrix(omega, omega)
     return np.array(
-        [
-            masses[i] * np.matmul(K, positions[i] - com)
-            for i in range(0, len(positions))
-        ],
+        [masses[i] * K @ (positions[i] - com) for i in range(0, len(positions))],
         dtype=float,
     )
 

@@ -45,14 +45,14 @@ class Translation:
         return self.__vector
 
     @overload
-    def __mul__(self, other: Translation) -> Translation:
+    def __matmul__(self, other: Translation) -> Translation:
         ...
 
     @overload
-    def __mul__(self, other: np.ndarray) -> np.ndarray:
+    def __matmul__(self, other: np.ndarray) -> np.ndarray:
         ...
 
-    def __mul__(
+    def __matmul__(
         self, other: Union[Translation, np.ndarray]
     ) -> Union[Translation, np.ndarray]:
         if isinstance(other, Translation):
@@ -119,20 +119,20 @@ class Rotation:
         return Rotation(self.__quat.conjugate())
 
     @overload
-    def __mul__(self, other: Rotation) -> Rotation:
+    def __matmul__(self, other: Rotation) -> Rotation:
         ...
 
     @overload
-    def __mul__(self, other: np.ndarray) -> np.ndarray:
+    def __matmul__(self, other: np.ndarray) -> np.ndarray:
         ...
 
-    def __mul__(
+    def __matmul__(
         self, other: Union[Rotation, np.ndarray]
     ) -> Union[Rotation, np.ndarray]:
         if isinstance(other, Rotation):
             return Rotation(self.__quat * other.__quat)
         if other.shape == (3,):
-            return np.matmul(self.rotation_matrix, other)  # type: ignore[no-any-return]
+            return self.rotation_matrix @ other  # type: ignore[no-any-return]
         elif len(other.shape) == 2 and other.shape[1] == 3:
             return np.dot(self.rotation_matrix, other.T).T  # type: ignore[no-any-return]
         return NotImplemented
@@ -187,11 +187,7 @@ class Rotation:
         rotation_matrix = self.rotation_matrix
         origin = np.asfarray(origin)
         return np.array(
-            list(
-                map(
-                    lambda p: origin + np.matmul(rotation_matrix, p - origin), positions
-                )
-            )
+            list(map(lambda p: origin + rotation_matrix @ (p - origin), positions))
         )
 
 

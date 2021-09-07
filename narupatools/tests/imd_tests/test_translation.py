@@ -78,7 +78,7 @@ def test_rotation(dynamics, methane_positions):
     angle = vector(0.5 * math.pi, 0, 0)
 
     interaction = rigidmotion_interaction(
-        particles=[0, 1, 2, 3, 4], rotation=angle, scale=5
+        particles=[0, 1, 2, 3, 4], rotation=angle, scale=15
     )
     dynamics.imd.add_interaction(interaction)
 

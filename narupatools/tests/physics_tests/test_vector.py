@@ -157,13 +157,13 @@ def test_cross_product(vec1, vec2):
 def test_cross_product_matrix(vec1, vec2):
     mat = cross_product_matrix(vec1)
     assert mat.shape == (3, 3)
-    assert np.matmul(mat, vec2) == pytest.approx(np.cross(vec1, vec2))
+    assert mat @ vec2 == pytest.approx(np.cross(vec1, vec2))
 
 
 def test_right_cross_product_matrix(vec1, vec2):
     mat = right_cross_product_matrix(vec2)
     assert mat.shape == (3, 3)
-    assert np.matmul(mat, vec1) == pytest.approx(np.cross(vec1, vec2))
+    assert mat @ vec1 == pytest.approx(np.cross(vec1, vec2))
 
 
 def test_projection_rejection_sum(vec1, vec2):

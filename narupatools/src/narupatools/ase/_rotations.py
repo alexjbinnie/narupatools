@@ -110,12 +110,17 @@ def get_torques(
 
 Atoms.get_torques = get_torques  # type: ignore[attr-defined]
 
-def get_angular_velocities(atoms: Atoms, /) -> Vector3Array:
-    return calculate_angular_velocity(principal_moments=get_principal_moments(atoms),
-                                      angular_momenta=get_angular_momenta(atoms),
-                                      orientations=get_rotations(atoms))
 
-Atoms.get_angular_velocities = get_angular_velocities
+def get_angular_velocities(atoms: Atoms, /) -> Vector3Array:
+    return calculate_angular_velocity(
+        principal_moments=get_principal_moments(atoms),
+        angular_momenta=get_angular_momenta(atoms),
+        orientations=get_rotations(atoms),
+    )
+
+
+Atoms.get_angular_velocities = get_angular_velocities  # type: ignore[attr-defined]
+
 
 def calculate_angular_velocity(
     *,
@@ -139,4 +144,5 @@ def set_angular_velocities(atoms: Atoms, angular_velocities: Vector3Like, /) -> 
     else:
         raise ValueError
 
-Atoms.set_angular_velocities = set_angular_velocities
+
+Atoms.set_angular_velocities = set_angular_velocities  # type: ignore[attr-defined]

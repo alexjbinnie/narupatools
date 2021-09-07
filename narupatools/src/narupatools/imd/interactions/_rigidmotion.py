@@ -133,7 +133,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         L = self._get_angular_momentum(
             positions=positions, masses=masses, velocities=velocities
         )
-        return inv(I) @ L
+        return inv(I) @ L  # type: ignore
 
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
@@ -147,7 +147,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         com_vel = center_of_mass_velocity(masses=masses, velocities=velocities)
 
         if self.rotation is not None:
-            desired_rotation = self.rotation * ~self._accumulated_rotation
+            desired_rotation = self.rotation @ ~self._accumulated_rotation
 
             omega = self._get_angular_velocity(
                 masses=masses, positions=positions, velocities=velocities
@@ -195,7 +195,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         self._accumulated_rotation = (
             Rotation.from_rotation_vector(ang_vel * timestep)
-            * self._accumulated_rotation
+            @ self._accumulated_rotation
         )
         self._accumulated_displacement += center_velocity * timestep
 

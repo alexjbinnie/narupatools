@@ -35,11 +35,9 @@ from narupatools.imd._feature import InteractionFeature
 from narupatools.imd.interactions._interactiondata import InteractionData
 from narupatools.physics.quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
-from ._rotations import get_angular_velocities
-
-from ..core.dynamics import SimulationRotationProperties
-from ._converter import ase_atoms_to_frame
-from ._rotational_velocity_verlet import (
+from ._rotations import (
+    get_angular_velocities,
+    get_torques,
     get_angular_momenta,
     get_principal_moments,
     get_rotations,
@@ -47,6 +45,9 @@ from ._rotational_velocity_verlet import (
     set_principal_moments,
     set_rotations,
 )
+
+from ..core.dynamics import SimulationRotationProperties
+from ._converter import ase_atoms_to_frame
 from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
@@ -261,8 +262,8 @@ class ASEDynamics(
         )
 
     @property
-    def torques(self) -> Vector3Array: ## noqa: D102
-        return self.atoms.get_torques() * _NarupaToASE.torque
+    def torques(self) -> Vector3Array:  # noqa: D102
+        return get_torques(self.atoms) * _NarupaToASE.torque
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):

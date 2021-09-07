@@ -8,9 +8,6 @@ from narupatools.physics.vector import normalized
 from ._rotations import *
 
 
-
-
-
 def right_multiply(
     v: Union[Vector3, Vector3Array], q: Union[npt.NDArray[quaternion], quaternion], /
 ) -> npt.NDArray[quaternion]:

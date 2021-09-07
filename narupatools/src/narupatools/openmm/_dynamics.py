@@ -216,7 +216,7 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
         return len(self.dynamics.masses)
 
 
-IMD_FORCE_EXPRESSION = '-fx * x - fy * y - fz * z'
+IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
 
 def create_imd_force() -> CustomExternalForce:
@@ -232,9 +232,9 @@ def create_imd_force() -> CustomExternalForce:
     .. seealso: populate_imd_force
     """
     force = CustomExternalForce(IMD_FORCE_EXPRESSION)
-    force.addPerParticleParameter('fx')
-    force.addPerParticleParameter('fy')
-    force.addPerParticleParameter('fz')
+    force.addPerParticleParameter("fx")
+    force.addPerParticleParameter("fy")
+    force.addPerParticleParameter("fz")
     return force
 
 
@@ -249,7 +249,6 @@ def populate_imd_force(force: CustomExternalForce, system: System) -> None:
     # Attach all the particles to the force object, and set the imd force to 0
     for particle in range(system.getNumParticles()):
         force.addParticle(particle, (0, 0, 0))
-
 
 
 def add_imd_force_to_system(system: System) -> CustomExternalForce:
@@ -269,8 +268,7 @@ def add_imd_force_to_system(system: System) -> CustomExternalForce:
     return force
 
 
-def get_imd_forces_from_system(
-        system: System) -> List[CustomExternalForce]:
+def get_imd_forces_from_system(system: System) -> List[CustomExternalForce]:
     """
     Find the forces that are compatible with an imd force in a given system.
 
@@ -281,7 +279,8 @@ def get_imd_forces_from_system(
     """
     system_num_particles = system.getNumParticles()
     return [
-        force for force in system.getForces()
+        force
+        for force in system.getForces()
         if isinstance(force, CustomExternalForce)
         and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
         and force.getNumParticles() == system_num_particles

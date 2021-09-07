@@ -242,7 +242,7 @@ def moment_of_inertia(
              units of [mass] * [distance] squared
     """
     tensor = moment_of_inertia_tensor(masses=masses, positions=positions, origin=origin)
-    return np.dot(axis, np.matmul(tensor, axis)) / np.dot(axis, axis)  # type: ignore[no-any-return]
+    return np.dot(axis, tensor @ axis) / np.dot(axis, axis)  # type: ignore[no-any-return]
 
 
 def moment_of_inertia_tensor(
@@ -303,7 +303,7 @@ def angular_velocity(
     """
     L = spin_angular_momentum(masses=masses, positions=positions, velocities=velocities)
     inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
-    return np.matmul(np.linalg.inv(inertia), L)  # type: ignore
+    return inv(inertia) @ L  # type: ignore
 
 
 def distribute_angular_velocity(

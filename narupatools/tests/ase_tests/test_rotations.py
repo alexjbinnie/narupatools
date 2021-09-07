@@ -172,7 +172,9 @@ def test_constant_torque(
     dynamics.run(nsteps)
 
     assert dynamics.angular_momenta == pytest.approx(start + nsteps * timestep * torque)
-    assert dynamics.angular_velocities == pytest.approx(start_angvel + nsteps * timestep * torque / dynamics.moments_of_inertia[0])
+    assert dynamics.angular_velocities == pytest.approx(
+        start_angvel + nsteps * timestep * torque / dynamics.moments_of_inertia[0]
+    )
 
 
 def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
