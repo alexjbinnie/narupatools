@@ -15,15 +15,15 @@ from narupatools.physics.typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from narupatools.physics.vector import vector, magnitude, normalized
+from narupatools.physics.vector import magnitude, normalized, vector
 
+from ..core.units import degree, radian
 from .quaternion import (
     as_rotation_matrix,
     as_rotation_vector,
     from_rotation_vector,
     quaternion,
 )
-from ..core.units import radian, degree
 
 
 class Translation:

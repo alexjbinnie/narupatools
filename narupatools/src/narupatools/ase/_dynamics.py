@@ -19,31 +19,37 @@
 from __future__ import annotations
 
 from threading import Lock
-from typing import Dict, Generic, Optional, TypeVar
+from typing import Dict, Generic, TypeVar
 
 import numpy as np
+import numpy.typing as npt
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
 from infinite_sets import InfiniteSet
-import numpy.typing as npt
-from narupatools.physics.quaternion import quaternion
 from narupa.trajectory import FrameData
 
 from narupatools.core.units import UnitsNarupa
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.imd._feature import InteractionFeature
 from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.physics.quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 
+from ..core.dynamics import SimulationRotationProperties
 from ._converter import ase_atoms_to_frame
-from ._rotational_velocity_verlet import get_rotations, set_rotations, get_angular_momenta, set_angular_momenta, \
-    get_principal_moments, set_principal_moments
+from ._rotational_velocity_verlet import (
+    get_angular_momenta,
+    get_principal_moments,
+    get_rotations,
+    set_angular_momenta,
+    set_principal_moments,
+    set_rotations,
+)
 from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
 from .constraints import InteractionConstraint
-from ..core.dynamics import SimulationRotationProperties
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
 
@@ -51,7 +57,9 @@ _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
-class ASEDynamics(InteractiveSimulationDynamics, SimulationRotationProperties, Generic[TIntegrator]):
+class ASEDynamics(
+    InteractiveSimulationDynamics, SimulationRotationProperties, Generic[TIntegrator]
+):
     """
     Run dynamics using an ASE `MolecularDynamics` object.
 
@@ -81,9 +89,7 @@ class ASEDynamics(InteractiveSimulationDynamics, SimulationRotationProperties, G
         self._atom_lock = Lock()
 
     @staticmethod
-    def from_ase_dynamics(
-        dynamics: TIntegrator
-    ) -> ASEDynamics[TIntegrator]:
+    def from_ase_dynamics(dynamics: TIntegrator) -> ASEDynamics[TIntegrator]:
         """
         Create ASE dynamics from an existing dynamics object.
 
@@ -221,36 +227,37 @@ class ASEDynamics(InteractiveSimulationDynamics, SimulationRotationProperties, G
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
 
     @property
-    def orientations(self) -> npt.NDArray[quaternion]:
+    def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
         return get_rotations(self.atoms)
 
     @orientations.setter
-    def orientations(self, value):
+    def orientations(self, value: npt.NDArray[quaternion]) -> None:
         set_rotations(self.atoms, value)
 
     @property
-    def angular_momenta(self) -> Vector3Array:
-        return get_angular_momenta(self.atoms)
+    def angular_momenta(self) -> Vector3Array:  # noqa: D102
+        return get_angular_momenta(self.atoms) * _ASEToNarupa.angular_momentum
 
     @angular_momenta.setter
-    def angular_momenta(self, value):
-        set_angular_momenta(self.atoms, value) * _ASEToNarupa.angular_momenta
+    def angular_momenta(self, value: Vector3ArrayLike) -> None:
+        set_angular_momenta(
+            self.atoms, np.asfarray(value) * _NarupaToASE.angular_momentum
+        )
 
     @property
-    def angular_velocities(self) -> Vector3Array:
-        """
-        Angular velocity of each particle abouts its center of mass.
-        :return: Array of angular velocities in radians per picoseconds.
-        """
+    def angular_velocities(self) -> Vector3Array:  # noqa: D102
+        """Angular velocity of each particle abouts its center of mass, in radians per picoseconds."""
         raise AttributeError
 
     @property
-    def moments_of_inertia(self) -> Vector3Array:
+    def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
 
     @moments_of_inertia.setter
-    def moments_of_inertia(self, value):
-        set_principal_moments(self.atoms, value)
+    def moments_of_inertia(self, value: Vector3ArrayLike) -> None:
+        set_principal_moments(
+            self.atoms, np.asfarray(value) * _NarupaToASE.moment_inertia
+        )
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):

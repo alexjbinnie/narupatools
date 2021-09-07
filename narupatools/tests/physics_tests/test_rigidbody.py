@@ -4,7 +4,7 @@ import pytest
 from narupatools.core.random import random_integer
 from narupatools.physics import rigidbody
 from narupatools.physics.matrix import identity_matrix, kronecker_delta, zero_matrix
-from narupatools.physics.random import random_quaternion, random_scalar, random_vector
+from narupatools.physics.random import random_float, random_quaternion, random_vector
 from narupatools.physics.rigidbody import (
     center_of_mass,
     center_of_mass_acceleration,
@@ -46,7 +46,7 @@ def accelerations(seed, system_size):
 
 @pytest.fixture
 def masses(seed, system_size):
-    return [random_scalar(max=100.0) for _ in range(system_size)]
+    return [random_float(max=100.0) for _ in range(system_size)]
 
 
 @pytest.fixture

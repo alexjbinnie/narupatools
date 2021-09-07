@@ -3,7 +3,9 @@ import math
 import numpy as np
 import pytest
 
-from narupatools.physics.random import random_float, random_vector
+from narupatools.core.random import random_integer
+from narupatools.physics.quaternion import quaternion
+from narupatools.physics.random import random_float, random_quaternion, random_vector
 from narupatools.physics.vector import (
     angle,
     cross_product,
@@ -38,8 +40,35 @@ def z():
 
 
 @pytest.fixture
-def vec():
+def vec3(seed):
     return random_vector(max_magnitude=100.0)
+
+
+@pytest.fixture
+def vec3_list(seed):
+    return [
+        random_vector(max_magnitude=100.0) for i in range(random_integer(min=5, max=50))
+    ]
+
+
+@pytest.fixture
+def vec3_array(vec3_list):
+    return np.array(vec3_list)
+
+
+@pytest.fixture
+def quat(seed):
+    return random_quaternion()
+
+
+@pytest.fixture
+def quat_list(seed):
+    return [random_quaternion() for i in range(random_integer(min=5, max=50))]
+
+
+@pytest.fixture
+def quat_array(quat_list):
+    return np.array(quat_list, dtype=quaternion)
 
 
 @pytest.fixture
@@ -67,26 +96,54 @@ def test_zero_vector():
     assert zero_vector() == pytest.approx([0.0, 0.0, 0.0])
 
 
-def test_magnitude(vec):
-    assert magnitude(vec) == pytest.approx(np.linalg.norm(vec))
+def test_magnitude(vec3):
+    assert magnitude(vec3) == pytest.approx(np.linalg.norm(vec3))
 
 
 def test_magnitude_zero():
     assert magnitude(zero_vector()) == pytest.approx(0.0)
 
 
-def test_sqr_magnitude(vec):
-    assert sqr_magnitude(vec) == pytest.approx(np.dot(vec, vec))
+def test_sqr_magnitude(vec3):
+    assert sqr_magnitude(vec3) == pytest.approx(np.dot(vec3, vec3))
 
 
 def test_sqr_magnitude_zero():
     assert sqr_magnitude(zero_vector()) == pytest.approx(0.0)
 
 
-def test_vector_normalized(vec):
-    n = normalized(vec)
-    assert magnitude(n) == pytest.approx(1.0)
-    assert dot_product(n, vec) == pytest.approx(magnitude(vec))
+def test_normalize_vec(vec3):
+    n = normalized(vec3)
+    assert n[0] * n[0] + n[1] * n[1] + n[2] * n[2] == pytest.approx(1.0)
+
+
+def test_normalize_vec3_array(vec3_array):
+    vec3_array = normalized(vec3_array)
+    for n in vec3_array:
+        assert n[0] * n[0] + n[1] * n[1] + n[2] * n[2] == pytest.approx(1.0)
+
+
+def test_normalize_vec3_list(vec3_list):
+    vec3_list = normalized(vec3_list)
+    for n in vec3_list:
+        assert n[0] * n[0] + n[1] * n[1] + n[2] * n[2] == pytest.approx(1.0)
+
+
+def test_normalize_quaternion(quat):
+    n = normalized(quat)
+    assert n.w * n.w + n.x * n.x + n.y * n.y + n.z * n.z == pytest.approx(1.0)
+
+
+def test_normalize_quat_array(quat_array):
+    quat_array = normalized(quat_array)
+    for n in quat_array:
+        assert n.w * n.w + n.x * n.x + n.y * n.y + n.z * n.z == pytest.approx(1.0)
+
+
+def test_normalize_quat_list(quat_list):
+    quat_list = normalized(quat_list)
+    for n in quat_list:
+        assert n.w * n.w + n.x * n.x + n.y * n.y + n.z * n.z == pytest.approx(1.0)
 
 
 def test_vector_normalized_zero_vector():
@@ -138,11 +195,11 @@ def test_sqr_distance(vec1, vec2):
     assert sqr_distance(vec1, vec2) == sqr_magnitude(offset)
 
 
-def test_angle_zero(vec):
+def test_angle_zero(vec3):
     with pytest.raises(ValueError):  # noqa: PT011
-        _ = angle(vec, zero_vector())
+        _ = angle(vec3, zero_vector())
     with pytest.raises(ValueError):  # noqa: PT011
-        _ = angle(zero_vector(), vec)
+        _ = angle(zero_vector(), vec3)
     with pytest.raises(ValueError):  # noqa: PT011
         _ = angle(zero_vector(), zero_vector())
 
@@ -152,8 +209,3 @@ def test_projection_magnitude(vec1, vec2):
     assert magnitude(projection) == pytest.approx(
         abs(magnitude(vec1) * math.cos(angle(vec1, vec2)))
     )
-
-
-def test_normalize_vec(vec):
-    n = normalized(vec)
-    assert n[0] * n[0] + n[1] * n[1] + n[2] * n[2] == pytest.approx(1.0)

@@ -20,25 +20,25 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
-from typing import Optional, Protocol, Union, Set
+from typing import Optional, Protocol, Set, Union
 
+import numpy.typing as npt
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
 from narupatools.frame._frame_source import FrameSource
 from narupatools.frame.fields import (
+    DYNAMIC_FIELDS,
     SimulationElapsedSteps,
     SimulationElapsedTime,
     SimulationTotalSteps,
-    SimulationTotalTime, DYNAMIC_FIELDS,
+    SimulationTotalTime,
 )
+from narupatools.physics.quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array
 
 from .playable import Playable
-import numpy.typing as npt
-
-from ..physics import quaternion
 
 
 class OnResetCallback(Protocol):

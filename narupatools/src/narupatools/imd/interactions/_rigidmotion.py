@@ -15,15 +15,20 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 import numpy as np
 
-from narupatools.core.properties import float_property, numpy_property, quaternion_property
+from narupatools.core.properties import (
+    float_property,
+    numpy_property,
+    quaternion_property,
+)
 from narupatools.physics.rigidbody import (
-    angular_velocity,
     center_of_mass,
-    center_of_mass_velocity, moment_of_inertia_tensor, spin_angular_momentum,
+    center_of_mass_velocity,
+    moment_of_inertia_tensor,
+    spin_angular_momentum,
 )
 from narupatools.physics.transformation import Rotation, Translation
 from narupatools.physics.typing import ScalarArray, Vector3, Vector3Array
@@ -79,15 +84,17 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             self.rotation = None
         self.scale = interaction.scale
 
-    def _get_particle_inertias(self):
+    def _get_particle_inertias(self) -> Vector3Array:
         try:
-            particle_inertia = self.dynamics.moments_of_inertia[self.particle_indices]
+            particle_inertia = self.dynamics.moments_of_inertia[self.particle_indices]  # type: ignore[attr-defined]
         except AttributeError:
             particle_inertia = None
 
-        return particle_inertia
+        return particle_inertia  # type: ignore[no-any-return]
 
-    def _get_inertia(self, *, positions, masses):
+    def _get_inertia(
+        self, *, positions: Vector3Array, masses: ScalarArray
+    ) -> Vector3Array:
         particle_inertia = self._get_particle_inertias()
 
         inertia_tensor = moment_of_inertia_tensor(positions=positions, masses=masses)
@@ -98,25 +105,36 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         return inertia_tensor
 
-    def _get_angular_momentum(self, *, positions, velocities, masses):
+    def _get_angular_momentum(
+        self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
+    ) -> Vector3Array:
 
         try:
-            particle_angular_momenta = self.dynamics.angular_momenta[self.particle_indices]
+            particle_angular_momenta = self.dynamics.angular_momenta[  # type: ignore[attr-defined]
+                self.particle_indices
+            ]
         except AttributeError:
             particle_angular_momenta = None
 
-        system_angular_momentum = spin_angular_momentum(positions=positions, velocities=velocities, masses=masses)
+        system_angular_momentum = spin_angular_momentum(
+            positions=positions, velocities=velocities, masses=masses
+        )
 
         if particle_angular_momenta is not None:
             system_angular_momentum += particle_angular_momenta.sum()
 
         return system_angular_momentum
 
-    def _get_angular_velocity(self, *, positions, velocities, masses):
-        return np.linalg.inv(self._get_inertia(positions=positions, masses=masses)) @ self._get_angular_momentum(
-            positions=positions, masses=masses, velocities=velocities)
+    def _get_angular_velocity(
+        self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
+    ) -> Vector3Array:
+        return np.linalg.inv(  # type: ignore[no-any-return]
+            self._get_inertia(positions=positions, masses=masses)
+        ) @ self._get_angular_momentum(
+            positions=positions, masses=masses, velocities=velocities
+        )
 
-    def calculate_forces_and_energy(self) -> Tuple[Vector3Array, float]:  # noqa: D102
+    def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         velocities = self.dynamics.velocities[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]
@@ -130,15 +148,16 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         if self.rotation is not None:
             desired_rotation = self.rotation * ~self._accumulated_rotation
 
-            omega = self._get_angular_velocity(masses=masses, positions=positions, velocities=velocities)
+            omega = self._get_angular_velocity(
+                masses=masses, positions=positions, velocities=velocities
+            )
             theta = desired_rotation.rotation_vector
 
             angular_acceleration = (k / M) * theta - (gamma / M) * omega
 
-            rotation_matrix = (
-                    cross_product_matrix(angular_acceleration)
-                    + left_vector_triple_product_matrix(omega, omega)
-            )
+            rotation_matrix = cross_product_matrix(
+                angular_acceleration
+            ) + left_vector_triple_product_matrix(omega, omega)
 
         if self.translation is not None:
             desired_translation = self.translation - self._accumulated_displacement
@@ -161,7 +180,6 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         self._energy = 0.0
 
-
     def on_post_step(self, timestep: float, **kwargs: Any) -> None:  # noqa: D102
         super().on_post_step(timestep=timestep, **kwargs)
 
@@ -169,7 +187,9 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         velocities = self.dynamics.velocities[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]
 
-        ang_vel = self._get_angular_velocity(masses=masses, positions=positions, velocities=velocities)
+        ang_vel = self._get_angular_velocity(
+            masses=masses, positions=positions, velocities=velocities
+        )
         center_velocity = center_of_mass_velocity(velocities=velocities, masses=masses)
 
         self._accumulated_rotation = (

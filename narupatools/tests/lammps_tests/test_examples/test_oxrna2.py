@@ -1,3 +1,9 @@
+import pytest
+
+
+pytest.importorskip("lammps")
+
+
 from narupatools.lammps import LAMMPSSimulation
 
 

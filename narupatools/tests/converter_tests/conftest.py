@@ -30,7 +30,7 @@ from narupatools.frame.fields import (
     ResidueIds,
     ResidueNames,
 )
-from narupatools.physics.random import random_scalar, random_vector
+from narupatools.physics.random import random_float, random_vector
 
 
 @pytest.fixture(params=range(20))
@@ -71,12 +71,12 @@ def particle_forces(seed, particle_count):
 
 @pytest.fixture
 def particle_charges(seed, particle_count):
-    return [random_scalar(min=-5.0, max=5.0) for _ in range(particle_count)]
+    return [random_float(min=-5.0, max=5.0) for _ in range(particle_count)]
 
 
 @pytest.fixture
 def particle_masses(seed, particle_count):
-    return [random_scalar(min=-5.0, max=5.0) for _ in range(particle_count)]
+    return [random_float(min=-5.0, max=5.0) for _ in range(particle_count)]
 
 
 @pytest.fixture
@@ -134,12 +134,12 @@ def residue_chains(seed, chain_count, residue_count):
 
 @pytest.fixture
 def box_vectors(seed):
-    a = random_scalar(min=50.0, max=100.0)
-    b = random_scalar(min=50.0, max=100.0)
-    c = random_scalar(min=50.0, max=100.0)
-    alpha = random_scalar(min=90.0, max=90.0)
-    beta = random_scalar(min=90.0, max=90.0)
-    gamma = random_scalar(min=90.0, max=90.0)
+    a = random_float(min=50.0, max=100.0)
+    b = random_float(min=50.0, max=100.0)
+    c = random_float(min=50.0, max=100.0)
+    alpha = random_float(min=90.0, max=90.0)
+    beta = random_float(min=90.0, max=90.0)
+    gamma = random_float(min=90.0, max=90.0)
     return cellpar_to_cell([a, b, c, alpha, beta, gamma])
 
 
@@ -152,7 +152,7 @@ def chain_names(seed, chain_count):
 
 @pytest.fixture
 def potential_energy(seed):
-    return random_scalar(min=100.0, max=100.0)
+    return random_float(min=-100.0, max=100.0)
 
 
 @pytest.fixture

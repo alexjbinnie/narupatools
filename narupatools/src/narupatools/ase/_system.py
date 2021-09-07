@@ -27,13 +27,21 @@ from narupa.trajectory import FrameData
 from narupatools.core import UnitsNarupa
 from narupatools.core.dynamics import DynamicsProperties
 from narupatools.frame._frame_source import FrameSource
+from narupatools.physics.quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+
 from ._converter import ase_atoms_to_frame
-from ._rotational_velocity_verlet import get_rotations, set_rotations, get_angular_momenta, set_angular_momenta, \
-    get_principal_moments, set_principal_moments, set_angular_velocities
+from ._rotational_velocity_verlet import (
+    get_angular_momenta,
+    get_principal_moments,
+    get_rotations,
+    set_angular_momenta,
+    set_angular_velocities,
+    set_principal_moments,
+    set_rotations,
+)
 from ._units import UnitsASE
 from .calculators import NullCalculator
-from narupatools.physics.quaternion import quaternion
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
@@ -99,8 +107,8 @@ class ASESystem(FrameSource, DynamicsProperties):
         return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
     @masses.setter
-    def masses(self, value):
-        self.atoms.set_masses(value * _NarupaToASE.mass)
+    def masses(self, value: ScalarArray) -> None:
+        self.atoms.set_masses(np.asfarray(value) * _NarupaToASE.mass)
 
     @property
     def kinetic_energy(self) -> float:  # noqa: D102
@@ -111,20 +119,22 @@ class ASESystem(FrameSource, DynamicsProperties):
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
 
     @property
-    def orientations(self) -> npt.NDArray[quaternion]:
+    def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
         return get_rotations(self.atoms)
 
     @orientations.setter
-    def orientations(self, value):
+    def orientations(self, value: npt.NDArray[quaternion]) -> None:
         set_rotations(self.atoms, value)
 
     @property
-    def angular_momenta(self) -> Vector3Array:
+    def angular_momenta(self) -> Vector3Array:  # noqa: D102
         return get_angular_momenta(self.atoms)
 
     @angular_momenta.setter
-    def angular_momenta(self, value):
-        set_angular_momenta(self.atoms, value) * _ASEToNarupa.angular_momenta
+    def angular_momenta(self, value: Vector3ArrayLike) -> None:
+        set_angular_momenta(
+            self.atoms, np.asfarray(value) * _ASEToNarupa.angular_momenta
+        )
 
     @property
     def angular_velocities(self) -> Vector3Array:
@@ -135,13 +145,17 @@ class ASESystem(FrameSource, DynamicsProperties):
         raise AttributeError
 
     @angular_velocities.setter
-    def angular_velocities(self, value):
-        set_angular_velocities(self.atoms, value * _NarupaToASE.angular_velocity)
+    def angular_velocities(self, value: Vector3ArrayLike) -> None:
+        set_angular_velocities(
+            self.atoms, np.asfarray(value) * _NarupaToASE.angular_velocity
+        )
 
     @property
-    def moments_of_inertia(self) -> Vector3Array:
+    def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
 
     @moments_of_inertia.setter
-    def moments_of_inertia(self, value):
-        set_principal_moments(self.atoms, value * _NarupaToASE.moment_inertia)
+    def moments_of_inertia(self, value: Vector3ArrayLike) -> None:
+        set_principal_moments(
+            self.atoms, np.asfarray(value) * _NarupaToASE.moment_inertia
+        )

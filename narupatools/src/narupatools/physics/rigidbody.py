@@ -283,7 +283,10 @@ def moment_of_inertia_tensor(
 
 
 def angular_velocity(
-    *, masses: ScalarArray, positions: Vector3Array, velocities: Vector3Array,
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    velocities: Vector3Array,
 ) -> Vector3:
     r"""
     Calculate the angular velocity of a set of particles.

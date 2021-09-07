@@ -13,11 +13,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
+from typing import Any
 
 from ase.atoms import Atoms
 
 class MolecularDynamics:
     dt: float
+    def __init__(self, atoms: Atoms, timestep: float, trajectory: Any) -> None: ...
     @property
     def atoms(self) -> Atoms: ...
     def run(self, steps: int) -> None: ...
+    def step(self): ...

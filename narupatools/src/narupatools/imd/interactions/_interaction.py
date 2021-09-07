@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Generic, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, Generic, Optional, Tuple, Type, TypeVar, cast
 
 import numpy as np
 
@@ -137,6 +137,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     def potential_energy(self) -> float:
         """Potential energy of the interaction, in kilojoules per mole."""
         self.calculate_forces_and_energy()
+        if self._energy is None:
+            raise AttributeError
         return self._energy
 
     @property
@@ -150,6 +152,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         this interaction.
         """
         self.calculate_forces_and_energy()
+        if self._forces is None:
+            raise AttributeError
         return self._forces
 
     @property
@@ -163,6 +167,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         this interaction.
         """
         self.calculate_forces_and_energy()
+        if self._torques is None:
+            raise AttributeError
         return self._torques
 
     def on_pre_step(self) -> None:
@@ -190,7 +196,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._previous_positions = _current_positions
 
     @abstractmethod
-    def calculate_forces_and_energy(self):
+    def calculate_forces_and_energy(self) -> None:
         """
         Calculate the forces, torques and energy of this interaction.
 

@@ -330,7 +330,9 @@ class UnitSystem:
         with contextlib.suppress(AttributeError):
             self._add_if_missing("angular_momentum", Unit(self.momentum * self.length))
         with contextlib.suppress(AttributeError):
-            self._add_if_missing("moment_inertia", Unit(self.mass * self.length * self.length))
+            self._add_if_missing(
+                "moment_inertia", Unit(self.mass * self.length * self.length)
+            )
         with contextlib.suppress(AttributeError):
             self._add_if_missing("angular_velocity", Unit(self.time ** -1))
 

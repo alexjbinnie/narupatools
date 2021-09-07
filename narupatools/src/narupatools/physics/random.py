@@ -57,4 +57,4 @@ def random_quaternion() -> quaternion:
 
 def random_unit_quaternion() -> quaternion:
     """Generate a random vector of length 3."""
-    return normalize(random_quaternion())  # type: ignore
+    return normalized(random_quaternion())

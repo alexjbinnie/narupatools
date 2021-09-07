@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Generic, Literal, TypeVar, Union, overload, List
+from typing import Generic, List, Literal, TypeVar, Union, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -40,31 +40,31 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
     @overload
     @classmethod
     def define(
-            cls, id: str, dimension: Literal[VariableDimension.SCALAR]
+        cls, id: str, dimension: Literal[VariableDimension.SCALAR]
     ) -> ComputeGlobalStyle[float]:
         ...
 
     @overload
     @classmethod
     def define(
-            cls,
-            id: str,
-            dimension: Literal[VariableDimension.VECTOR1D, VariableDimension.ARRAY2D],
+        cls,
+        id: str,
+        dimension: Literal[VariableDimension.VECTOR1D, VariableDimension.ARRAY2D],
     ) -> ComputeGlobalStyle[npt.NDArray[np.float64]]:
         ...
 
     @overload
     @classmethod
     def define(
-            cls, id: str, dimension: VariableDimension
+        cls, id: str, dimension: VariableDimension
     ) -> Union[ComputeGlobalStyle[npt.NDArray[np.float64]], ComputeGlobalStyle[float]]:
         ...
 
     @classmethod
     def define(
-            cls,
-            id: str,
-            dimension: VariableDimension,
+        cls,
+        id: str,
+        dimension: VariableDimension,
     ) -> ComputeGlobalStyle:
         """Define a compute style used by LAMMPS."""
         return ComputeGlobalStyle(id, dimension)
@@ -79,9 +79,13 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
         )
 
 
-def AtomProperty(lammps: LAMMPSWrapper, *, id: str, properties: List[str],
-                 type: Literal[VariableType.DOUBLE, VariableType.INTEGER]) -> ComputeAtomReference[
-    npt.NDArray[np.float64]]:
+def AtomProperty(
+    lammps: LAMMPSWrapper,
+    *,
+    id: str,
+    properties: List[str],
+    type: Literal[VariableType.DOUBLE, VariableType.INTEGER],
+) -> ComputeAtomReference[npt.NDArray[np.float64]]:
     lammps.command(f"compute {id} all property/atom {' '.join(properties)}")
     return ComputeAtomReference(
         lammps,
@@ -91,11 +95,12 @@ def AtomProperty(lammps: LAMMPSWrapper, *, id: str, properties: List[str],
     )
 
 
-def LocalProperty(lammps: LAMMPSWrapper,
-                  *,
-                  id: str,
-                  properties: List[str],
-                  ) -> ComputeReference[npt.NDArray[np.float64]]:
+def LocalProperty(
+    lammps: LAMMPSWrapper,
+    *,
+    id: str,
+    properties: List[str],
+) -> ComputeReference[npt.NDArray[np.float64]]:
     lammps.command(f"compute {id} all property/local {' '.join(properties)}")
     return ComputeLocalReference(
         lammps,
@@ -103,11 +108,12 @@ def LocalProperty(lammps: LAMMPSWrapper,
     )
 
 
-def BondLocal(lammps: LAMMPSWrapper,
-              *,
-              id: str,
-              properties: List[str],
-              ) -> ComputeReference[npt.NDArray[np.float64]]:
+def BondLocal(
+    lammps: LAMMPSWrapper,
+    *,
+    id: str,
+    properties: List[str],
+) -> ComputeReference[npt.NDArray[np.float64]]:
     lammps.command(f"compute {id} all bond/local {' '.join(properties)}")
     return ComputeLocalReference(
         lammps,
@@ -130,11 +136,11 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
     """Reference to a previously defined LAMMPS global compute."""
 
     def __init__(
-            self,
-            lammps: LAMMPSWrapper,
-            *,
-            id: str,
-            dimension: VariableDimension,
+        self,
+        lammps: LAMMPSWrapper,
+        *,
+        id: str,
+        dimension: VariableDimension,
     ):
         self._lammps = lammps
         self._id = id
@@ -143,43 +149,43 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
     @overload
     @classmethod
     def create(
-            cls,
-            lammps: LAMMPSWrapper,
-            *,
-            id: str,
-            dimension: Literal[VariableDimension.SCALAR],
+        cls,
+        lammps: LAMMPSWrapper,
+        *,
+        id: str,
+        dimension: Literal[VariableDimension.SCALAR],
     ) -> ComputeGlobalReference[float]:
         ...
 
     @overload
     @classmethod
     def create(
-            cls,
-            lammps: LAMMPSWrapper,
-            *,
-            id: str,
-            dimension: Literal[VariableDimension.VECTOR1D, VariableDimension.ARRAY2D],
+        cls,
+        lammps: LAMMPSWrapper,
+        *,
+        id: str,
+        dimension: Literal[VariableDimension.VECTOR1D, VariableDimension.ARRAY2D],
     ) -> ComputeGlobalReference[npt.NDArray[np.float64]]:
         ...
 
     @overload
     @classmethod
     def create(
-            cls,
-            lammps: LAMMPSWrapper,
-            *,
-            id: str,
-            dimension: VariableDimension,
+        cls,
+        lammps: LAMMPSWrapper,
+        *,
+        id: str,
+        dimension: VariableDimension,
     ) -> ComputeGlobalReference:
         ...
 
     @classmethod
     def create(
-            cls,
-            lammps: LAMMPSWrapper,
-            *,
-            id: str,
-            dimension: VariableDimension,
+        cls,
+        lammps: LAMMPSWrapper,
+        *,
+        id: str,
+        dimension: VariableDimension,
     ) -> ComputeGlobalReference:
         """
         Create a compute in the given LAMMPS instance, and return a reference.
@@ -213,12 +219,12 @@ class ComputeAtomReference(ComputeReference[_TReturnType]):
     """Reference to a per-atom compute, which can be used with `extract_compute` or `gather`."""
 
     def __init__(
-            self,
-            lammps: LAMMPSWrapper,
-            *,
-            id: str,
-            type: Literal[VariableType.DOUBLE, VariableType.INTEGER],
-            count: int,
+        self,
+        lammps: LAMMPSWrapper,
+        *,
+        id: str,
+        type: Literal[VariableType.DOUBLE, VariableType.INTEGER],
+        count: int,
     ):
         self._lammps = lammps
         self._id = id

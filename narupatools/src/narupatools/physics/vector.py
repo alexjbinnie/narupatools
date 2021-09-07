@@ -20,6 +20,7 @@ import math
 from typing import Union, overload
 
 import numpy as np
+import numpy.typing as npt
 
 from .quaternion import quaternion
 from .typing import Matrix3x3, Vector3, Vector3Like, VectorN, VectorNLike
@@ -96,17 +97,26 @@ def normalized(vector: quaternion, /) -> quaternion:
 
 
 @overload
-def normalized(vector: VectorNLike, /) -> VectorN:
+def normalized(vector: npt.NDArray[quaternion], /) -> npt.NDArray[quaternion]:
     ...
 
 
-def normalized(vector: VectorNLike, /) -> VectorN:
+@overload
+def normalized(vector: VectorNLike, /) -> npt.NDArray[np.floating]:
+    ...
+
+
+def normalized(
+    vector: Union[quaternion, npt.NDArray[quaternion], VectorNLike], /
+) -> Union[quaternion, npt.NDArray[quaternion], npt.NDArray[np.floating]]:
     """Normalize an n-dimensional vector."""
+    if isinstance(vector, quaternion):
+        return np.normalized(vector)  # type: ignore
     arr = np.asarray(vector)
     if arr.dtype == quaternion:
-        return np.normalized(vector)
+        return np.normalized(arr)  # type: ignore
     else:
-        return np
+        return np.nan_to_num(arr / np.sqrt((arr ** 2).sum(-1))[..., np.newaxis])  # type: ignore
 
 
 def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:

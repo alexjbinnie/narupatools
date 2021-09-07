@@ -21,8 +21,8 @@ from __future__ import annotations
 import contextlib
 import sys
 import uuid
-from abc import abstractmethod, ABCMeta
-from typing import Dict, List, Literal, Optional, TypeVar, Union, Any, overload, Set
+from abc import ABCMeta, abstractmethod
+from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -34,7 +34,7 @@ import narupatools.lammps.atom_properties as PROPERTIES
 import narupatools.lammps.computes as COMPUTES
 import narupatools.lammps.globals as GLOBALS
 import narupatools.lammps.settings as SETTINGS
-from narupatools.core.units import UnitsNarupa, radian, degree, UnitSystem
+from narupatools.core.units import UnitsNarupa, UnitSystem, degree, radian
 from narupatools.frame import NarupaFrame
 from narupatools.frame._utils import mass_to_element
 from narupatools.frame.fields import (
@@ -52,13 +52,13 @@ from narupatools.frame.fields import (
 from narupatools.lammps._units import get_unit_system
 from narupatools.physics.typing import Vector3
 
+from ..physics.transformation import Rotation
+from ..physics.vector import magnitude, normalized, vector
 from ._constants import VariableDimension, VariableType
 from ._exception_wrapper import catch_lammps_warnings_and_exceptions
 from ._wrapper import Extractable, LAMMPSWrapper
 from .exceptions import UnknownAtomPropertyError
 from .regions import Region, RegionSpecification
-from ..physics.transformation import Rotation
-from ..physics.vector import magnitude, normalized, vector
 
 _TReturnType = TypeVar("_TReturnType")
 
@@ -89,8 +89,8 @@ class LAMMPSSimulation:
 
         self._needs_pre_run = True
 
-        self.mass_compute = COMPUTES.AtomProperty(self.__lammps,
-            id="mass", properties=["mass"], type=VariableType.DOUBLE
+        self.mass_compute = COMPUTES.AtomProperty(
+            self.__lammps, id="mass", properties=["mass"], type=VariableType.DOUBLE
         )
 
         self._kinetic_energy_compute = COMPUTES.KineticEnergy.create(
@@ -311,7 +311,8 @@ class LAMMPSSimulation:
         if self._quat_compute is None:
             if not self.extract(SETTINGS.AtomStylesCanBeEllipsoid):
                 raise AttributeError("orientations not supported for this simulation.")
-            self._quat_compute = COMPUTES.AtomProperty(self.__lammps,
+            self._quat_compute = COMPUTES.AtomProperty(
+                self.__lammps,
                 id="quat",
                 properties=["quatw", "quati", "quatj", "quatk"],
                 type=VariableType.DOUBLE,
@@ -326,7 +327,8 @@ class LAMMPSSimulation:
                 raise AttributeError(
                     "ellipsoid_axes not supported for this simulation."
                 )
-            self._shape_compute = COMPUTES.AtomProperty(self.__lammps,
+            self._shape_compute = COMPUTES.AtomProperty(
+                self.__lammps,
                 id="shape",
                 properties=["shapex", "shapey", "shapez"],
                 type=VariableType.DOUBLE,
@@ -341,7 +343,8 @@ class LAMMPSSimulation:
                 raise AttributeError(
                     "angular momenta not supported for this simulation."
                 )
-            self._angmom_compute = COMPUTES.AtomProperty(self.__lammps,
+            self._angmom_compute = COMPUTES.AtomProperty(
+                self.__lammps,
                 id="angmom",
                 properties=["angmomx", "angmomy", "angmomz"],
                 type=VariableType.DOUBLE,
@@ -351,8 +354,8 @@ class LAMMPSSimulation:
     @property
     def bond_energies(self) -> npt.NDArray[np.float64]:
         if not hasattr(self, "_bond_energy_compute"):
-            self._bond_energy_compute = COMPUTES.BondLocal(self.__lammps,
-                id="bond_energy", properties=["engpot"]
+            self._bond_energy_compute = COMPUTES.BondLocal(
+                self.__lammps, id="bond_energy", properties=["engpot"]
             )
         return self._bond_energy_compute.extract() * self._lammps_to_narupa.energy
 
@@ -387,7 +390,8 @@ class LAMMPSSimulation:
         """
         if self._imd_forces is not None:
             self.scatter_atoms(
-                PROPERTIES.Force, (self.forces + self._imd_forces) * self._narupa_to_lammps.force
+                PROPERTIES.Force,
+                (self.forces + self._imd_forces) * self._narupa_to_lammps.force,
             )
 
     def add_imd_torque(self) -> None:
@@ -398,7 +402,6 @@ class LAMMPSSimulation:
             f"fix _narupatools_torque_callback all python/invoke 1 post_force {func_name}"
         )
 
-
     def add_imd_force(self) -> None:
         """Define an IMD force for the LAMMPS simulation."""
         self._imd_forces = np.zeros(shape=(len(self), 3))
@@ -406,7 +409,6 @@ class LAMMPSSimulation:
         self.command(
             f"fix _narupatools_force_callback all python/invoke 1 post_force {func_name}"
         )
-
 
     def get_imd_forces(self) -> npt.NDArray[np.float64]:
         """Get the IMD forces on each atom in kilojoules per mole per angstrom."""
@@ -434,7 +436,7 @@ class LAMMPSSimulation:
         """
         if self._imd_forces is None:
             self.add_imd_force()
-        self._imd_forces[index] = force
+        self._imd_forces[index] = force  # type: ignore
 
     def clear_imd_force(self, index: int) -> None:
         """
@@ -444,7 +446,7 @@ class LAMMPSSimulation:
         """
         if self._imd_forces is None:
             return
-        self._imd_forces[index] = vector(0,0,0)
+        self._imd_forces[index] = vector(0, 0, 0)
 
     def command(self, command: str) -> None:
         """
@@ -480,7 +482,7 @@ class LAMMPSSimulation:
             ParticleMasses.set(frame, self.masses)
         if ParticleElements.key in fields:
             elements = np.vectorize(mass_to_element)(self.masses)
-            if not np.any(np.equal(elements, None)):
+            if not np.any(np.equal(elements, None)):  # type: ignore[call-overload]
                 ParticleElements.set(frame, elements)
         if ParticleCharges.key in fields:
             with contextlib.suppress(AttributeError):
@@ -495,7 +497,8 @@ class LAMMPSSimulation:
         ):
             self.indexing.recompute()
             if self.bond_compute is None:
-                self.bond_compute = COMPUTES.LocalProperty(self.__lammps,
+                self.bond_compute = COMPUTES.LocalProperty(
+                    self.__lammps,
                     id="bonds",
                     properties=["btype", "batom1", "batom2"],
                 )
@@ -516,7 +519,6 @@ class LAMMPSSimulation:
             ParticleResidues.set(frame, np.vectorize(mol_id_to_index.get)(mol_ids))
 
         return frame
-
 
     @property
     def timestep(self) -> float:
@@ -635,8 +637,11 @@ class LAMMPSIndexing:
 
     def __init__(self, simulation: LAMMPSSimulation):
         self._simulation = simulation
-        self.__atom_ids = COMPUTES.AtomProperty(simulation._wrapper,
-            id="atomids", properties=["id"], type=VariableType.INTEGER
+        self.__atom_ids = COMPUTES.AtomProperty(
+            simulation._wrapper,
+            id="atomids",
+            properties=["id"],
+            type=VariableType.INTEGER,
         )
         self._unordered_to_atom_ids: np.ndarray = np.array([])
         self._ordered_to_unordered: np.ndarray = np.array([])

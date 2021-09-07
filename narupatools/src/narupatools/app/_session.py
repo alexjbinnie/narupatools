@@ -22,7 +22,7 @@ import time
 from abc import ABCMeta
 from contextlib import contextmanager
 from types import TracebackType
-from typing import Any, Generator, Generic, Optional, Protocol, Type, TypeVar, Set
+from typing import Any, Generator, Generic, Optional, Protocol, Set, Type, TypeVar
 
 from infinite_sets import InfiniteSet
 from narupa.app import NarupaImdApplication
@@ -44,7 +44,9 @@ from narupatools.core.health_check import HealthCheck
 from narupatools.core.playable import Playable
 from narupatools.frame._frame_producer import FrameProducer
 from narupatools.frame._frame_source import FrameSource
-from narupatools.frame.fields import KineticEnergy, ParticlePositions, PotentialEnergy, DYNAMIC_FIELDS
+from narupatools.frame.fields import (
+    DYNAMIC_FIELDS,
+)
 from narupatools.state.view._wrappers import SharedStateServerWrapper
 
 from ._shared_state import SessionSharedState

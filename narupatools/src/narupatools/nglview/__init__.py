@@ -23,10 +23,10 @@ has_ngl = importlib.util.find_spec("nglview") is not None
 if not has_ngl:
     raise ImportError("narupatools.nglview requires nglview to be installed.")
 
+from ._client import show_client
 from ._dynamics import show_dynamics
 from ._show import show_ase, show_narupa, show_narupatools_traj
 from ._structure import ASEStructure, FrameDataStructure
-from ._client import show_client
 
 __all__ = [
     "show_ase",

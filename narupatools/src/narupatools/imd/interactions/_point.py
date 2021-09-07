@@ -76,14 +76,15 @@ class PointInteraction(Interaction[PointInteractionData]):
         self.position = interaction.position
         self.interaction_scale = interaction.scale
 
-    def calculate_forces_and_energy(self) -> Tuple[Vector3Array, float]:  # noqa: D102
+    def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]
         center = center_of_mass(positions=positions, masses=masses)
         force, energy = self._force_func(offset=center - self.position)
         force *= self.interaction_scale
         energy *= self.interaction_scale
-        return mass_weighted_forces(force=force, masses=masses), energy
+        self._forces = mass_weighted_forces(force=force, masses=masses)
+        self._energy = energy
 
 
 InteractionData.register_interaction_type(

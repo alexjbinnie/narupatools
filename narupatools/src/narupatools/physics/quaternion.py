@@ -26,12 +26,12 @@ import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from quaternion import (
+        as_quat_array,
         as_rotation_matrix,
         as_rotation_vector,
         from_rotation_vector,
-        as_quat_array,
+        from_vector_part,
         quaternion,
-    from_vector_part
     )
 
 __all__ = [
@@ -40,5 +40,5 @@ __all__ = [
     "as_rotation_matrix",
     "from_rotation_vector",
     "as_quat_array",
-    "from_vector_part"
+    "from_vector_part",
 ]

@@ -23,7 +23,7 @@ lammps = pytest.importorskip("lammps")
 from narupatools.core.random import random_integer
 from narupatools.lammps import LAMMPSSimulation
 from narupatools.lammps.regions import Box
-from narupatools.physics.random import random_scalar, random_vector
+from narupatools.physics.random import random_float, random_vector
 from narupatools.physics.transformation import Rotation
 from narupatools.physics.vector import vector
 
@@ -36,12 +36,12 @@ def seed(request):
 
 @pytest.fixture
 def radius(seed):
-    return random_scalar(min=0.2, max=10.0)
+    return random_float(min=0.2, max=10.0)
 
 
 @pytest.fixture
 def timestep(seed):
-    return random_scalar(min=0.01, max=0.1)
+    return random_float(min=0.01, max=0.1)
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def angular_momentum(seed):
 
 @pytest.fixture
 def mass(seed):
-    return random_scalar(min=0.1, max=10.0)
+    return random_float(min=0.1, max=10.0)
 
 
 @pytest.fixture

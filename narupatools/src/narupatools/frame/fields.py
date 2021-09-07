@@ -154,7 +154,7 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         raise KeyError(f"Frame does not contain key {self.key}")
 
     def get_with_default(
-            self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
+        self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
     ) -> Union[_TTo, _TDefault]:
         """
         Get the value for this key, returning a default value if the key is absent.
@@ -394,6 +394,16 @@ box.
 """
 
 DYNAMIC_FIELDS = frozenset(
-    {ParticlePositions.key, PotentialEnergy.key, KineticEnergy.key, ParticleVelocities.key, ParticleForces.key,
-     SimulationTotalSteps.key, SimulationTotalTime.key, SimulationElapsedTime.key, SimulationElapsedSteps.key})
+    {
+        ParticlePositions.key,
+        PotentialEnergy.key,
+        KineticEnergy.key,
+        ParticleVelocities.key,
+        ParticleForces.key,
+        SimulationTotalSteps.key,
+        SimulationTotalTime.key,
+        SimulationElapsedTime.key,
+        SimulationElapsedSteps.key,
+    }
+)
 """Set of fields that are by default considered to change when a simulation is run."""

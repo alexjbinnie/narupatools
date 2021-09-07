@@ -40,6 +40,7 @@ class ConstantCalculator(Calculator):
         self,
         *,
         forces: Optional[Vector3ArrayLike] = None,
+            torques: Optional[Vector3ArrayLike] = None,
         energy: Optional[float] = None,
         charges: Optional[ScalarArrayLike] = None,
         **kwargs: Any,
@@ -49,6 +50,7 @@ class ConstantCalculator(Calculator):
 
         :param forces: Forces in electronvolts per angstroms.
         :param energy: Energy in electronvolts.
+        :param torques: Torques in electronvolts.
         :param charges: Charges in elementary charges.
         :param kwargs: Keyword arguments for the base
                        :class:`~ase.calculators.calculator.Calculator`.
@@ -58,6 +60,9 @@ class ConstantCalculator(Calculator):
         if forces is not None:
             self._forces = np.asfarray(forces)
             self.implemented_properties.append("forces")
+        if torques is not None:
+            self._torques  = np.asfarray(torques)
+            self.implemented_properties.append("torques")
         if energy is not None:
             self._potential_energy = energy
             self.implemented_properties.append("energy")
@@ -72,6 +77,8 @@ class ConstantCalculator(Calculator):
             self.results["charges"] = self._charges
         if "energy" in self.implemented_properties:
             self.results["energy"] = self._potential_energy
+        if "torques" in self.implemented_properties:
+            self.results["torques"] = self._torques
 
     def assign_atoms(self, atoms: Optional[Atoms]) -> None:  # noqa: D102
         if atoms is not None:
@@ -80,6 +87,12 @@ class ConstantCalculator(Calculator):
             ):
                 raise CalculatorSetupError(
                     "`forces` array is not the same size as the system."
+                )
+            if "torques" in self.implemented_properties and len(self._torques) != len(
+                atoms
+            ):
+                raise CalculatorSetupError(
+                    "`torques` array is not the same size as the system."
                 )
             if "charges" in self.implemented_properties and len(self._charges) != len(
                 atoms

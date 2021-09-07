@@ -14,7 +14,7 @@ from narupatools.physics.force import (
     spring_force,
     spring_force_and_energy,
 )
-from narupatools.physics.random import random_scalar, random_vector
+from narupatools.physics.random import random_float, random_vector
 from narupatools.physics.vector import (
     dot_product,
     magnitude,
@@ -31,17 +31,17 @@ def offset(seed):
 
 @pytest.fixture
 def spring_constant(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(min=0.0, max=100.0)
 
 
 @pytest.fixture
 def depth(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(min=0.0, max=100.0)
 
 
 @pytest.fixture
 def sigma(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(min=0.0, max=100.0)
 
 
 @pytest.fixture
@@ -71,12 +71,12 @@ def force(seed):
 
 @pytest.fixture
 def damping_coefficient(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(min=0.0, max=100.0)
 
 
 @pytest.fixture
 def mass(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(min=0.0, max=100.0)
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ def system_size(seed):
 
 @pytest.fixture
 def masses(seed, system_size):
-    return [random_scalar(min=0.0, max=100.0) for _ in range(system_size)]
+    return [random_float(min=0.0, max=100.0) for _ in range(system_size)]
 
 
 @pytest.fixture

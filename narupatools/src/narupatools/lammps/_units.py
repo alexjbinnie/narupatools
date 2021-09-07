@@ -19,6 +19,7 @@
 from typing import Dict
 
 from narupatools.core.units import (
+    UnitsNarupa,
     UnitSystem,
     amu,
     angstrom,
@@ -48,7 +49,6 @@ from narupatools.core.units import (
     second,
     statcoulomb,
     volt,
-    UnitsNarupa,
 )
 
 UnitsLAMMPSReal = UnitSystem(

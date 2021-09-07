@@ -2,17 +2,22 @@ import random
 
 import numpy as np
 import pytest
-from _pytest.python_api import _recursive_list_map, ApproxBase
+from _pytest.python_api import ApproxBase
 
-from narupatools.ase import UnitsASE, NullCalculator, ASEDynamics
-from narupatools.ase._rotational_velocity_verlet import RotationalVelocityVerletIntegrator
+from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE, ConstantCalculator
+from narupatools.ase._rotational_velocity_verlet import (
+    RotationalVelocityVerletIntegrator,
+)
 from narupatools.ase._system import ASESystem
 from narupatools.core import UnitsNarupa
-from narupatools.core.random import random_integer, random_float
+from narupatools.core.random import random_float, random_integer
 from narupatools.imd import rigidmotion_interaction
-from narupatools.physics.random import random_vector, random_quaternion, random_unit_quaternion
 from narupatools.physics.quaternion import from_rotation_vector, quaternion
-from narupatools.physics.transformation import Rotation
+from narupatools.physics.random import (
+    random_unit_quaternion,
+    random_vector,
+)
+from narupatools.physics.vector import vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 
@@ -20,7 +25,9 @@ _NarupaToASE = UnitsNarupa >> UnitsASE
 def test_stationary(single_carbon_atoms):
     atoms = single_carbon_atoms
     atoms.calc = NullCalculator()
-    integrator = RotationalVelocityVerletIntegrator(atoms, timestep=0.1 * _NarupaToASE.time)
+    integrator = RotationalVelocityVerletIntegrator(
+        atoms, timestep=0.1 * _NarupaToASE.time
+    )
 
     dynamics = ASEDynamics(integrator)
 
@@ -102,17 +109,28 @@ class ApproxQuaternionArray(ApproxBase):
                 yield quat_actual.components[i], quat_expected.components[i]
 
 
-def approx(obj, rel = None, abs = None):
+def approx(obj, rel=None, abs=None):
     if obj.dtype == quaternion:
         return ApproxQuaternionArray(obj, rel, abs)
     else:
         return pytest.approx(obj)
 
 
-def test_no_forces(mass, symmetric_inertia, angular_velocities, orientations, velocity, timestep, nsteps, single_carbon_atoms):
+def test_no_forces(
+    mass,
+    symmetric_inertia,
+    angular_velocities,
+    orientations,
+    velocity,
+    timestep,
+    nsteps,
+    single_carbon_atoms,
+):
     atoms = single_carbon_atoms
     atoms.calc = NullCalculator()
-    integrator = RotationalVelocityVerletIntegrator(atoms, timestep=timestep * _NarupaToASE.time)
+    integrator = RotationalVelocityVerletIntegrator(
+        atoms, timestep=timestep * _NarupaToASE.time
+    )
 
     dynamics = ASEDynamics(integrator)
     dynamics.velocities = np.array([velocity])
@@ -123,14 +141,61 @@ def test_no_forces(mass, symmetric_inertia, angular_velocities, orientations, ve
 
     assert dynamics.positions == approx(initial + velocity * nsteps * timestep)
 
-    assert dynamics.orientations == approx(from_rotation_vector(angular_velocities * nsteps * timestep) * orientations, rel=1e-3, abs=1e-3)
+    assert dynamics.orientations == approx(
+        from_rotation_vector(angular_velocities * nsteps * timestep) * orientations,
+        rel=1e-3,
+        abs=1e-3,
+    )
 
+
+
+def test_constant_torque(mass, symmetric_inertia, angular_velocities, nsteps, timestep, single_carbon_atoms):
+    atoms = single_carbon_atoms
+    torque = random_vector(max_magnitude=0.5)
+
+    nsteps = 1
+
+    atoms.calc = ConstantCalculator(forces=[vector(0,0,0)], torques=[torque * _NarupaToASE.torque])
+
+    integrator = RotationalVelocityVerletIntegrator(
+        atoms, timestep=timestep * _NarupaToASE.time
+    )
+
+    dynamics = ASEDynamics(integrator)
+
+    start = dynamics.angular_momenta
+
+    dynamics.run(nsteps)
+
+    assert dynamics.angular_momenta == pytest.approx(start + nsteps * timestep * torque)
+
+
+
+
+def test_exact(single_carbon_atoms):
+    atoms = single_carbon_atoms
+
+    torque = vector(1, 0, 0)
+
+    atoms.calc = ConstantCalculator(forces=[vector(0,0,0)], torques=[torque * _NarupaToASE.torque])
+
+    integrator = RotationalVelocityVerletIntegrator(
+        atoms, timestep=0.1 * _NarupaToASE.time
+    )
+
+    dynamics = ASEDynamics(integrator)
+
+    dynamics.run(10)
+
+    assert dynamics.angular_momenta == pytest.approx(np.array([[1.0, 0.0, 0.0]]))
 
 
 def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
     atoms = single_carbon_atoms
     atoms.calc = NullCalculator()
-    integrator = RotationalVelocityVerletIntegrator(atoms, timestep = timestep * _NarupaToASE.time)
+    integrator = RotationalVelocityVerletIntegrator(
+        atoms, timestep=timestep * _NarupaToASE.time
+    )
 
     dynamics = ASEDynamics(integrator)
 
@@ -138,7 +203,9 @@ def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
 
     start = dynamics.orientations[0]
 
-    dynamics.imd.add_interaction(rigidmotion_interaction(particles=[0], scale=10.0, rotation=rotation))
+    dynamics.imd.add_interaction(
+        rigidmotion_interaction(particles=[0], scale=10.0, rotation=rotation)
+    )
 
     dynamics.run(100)
 

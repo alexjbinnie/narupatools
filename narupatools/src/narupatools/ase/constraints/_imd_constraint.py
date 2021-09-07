@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Dict, Protocol
 
 import numpy as np
 from ase.atoms import Atoms
@@ -24,7 +24,6 @@ from ase.atoms import Atoms
 from narupatools.ase._units import UnitsASE
 from narupatools.core import UnitsNarupa
 from narupatools.imd import Interaction
-from narupatools.physics.typing import Vector3Array
 
 from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
 from ._null_constraint import NullConstraint
@@ -51,7 +50,9 @@ class _ASEAtomsWrapper(ASEAtomsWrapper):
         return self._atoms
 
 
-class InteractionConstraint(ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint):
+class InteractionConstraint(
+    ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
+):
     """
     An ASE constraint that applies an iMD force.
 
@@ -86,13 +87,17 @@ class InteractionConstraint(ASEEnergyConstraint, ASEMomentaConstraint, ASETorque
         self.interaction.calculate_forces_and_energy()
 
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102
-        forces[self.interaction.particle_indices] += self.interaction.forces * _NarupaToASE.force
+        forces[self.interaction.particle_indices] += (
+            self.interaction.forces * _NarupaToASE.force
+        )
 
     def adjust_potential_energy(self, /, atoms: Atoms) -> float:  # noqa: D102
         return self.interaction.potential_energy * _NarupaToASE.energy
 
     def adjust_torques(self, atoms: Atoms, torques: np.ndarray, /) -> None:
-        torques[self.interaction.particle_indices] += self.interaction.torques * _NarupaToASE.force
+        torques[self.interaction.particle_indices] += (
+            self.interaction.torques * _NarupaToASE.force
+        )
 
     def __deepcopy__(self, memodict: Dict[Any, Any] = None) -> Any:
         # Deep copying an IMD constraint destroys it. This is because the interaction itself
