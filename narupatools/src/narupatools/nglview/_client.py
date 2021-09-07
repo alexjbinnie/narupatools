@@ -2,7 +2,8 @@
 
 from typing import Any, Optional
 
-from nglview import ComponentViewer, NGLWidget
+from nglview import NGLWidget
+from nglview.component import ComponentViewer
 
 from narupatools.app import Client
 from narupatools.core.timing import throttle

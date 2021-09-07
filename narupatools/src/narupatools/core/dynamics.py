@@ -111,6 +111,14 @@ class SimulationRotationProperties:
         raise AttributeError
 
     @property
+    def torques(self) -> Vector3Array:
+        """
+        Torques on each particle abouts its center of mass.
+        :return: Array of torques in kilojoules per mole.
+        """
+        raise AttributeError
+
+    @property
     def moments_of_inertia(self) -> Vector3Array:
         """
         Moments of inertia for each particle abouts its origin in its local frame.

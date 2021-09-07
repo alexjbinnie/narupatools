@@ -5,30 +5,10 @@ from ase.md.md import MolecularDynamics
 from narupatools.physics.quaternion import from_vector_part
 from narupatools.physics.typing import Vector3, Vector3Like
 from narupatools.physics.vector import normalized
-from ._patch import *
+from ._rotations import *
 
 
-def calculate_angular_velocity(
-    *,
-    principal_moments: Vector3Array,
-    angular_momentum: Vector3Array,
-    orientation: npt.NDArray[quaternion],
-) -> Vector3Array:
-    """Calculate per-particle angular velocity."""
-    if len(principal_moments.shape) == 1:
-        return np.nan_to_num(angular_momentum / principal_moments)  # type: ignore
-    else:
-        # todo
-        raise ValueError
 
-
-def set_angular_velocities(atoms: Atoms, angular_velocities: Vector3Like, /) -> None:
-    """Set per-particle angular velocities."""
-    principal_moments = get_principal_moments(atoms)
-    if len(principal_moments.shape) == 1:
-        set_angular_momenta(atoms, angular_velocities * principal_moments)
-    else:
-        raise ValueError
 
 
 def right_multiply(
@@ -72,7 +52,7 @@ class RotationalVelocityVerletIntegrator(MolecularDynamics):
         I = get_principal_moments(atoms)
 
         omega = calculate_angular_velocity(
-            principal_moments=I, angular_momentum=L, orientation=q
+            principal_moments=I, angular_momenta=L, orientations=q
         )
 
         dqdt = 0.5 * right_multiply(omega, q)  # type: ignore [operator]
@@ -81,7 +61,7 @@ class RotationalVelocityVerletIntegrator(MolecularDynamics):
         qhalf = normalized(q + 0.5 * self.dt * dqdt)
 
         omega = calculate_angular_velocity(
-            principal_moments=I, angular_momentum=L, orientation=qhalf
+            principal_moments=I, angular_momenta=L, orientations=qhalf
         )
 
         dqdt = 0.5 * right_multiply(omega, q)  # type: ignore [operator]

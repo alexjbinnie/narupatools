@@ -40,7 +40,7 @@ class ConstantCalculator(Calculator):
         self,
         *,
         forces: Optional[Vector3ArrayLike] = None,
-            torques: Optional[Vector3ArrayLike] = None,
+        torques: Optional[Vector3ArrayLike] = None,
         energy: Optional[float] = None,
         charges: Optional[ScalarArrayLike] = None,
         **kwargs: Any,
@@ -61,7 +61,7 @@ class ConstantCalculator(Calculator):
             self._forces = np.asfarray(forces)
             self.implemented_properties.append("forces")
         if torques is not None:
-            self._torques  = np.asfarray(torques)
+            self._torques = np.asfarray(torques)
             self.implemented_properties.append("torques")
         if energy is not None:
             self._potential_energy = energy

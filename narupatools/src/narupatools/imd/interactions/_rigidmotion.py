@@ -18,6 +18,7 @@ import math
 from typing import Any, Optional
 
 import numpy as np
+from numpy.linalg import inv
 
 from narupatools.core.properties import (
     float_property,
@@ -121,18 +122,18 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         )
 
         if particle_angular_momenta is not None:
-            system_angular_momentum += particle_angular_momenta.sum()
+            system_angular_momentum += particle_angular_momenta.sum(axis=0)
 
         return system_angular_momentum
 
     def _get_angular_velocity(
         self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
     ) -> Vector3Array:
-        return np.linalg.inv(  # type: ignore[no-any-return]
-            self._get_inertia(positions=positions, masses=masses)
-        ) @ self._get_angular_momentum(
+        I = self._get_inertia(positions=positions, masses=masses)
+        L = self._get_angular_momentum(
             positions=positions, masses=masses, velocities=velocities
         )
+        return inv(I) @ L
 
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]

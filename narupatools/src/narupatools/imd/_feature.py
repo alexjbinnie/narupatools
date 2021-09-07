@@ -313,6 +313,11 @@ class InteractionFeature(Generic[TDynamics]):
             dynamics=self.dynamics,
         )
 
+    def clear_interactions(self):
+        keys = self.current_interactions.keys()
+        for key in list(keys):
+            self.remove_interaction(key)
+
     def remove_interaction(self, key: str) -> Interaction:
         """
         Remove an interaction with the given key.

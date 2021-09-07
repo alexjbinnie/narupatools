@@ -1,6 +1,9 @@
 import pytest
 
 from narupatools.ase import ASEDynamics
+
+pytest.importorskip("rdkit")
+
 from narupatools.ase.rdkit import MMFF94Calculator, UFFCalculator, atoms_from_smiles
 
 

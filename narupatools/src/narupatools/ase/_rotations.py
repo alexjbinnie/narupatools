@@ -4,7 +4,7 @@ from ase.atoms import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 
 from narupatools.physics.quaternion import quaternion, as_quat_array
-from narupatools.physics.typing import Vector3Array
+from narupatools.physics.typing import Vector3Array, Vector3Like
 
 ANGMOM_ARRAY = "angmom"
 ORIENTATION_ARRAY = "rotations"
@@ -109,3 +109,34 @@ def get_torques(
 
 
 Atoms.get_torques = get_torques  # type: ignore[attr-defined]
+
+def get_angular_velocities(atoms: Atoms, /) -> Vector3Array:
+    return calculate_angular_velocity(principal_moments=get_principal_moments(atoms),
+                                      angular_momenta=get_angular_momenta(atoms),
+                                      orientations=get_rotations(atoms))
+
+Atoms.get_angular_velocities = get_angular_velocities
+
+def calculate_angular_velocity(
+    *,
+    principal_moments: Vector3Array,
+    angular_momenta: Vector3Array,
+    orientations: npt.NDArray[quaternion],
+) -> Vector3Array:
+    """Calculate per-particle angular velocity."""
+    if len(principal_moments.shape) == 1:
+        return np.nan_to_num(angular_momenta / principal_moments)  # type: ignore
+    else:
+        # todo
+        raise ValueError
+
+
+def set_angular_velocities(atoms: Atoms, angular_velocities: Vector3Like, /) -> None:
+    """Set per-particle angular velocities."""
+    principal_moments = get_principal_moments(atoms)
+    if len(principal_moments.shape) == 1:
+        set_angular_momenta(atoms, angular_velocities * principal_moments)
+    else:
+        raise ValueError
+
+Atoms.set_angular_velocities = set_angular_velocities

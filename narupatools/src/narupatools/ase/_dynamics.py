@@ -35,6 +35,7 @@ from narupatools.imd._feature import InteractionFeature
 from narupatools.imd.interactions._interactiondata import InteractionData
 from narupatools.physics.quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+from ._rotations import get_angular_velocities
 
 from ..core.dynamics import SimulationRotationProperties
 from ._converter import ase_atoms_to_frame
@@ -247,7 +248,7 @@ class ASEDynamics(
     @property
     def angular_velocities(self) -> Vector3Array:  # noqa: D102
         """Angular velocity of each particle abouts its center of mass, in radians per picoseconds."""
-        raise AttributeError
+        return get_angular_velocities(self.atoms) * _ASEToNarupa.angular_velocity
 
     @property
     def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
@@ -258,6 +259,10 @@ class ASEDynamics(
         set_principal_moments(
             self.atoms, np.asfarray(value) * _NarupaToASE.moment_inertia
         )
+
+    @property
+    def torques(self) -> Vector3Array: ## noqa: D102
+        return self.atoms.get_torques() * _NarupaToASE.torque
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):
