@@ -74,6 +74,8 @@ def to_float(value: Any) -> float:
 def to_quaternion(value: Any) -> quaternion:
     if isinstance(value, quaternion):
         return value
+    if len(value) != 4:
+        raise ValueError(f"Can't interperate {value} as quaternion")
     return quaternion(*value)
 
 

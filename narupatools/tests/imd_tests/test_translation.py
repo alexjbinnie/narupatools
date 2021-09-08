@@ -1,4 +1,5 @@
 import math
+import random
 
 import numpy as np
 import pytest
@@ -7,6 +8,7 @@ from ase import Atoms
 from narupatools.ase import ASEDynamics
 from narupatools.frame.hdf5 import add_hdf5_writer
 from narupatools.imd import rigidmotion_interaction
+from narupatools.physics.random import random_unit_quaternion
 from narupatools.physics.transformation import Rotation, Translation
 from narupatools.physics.vector import vector
 
@@ -41,6 +43,12 @@ def dynamics(single_carbon_atoms) -> ASEDynamics:
     return ASEDynamics.create_velocity_verlet(single_carbon_atoms, timestep=0.1)
 
 
+@pytest.fixture(params=range(20))
+def seed(request):
+    random.seed(request.param)
+    return request.param
+
+
 def test_translate_zero(dynamics, methane_positions):
     interaction = rigidmotion_interaction(
         particles=[0, 1, 2, 3, 4], translation=vector(0, 0, 0)
@@ -70,12 +78,12 @@ def test_translate_1(dynamics, methane_positions, translation):
     dynamics.imd.add_interaction(interaction)
     dynamics.run(500)
     assert dynamics.positions == pytest.approx(
-        Translation(translation) * methane_positions
+        Translation(translation) @ methane_positions
     )
 
 
-def test_rotation(dynamics, methane_positions):
-    angle = vector(0.5 * math.pi, 0, 0)
+def test_rotation(seed, dynamics, methane_positions):
+    angle = random_unit_quaternion()
 
     interaction = rigidmotion_interaction(
         particles=[0, 1, 2, 3, 4], rotation=angle, scale=15
@@ -84,12 +92,12 @@ def test_rotation(dynamics, methane_positions):
 
     dynamics.run(500)
 
-    rotation = Rotation.from_rotation_vector(angle)
+    rotation = Rotation(angle)
 
     np.set_printoptions(suppress=True)
 
     assert dynamics.positions == pytest.approx(
-        rotation * methane_positions, rel=1e-2, abs=1e-2
+        rotation @ methane_positions, rel=1e-2, abs=1e-2
     )
 
 
@@ -111,7 +119,7 @@ def test_rotation_translation(dynamics, methane_positions):
     dynamics.run(200)
 
     assert dynamics.positions == pytest.approx(
-        translation * (rotation * methane_positions), rel=1e-2, abs=1e-2
+        translation @ (rotation @ methane_positions), rel=1e-2, abs=1e-2
     )
 
     writer.close()
