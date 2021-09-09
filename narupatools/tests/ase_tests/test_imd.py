@@ -40,16 +40,9 @@ def single_carbon_verlet(single_carbon_atoms):
 
 
 @pytest.fixture
-def single_carbon_imd():
-    return {}
-
-
-@pytest.fixture
-def single_carbon_imd_provider(
-    single_carbon_imd, single_carbon_atoms, single_carbon_verlet
-):
-    imd = ASEIMDFeature(single_carbon_verlet)
-    imd.add_source(single_carbon_imd)
+def single_carbon_imd(single_carbon_verlet):
+    imd = {}
+    single_carbon_verlet.imd.add_source(imd)
     return imd
 
 
@@ -73,14 +66,13 @@ def test_add_interaction(
 
 def test_interaction_applies_force(
     single_carbon_imd,
-    single_carbon_imd_provider,
     single_carbon_atoms,
     single_carbon_verlet,
 ):
     single_carbon_imd["abc"] = gaussian_interaction(
         particles=[0], position=[1, 0, 0], scale=1000.0
     )
-    single_carbon_verlet.run(steps=10)
+    single_carbon_verlet.run(steps=50)
     assert abs(single_carbon_atoms.get_velocities()[0][0]) > 0.0
     assert abs(single_carbon_atoms.get_velocities()[0][1]) == pytest.approx(0.0)
     assert abs(single_carbon_atoms.get_velocities()[0][2]) == pytest.approx(0.0)

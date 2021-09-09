@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Dict, Mapping, Type
 
-from narupatools.core.properties import numpy_property, str_property
+from narupatools.core.properties import numpy_property, str_property, bool_property
 from narupatools.state import SharedStateObject
 from narupatools.state.typing import Serializable
 
@@ -40,6 +40,16 @@ class InteractionData(SharedStateObject):
     @str_property
     def interaction_type(self) -> str:
         """Internal type of the interaction."""
+        ...
+
+    @bool_property
+    def reset_velocities(self) -> bool:
+        """Should this interaction perform velocity reset afterwards?"""
+        ...
+
+    @bool_property
+    def mass_weighted(self) -> bool:
+        """Is this interaction mass-weighted?"""
         ...
 
     @classmethod

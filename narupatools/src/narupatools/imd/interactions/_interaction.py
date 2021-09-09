@@ -57,6 +57,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._previous_forces: Vector3Array = np.zeros(0)
         self._start_time: float = start_time
 
+        self.reset_velocities = False
+
         self._energy: Optional[float] = None
         self._forces: Optional[Vector3Array] = None
         self._torques: Optional[Vector3Array] = None
@@ -100,7 +102,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
     def update(self, interaction: _TInteractionData) -> None:
         """Update the interaction based on new data."""
-        pass
+        self.reset_velocities = interaction.reset_velocities
 
     @property
     def particle_indices(self) -> np.ndarray:

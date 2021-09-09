@@ -144,11 +144,16 @@ def frame_to_ase_atoms(
         with contextlib.suppress(KeyError):
             calc_kwargs["charges"] = ParticleCharges.get(frame) * _NarupaToASE.charge
 
+
     calculator = ConstantCalculator(**calc_kwargs)
 
     atoms = Atoms(**kwargs)
 
     _add_bonds_to_ase_atoms(frame, fields, atoms)
+
+
+    if ParticleResidues.key in fields:
+        atoms.set_array("residuenumbers", ParticleResidues.get(frame))
 
     atoms.set_calculator(calculator)
     return atoms

@@ -18,7 +18,7 @@ import math
 from typing import Any, Optional
 
 import numpy as np
-from numpy.linalg import inv
+from numpy.linalg import inv, LinAlgError
 
 from narupatools.core.properties import (
     float_property,
@@ -36,7 +36,7 @@ from narupatools.physics.typing import ScalarArray, Vector3, Vector3Array
 from narupatools.physics.vector import (
     cross_product_matrix,
     left_vector_triple_product_matrix,
-    vector,
+    vector, zero_vector,
 )
 
 from ._interaction import Interaction
@@ -133,7 +133,10 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         L = self._get_angular_momentum(
             positions=positions, masses=masses, velocities=velocities
         )
-        return inv(I) @ L  # type: ignore
+        try:
+            return inv(I) @ L  # type: ignore
+        except LinAlgError:
+            return zero_vector()
 
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]

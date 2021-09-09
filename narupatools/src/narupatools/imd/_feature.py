@@ -29,6 +29,7 @@ from narupatools.core.dynamics import SimulationDynamics
 from narupatools.core.event import Event, EventListener
 from narupatools.imd.interactions._interaction import Interaction
 from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
 
 
 class OnStartInteractionCallback(Protocol):
@@ -338,6 +339,11 @@ class InteractionFeature(Generic[TDynamics]):
 
         if key in self._user_interaction_keys:
             self._user_interaction_keys.remove(key)
+
+        if interaction.velocity_reset:
+            velocities = self.dynamics.velocities
+            velocities[interaction.particle_indices] = maxwell_boltzmann_velocities(masses=self.dynamics.masses[interaction.particle_indices], temperature=300)
+            self.dynamics.velocities = velocities
 
         return interaction
 

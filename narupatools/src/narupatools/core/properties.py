@@ -63,7 +63,14 @@ def to_str(value: Any) -> str:
     return str(value)
 
 
+def to_bool(value: Any) -> bool:
+    """Property stored as a bool."""
+    return bool(value)
+
+
 str_property = to_property(to_str)
+
+bool_property = to_property(to_bool)
 
 
 def to_float(value: Any) -> float:
