@@ -15,7 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 from numpy.linalg import inv, LinAlgError
@@ -36,7 +36,8 @@ from narupatools.physics.typing import ScalarArray, Vector3, Vector3Array
 from narupatools.physics.vector import (
     cross_product_matrix,
     left_vector_triple_product_matrix,
-    vector, zero_vector,
+    vector,
+    zero_vector,
 )
 
 from ._interaction import Interaction
@@ -103,6 +104,8 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         if particle_inertia is not None:
             if len(particle_inertia.shape) == 1:
                 inertia_tensor += particle_inertia.sum() * np.identity(3)
+            else:
+                raise ValueError("Non-symmetric inertia not supported.")
 
         return inertia_tensor
 
@@ -219,7 +222,7 @@ def rigidmotion_interaction(
     particles: np.typing.ArrayLike,
     scale: float = 1.0,
     translation: Optional[np.typing.ArrayLike] = None,
-    rotation: Optional[np.typing.ArrayLike] = None,
+    rotation: Union[Rotation, Optional[np.typing.ArrayLike]] = None,
     **kwargs: Any,
 ) -> RigidMotionInteractionData:
     r"""
@@ -239,6 +242,8 @@ def rigidmotion_interaction(
     if translation is not None:
         kwargs["translation"] = translation
     if rotation is not None:
+        if isinstance(rotation, Rotation):
+            rotation = rotation.versor
         kwargs["rotation"] = rotation
     return RigidMotionInteractionData(
         interaction_type=RIGIDMOTION_INTERACTION_TYPE,

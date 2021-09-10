@@ -120,13 +120,13 @@ class InteractionFeature(Generic[TDynamics]):
 
     def _source_interactions(self) -> Mapping[str, InteractionData]:
         """Collate all interaction sources into one unified dictionary."""
-        dict: Dict[str, InteractionData] = {}
+        dict_: Dict[str, InteractionData] = {}
         for source in self._sources:
             if callable(source):
-                dict.update(source())
+                dict_.update(source())
             else:
-                dict.update(source)
-        return dict
+                dict_.update(source)
+        return dict_
 
     @property
     def dynamics(self) -> TDynamics:
@@ -342,7 +342,10 @@ class InteractionFeature(Generic[TDynamics]):
 
         if interaction.velocity_reset:
             velocities = self.dynamics.velocities
-            velocities[interaction.particle_indices] = maxwell_boltzmann_velocities(masses=self.dynamics.masses[interaction.particle_indices], temperature=300)
+            velocities[interaction.particle_indices] = maxwell_boltzmann_velocities(
+                masses=self.dynamics.masses[interaction.particle_indices],
+                temperature=300,
+            )
             self.dynamics.velocities = velocities
 
         return interaction

@@ -123,7 +123,7 @@ class SharedStateCollectionView(SharedStateView[TValue], Generic[TValue]):
     def _keys(self) -> AbstractSet[str]:
         return {key for key in self._dictionary if key.startswith(self.prefix)}
 
-    def _resolve_key(self, key: str) -> str:
+    def _resolve_key(self, key: str, /) -> str:
         if isinstance(key, str) and not key.startswith(self.prefix):
             return self.prefix + key
         return key

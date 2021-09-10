@@ -105,10 +105,12 @@ def test_rotation_translation(dynamics, methane_positions):
     writer = add_hdf5_writer(dynamics, filename="test.hdf5", overwrite_existing=True)
 
     angle = vector(0.5 * math.pi, 0, 0)
+    rotation = Rotation.from_rotation_vector(angle)
+
     translate = vector(0.4, 0, 0)
 
     interaction = rigidmotion_interaction(
-        particles=[0, 1, 2, 3, 4], translation=translate, rotation=angle, scale=5
+        particles=[0, 1, 2, 3, 4], translation=translate, rotation=rotation, scale=5
     )
 
     dynamics.imd.add_interaction(interaction)

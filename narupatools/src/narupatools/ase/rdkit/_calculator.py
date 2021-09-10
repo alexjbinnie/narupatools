@@ -49,7 +49,6 @@ class RDKitForceFieldCalculator(Calculator, metaclass=abc.ABCMeta):
     """
 
     implemented_properties = ["energy", "forces"]
-    # ignored_changes = set(all_changes) - {"positions", "numbers"}
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)

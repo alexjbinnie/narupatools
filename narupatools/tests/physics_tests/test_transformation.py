@@ -23,8 +23,8 @@ def test_rotation_invertible(unit_quaternion):
     rotationb = ~rotationa
     rotationc = rotationa.inverse
     assert rotationb == pytest.approx(rotationc)
-    assert (rotationa * rotationb) == pytest.approx(Rotation.identity)
-    assert (rotationb * rotationa) == pytest.approx(Rotation.identity)
+    assert (rotationa @ rotationb) == pytest.approx(Rotation.identity)
+    assert (rotationb @ rotationa) == pytest.approx(Rotation.identity)
 
 
 def test_rotation_vector_inverse(rotation_vector):
@@ -38,13 +38,13 @@ def test_rotate_single_vector():
     point = vector(0, 1, 0)
     rot_vec = vector(0.5 * math.pi, 0.0, 0.0)
     rotation = Rotation.from_rotation_vector(rot_vec)
-    assert rotation * point == pytest.approx(vector(0, 0, 1))
+    assert rotation @ point == pytest.approx(vector(0, 0, 1))
 
 
 def test_rotate_vector_array():
     points = np.array([vector(0, 1, 0), vector(0, 0, 1)])
     rot_vec = vector(0.5 * math.pi, 0.0, 0.0)
     rotation = Rotation.from_rotation_vector(rot_vec)
-    assert rotation * points == pytest.approx(
+    assert rotation @ points == pytest.approx(
         np.array([vector(0, 0, 1), vector(0, -1, 0)])
     )

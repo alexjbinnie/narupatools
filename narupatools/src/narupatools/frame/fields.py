@@ -246,7 +246,7 @@ class _FloatKey(FrameKey[float, float]):
 
 
 class _ParticleMassesKey(_FloatArrayKey):
-    def _calculate(self, frame_data: FrameData) -> np.ndarray:
+    def _calculate(self, frame_data: FrameData, /) -> np.ndarray:
         elements = ParticleElements.get(frame_data)
         return atomic_numbers_to_masses(elements)
 

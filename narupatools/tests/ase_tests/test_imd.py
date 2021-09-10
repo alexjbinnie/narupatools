@@ -51,17 +51,17 @@ def test_system_stationary(single_carbon_atoms, single_carbon_verlet):
     assert np.linalg.norm(single_carbon_atoms.get_velocities()[0]) == pytest.approx(0.0)
 
 
-def test_initial_no_interactions(single_carbon_imd_provider):
-    assert len(single_carbon_imd_provider.current_interactions) == 0
+def test_initial_no_interactions(single_carbon_verlet):
+    assert len(single_carbon_verlet.imd.current_interactions) == 0
 
 
 def test_add_interaction(
-    single_carbon_imd, single_carbon_imd_provider, single_carbon_verlet
+    single_carbon_imd, single_carbon_verlet
 ):
     single_carbon_imd["abc"] = gaussian_interaction(particles=[0], position=[1, 0, 0])
-    assert len(single_carbon_imd_provider.current_interactions) == 0
+    assert len(single_carbon_verlet.imd.current_interactions) == 0
     single_carbon_verlet.run(steps=1)
-    assert len(single_carbon_imd_provider.current_interactions) == 1
+    assert len(single_carbon_verlet.imd.current_interactions) == 1
 
 
 def test_interaction_applies_force(
@@ -80,7 +80,6 @@ def test_interaction_applies_force(
 
 def test_work_is_kinetic_energy(
     single_carbon_imd,
-    single_carbon_imd_provider,
     single_carbon_atoms,
     single_carbon_verlet,
 ):
@@ -89,7 +88,7 @@ def test_work_is_kinetic_energy(
     )
     assert single_carbon_atoms.get_kinetic_energy() == pytest.approx(0.0)
     single_carbon_verlet.run(steps=100)
-    work_done = single_carbon_imd_provider.total_work
+    work_done = single_carbon_verlet.imd.total_work
     assert single_carbon_atoms.get_kinetic_energy() == pytest.approx(
         work_done * _NarupaToASE.energy, rel=1e-2
     )
@@ -97,7 +96,6 @@ def test_work_is_kinetic_energy(
 
 def test_interaction_pickle(
     single_carbon_imd,
-    single_carbon_imd_provider,
     single_carbon_atoms,
     single_carbon_verlet,
 ):

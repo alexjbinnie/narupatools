@@ -64,6 +64,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         self._simulation.run(1)
 
     def _reset_internal(self) -> None:
+        # Allow subclasses to override behaviour on reset
         pass
 
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:

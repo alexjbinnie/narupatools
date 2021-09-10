@@ -1,15 +1,20 @@
 from typing import Optional, Union
 
+import numpy as np
+import numpy.typing as npt
+from ase import Atoms
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.md.md import MolecularDynamics
 
-from narupatools.physics.quaternion import from_vector_part
-from narupatools.physics.typing import Vector3, Vector3Like
+from narupatools.physics.quaternion import from_vector_part, quaternion
+from narupatools.physics.typing import Vector3, Vector3Array
 from narupatools.physics.vector import normalized
-from ._rotations import *
+from ._rotations import set_angular_momenta, get_torques, get_angular_momenta, get_principal_moments, get_rotations, \
+    calculate_angular_velocity, set_rotations
 
 
 def right_multiply(
-    v: Union[Vector3, Vector3Array], q: Union[npt.NDArray[quaternion], quaternion], /
+        v: Union[Vector3, Vector3Array], q: Union[npt.NDArray[quaternion], quaternion], /
 ) -> npt.NDArray[quaternion]:
     return from_vector_part(v) * q  # type: ignore
 
@@ -26,9 +31,9 @@ class RotationalVelocityVerletIntegrator(MolecularDynamics):
             set_angular_momenta(atoms, np.zeros([len(self.atoms), 3]))
 
     def step(
-        self,
-        forces: Optional[Vector3Array] = None,
-        torques: Optional[Vector3Array] = None,
+            self,
+            forces: Optional[Vector3Array] = None,
+            torques: Optional[Vector3Array] = None,
     ) -> None:
 
         atoms = self.atoms

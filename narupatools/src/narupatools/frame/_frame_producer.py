@@ -163,4 +163,4 @@ class FrameProducer(Playable):
         return True
 
     def _restart(self) -> None:
-        pass
+        self._dirty_fields = everything()

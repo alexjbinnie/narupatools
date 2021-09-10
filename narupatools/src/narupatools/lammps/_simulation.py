@@ -693,11 +693,11 @@ class AtomArray:
 
     @overload
     def __getitem__(self, item: int) -> SingleAtomReference:
-        pass
+        ...
 
     @overload
     def __getitem__(self, range: slice) -> AtomRangeReference:
-        pass
+        ...
 
     def __getitem__(self, range: Union[int, slice]) -> AtomSetReference:
         if isinstance(range, (int, np.integer)):
