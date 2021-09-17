@@ -16,21 +16,24 @@
 
 import logging
 
+import numpy as np
 from ase.atoms import Atoms
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from simtk.openmm import LangevinIntegrator
 from simtk.openmm.app import Simulation
 from simtk.unit import picoseconds
 
 import narupatools.ase.openmm._calculator as omm_calculator
 from narupatools.ase import UnitsASE
-from narupatools.core.units import pico, second
+from narupatools.core.units import UnitsNarupa, pico, second
 from narupatools.frame import convert
 from narupatools.openmm._units import UnitsOpenMM
+from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
 
 _OpenMMToASE = UnitsOpenMM >> UnitsASE
+_NarupaToASE = UnitsNarupa >> UnitsASE
+_ASEToNarupa = UnitsASE >> UnitsNarupa
 
 DEFAULT_LANGEVIN_FRICTION = 10.0 / (pico * second)  # Friction in per picosecond
 
@@ -110,17 +113,21 @@ def openmm_simulation_to_ase_molecular_dynamics(
         )
 
     # Set the momenta corresponding to T=300K
-    MaxwellBoltzmannDistribution(atoms, temperature_K=temperature)
+    atoms.set_momenta(
+        atoms.get_masses()[:, np.newaxis]
+        * maxwell_boltzmann_velocities(
+            masses=atoms.get_masses() * _ASEToNarupa.mass, temperature=temperature
+        )
+        * _ASEToNarupa.velocity
+    )
 
     # We do not remove the center of mass (fixcm=False). If the center of
     # mass translations should be removed, then the removal should be added
     # to the OpenMM system.
-    molecular_dynamics = Langevin(
+    return Langevin(
         atoms=atoms,
         timestep=timestep * _OpenMMToASE.time,
         temperature_K=temperature,
         friction=friction / _OpenMMToASE.time,
         fixcm=False,
     )
-
-    return molecular_dynamics

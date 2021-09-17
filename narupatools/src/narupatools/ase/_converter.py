@@ -54,6 +54,7 @@ from narupatools.frame.fields import (
     ResidueNames,
 )
 from narupatools.mdanalysis._units import UnitsMDAnalysis
+from narupatools.override import override
 
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 _NarupaToASE = UnitsNarupa >> UnitsASE
@@ -82,24 +83,31 @@ class ASEConverter(FrameConverter):
     """Converters for the ASE package."""
 
     @classmethod
+    @override
     def convert_to_frame(  # noqa: D102
-        cls, object: _TType, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls,
+        object_: _TType,
+        /,
+        *,
+        fields: InfiniteSet[str],
+        existing: Optional[FrameData],
     ) -> FrameData:
-        if isinstance(object, Atoms):
-            return ase_atoms_to_frame(object, fields=fields)
-        raise NotImplementedError()
+        if isinstance(object_, Atoms):
+            return ase_atoms_to_frame(object_, fields=fields)
+        raise NotImplementedError
 
     @classmethod
+    @override
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
-        type: Union[Type[_TType], _TType],
+        destination: Union[Type[_TType], _TType],
         *,
         fields: InfiniteSet[str],
     ) -> _TType:
-        if type == Atoms:
+        if destination == Atoms:
             return frame_to_ase_atoms(frame=frame, fields=fields)  # type: ignore
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 def frame_to_ase_atoms(
@@ -313,6 +321,6 @@ def _add_ase_bonds_to_frame(
     if BondTypes.key in fields and atoms.has("bond_types"):
         bond_types = []
         for types in atoms.get_array("bond_types", copy=False):
-            for type in types:
-                bond_types.append(type)
+            for type_ in types:
+                bond_types.append(type_)
         BondTypes.set(frame, bond_types)

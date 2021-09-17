@@ -277,7 +277,7 @@ def damped_rotational_spring_forces(
     K += -damping_coefficient * cross_product_matrix(omega) / moment_omega
     K += left_vector_triple_product_matrix(omega, omega)
     return np.array(
-        [masses[i] * K @ (positions[i] - com) for i in range(0, len(positions))],
+        [masses[i] * K @ (positions[i] - com) for i in range(len(positions))],
         dtype=float,
     )
 

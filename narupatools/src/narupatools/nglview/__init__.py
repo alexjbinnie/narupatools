@@ -18,14 +18,14 @@
 
 import importlib
 
-has_ngl = importlib.util.find_spec("nglview") is not None
+__has_ngl = importlib.util.find_spec("nglview") is not None
 
-if not has_ngl:
+if not __has_ngl:
     raise ImportError("narupatools.nglview requires nglview to be installed.")
 
 from ._client import show_client
 from ._dynamics import show_dynamics
-from ._show import show_ase, show_narupa, show_narupatools_traj
+from ._show import show_ase, show_narupa, show_trajectory
 from ._structure import ASEStructure, FrameDataStructure
 
 __all__ = [
@@ -33,7 +33,7 @@ __all__ = [
     "show_client",
     "show_narupa",
     "show_dynamics",
-    "show_narupatools_traj",
+    "show_trajectory",
     "ASEStructure",
     "FrameDataStructure",
 ]

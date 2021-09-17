@@ -41,7 +41,7 @@ def seed(request):
 
 @pytest.fixture
 def particle_count(seed):
-    return random_integer(1, 100)
+    return random_integer(minimum=1, maximum=100)
 
 
 @pytest.fixture
@@ -71,25 +71,25 @@ def particle_forces(seed, particle_count):
 
 @pytest.fixture
 def particle_charges(seed, particle_count):
-    return [random_float(min=-5.0, max=5.0) for _ in range(particle_count)]
+    return [random_float(minimum=-5.0, maximum=5.0) for _ in range(particle_count)]
 
 
 @pytest.fixture
 def particle_masses(seed, particle_count):
-    return [random_float(min=-5.0, max=5.0) for _ in range(particle_count)]
+    return [random_float(minimum=-5.0, maximum=5.0) for _ in range(particle_count)]
 
 
 @pytest.fixture
 def particle_names(seed, particle_count):
     return [
-        random_word(min_length=2, max_length=10).capitalize()
+        random_word(minimum_length=2, maximum_length=10).capitalize()
         for _ in range(particle_count)
     ]
 
 
 @pytest.fixture
 def particle_elements(seed, particle_count):
-    return [random_integer(1, 92) for _ in range(particle_count)]
+    return [random_integer(minimum=1, maximum=92) for _ in range(particle_count)]
 
 
 @pytest.fixture
@@ -98,7 +98,7 @@ def particle_residues(seed, residue_count, particle_count):
     ids = itertools.chain(
         range(residue_count),
         (
-            random_integer(0, residue_count - 1)
+            random_integer(minimum=0, maximum=residue_count - 1)
             for _ in range(particle_count - residue_count)
         ),
     )
@@ -109,7 +109,7 @@ def particle_residues(seed, residue_count, particle_count):
 @pytest.fixture
 def particle_types(seed, particle_count):
     return [
-        random_word(min_length=2, max_length=10).capitalize()
+        random_word(minimum_length=2, maximum_length=10).capitalize()
         for _ in range(particle_count)
     ]
 
@@ -117,7 +117,7 @@ def particle_types(seed, particle_count):
 @pytest.fixture
 def residue_names(seed, residue_count):
     return [
-        random_word(min_length=2, max_length=10).capitalize()
+        random_word(minimum_length=2, maximum_length=10).capitalize()
         for _ in range(residue_count)
     ]
 
@@ -129,30 +129,33 @@ def residue_ids(seed, residue_count):
 
 @pytest.fixture
 def residue_chains(seed, chain_count, residue_count):
-    return sorted(random_integer(0, chain_count - 1) for _ in range(residue_count))
+    return sorted(
+        random_integer(minimum=0, maximum=chain_count - 1) for _ in range(residue_count)
+    )
 
 
 @pytest.fixture
 def box_vectors(seed):
-    a = random_float(min=50.0, max=100.0)
-    b = random_float(min=50.0, max=100.0)
-    c = random_float(min=50.0, max=100.0)
-    alpha = random_float(min=90.0, max=90.0)
-    beta = random_float(min=90.0, max=90.0)
-    gamma = random_float(min=90.0, max=90.0)
+    a = random_float(minimum=50.0, maximum=100.0)
+    b = random_float(minimum=50.0, maximum=100.0)
+    c = random_float(minimum=50.0, maximum=100.0)
+    alpha = random_float(minimum=90.0, maximum=90.0)
+    beta = random_float(minimum=90.0, maximum=90.0)
+    gamma = random_float(minimum=90.0, maximum=90.0)
     return cellpar_to_cell([a, b, c, alpha, beta, gamma])
 
 
 @pytest.fixture
 def chain_names(seed, chain_count):
     return [
-        random_word(min_length=1, max_length=2).capitalize() for _ in range(chain_count)
+        random_word(minimum_length=1, maximum_length=2).capitalize()
+        for _ in range(chain_count)
     ]
 
 
 @pytest.fixture
 def potential_energy(seed):
-    return random_float(min=-100.0, max=100.0)
+    return random_float(minimum=-100.0, maximum=100.0)
 
 
 @pytest.fixture
@@ -170,8 +173,8 @@ def bond_pairs(seed, bond_count, particle_count):
         bonds = []
         while len(bonds) < bond_count:
             bond = (
-                random_integer(max=particle_count - 1),
-                random_integer(max=particle_count - 1),
+                random_integer(maximum=particle_count - 1),
+                random_integer(maximum=particle_count - 1),
             )
             if bond[0] == bond[1]:
                 continue

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from _pytest.python_api import ApproxBase
 
-from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE, ConstantCalculator
+from narupatools.ase import ASEDynamics, ConstantCalculator, NullCalculator, UnitsASE
 from narupatools.ase._rotational_velocity_verlet import (
     RotationalVelocityVerletIntegrator,
 )
@@ -13,12 +13,9 @@ from narupatools.core import UnitsNarupa
 from narupatools.core.random import random_float, random_integer
 from narupatools.imd import rigidmotion_interaction
 from narupatools.physics.quaternion import from_rotation_vector, quaternion
-from narupatools.physics.random import (
-    random_unit_quaternion,
-    random_vector,
-)
+from narupatools.physics.random import random_unit_quaternion, random_vector
 from narupatools.physics.transformation import Rotation
-from narupatools.physics.vector import vector, normalized
+from narupatools.physics.vector import normalized, vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 
@@ -53,24 +50,24 @@ def velocity(seed):
 
 @pytest.fixture
 def timestep(seed):
-    return random_float(min=0.001, max=0.01)
+    return random_float(minimum=0.001, maximum=0.01)
 
 
 @pytest.fixture
 def nsteps(seed):
-    return random_integer(min=10, max=500)
+    return random_integer(minimum=10, maximum=500)
 
 
 @pytest.fixture
 def mass(seed, single_carbon_atoms):
-    mass = np.array([random_float(min=0.01, max=1.0)])
+    mass = np.array([random_float(minimum=0.01, maximum=1.0)])
     ASESystem(single_carbon_atoms).masses = mass
     return mass
 
 
 @pytest.fixture
 def symmetric_inertia(seed, single_carbon_atoms):
-    inertia = np.array([random_float(min=0.01, max=1.0)])
+    inertia = np.array([random_float(minimum=0.01, maximum=1.0)])
     ASESystem(single_carbon_atoms).moments_of_inertia = inertia
     return inertia
 
@@ -110,7 +107,7 @@ class ApproxQuaternionArray(ApproxBase):
                 yield quat_actual.components[i], quat_expected.components[i]
 
 
-def approx(obj, rel=None, abs=None):
+def approx(obj, rel=None, abs=None):  # noqa: A002
     if obj.dtype == quaternion:
         return ApproxQuaternionArray(obj, rel, abs)
     else:
@@ -194,7 +191,7 @@ def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
         rigidmotion_interaction(particles=[0], scale=100.0, rotation=rotation)
     )
 
-    for i in range(100):
+    for _ in range(100):
         print(Rotation(dynamics.orientations[0]))
         print(dynamics.torques[0])
         dynamics.run(5)

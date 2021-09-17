@@ -34,8 +34,10 @@ def to_property(converter: Callable[[Any], _TValue]) -> Callable[[Callable], _TV
         def _get(self: Any) -> _TValue:
             try:
                 return getattr(self, private_name)  # type: ignore[no-any-return]
-            except AttributeError:
-                raise AttributeError(f"Property {public_name} of {self} has no value.")
+            except AttributeError as e:
+                raise AttributeError(
+                    f"Property {public_name} of {self} has no value."
+                ) from e
 
         def _set(self: Any, value: Any) -> None:
             value = converter(value)

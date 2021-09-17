@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Sequence, Union, overload, List
+from typing import List, Sequence, Union, overload
 
 import numpy as np
 from simtk.openmm.vec3 import Vec3

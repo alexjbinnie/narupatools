@@ -26,8 +26,8 @@ from typing import Iterable, Optional, Sequence, Type, TypeVar, Union
 import numpy as np
 from infinite_sets import InfiniteSet
 from narupa.trajectory.frame_data import FrameData
-from simtk.openmm.app import Element, Simulation, Topology
 from simtk.openmm import Context, State, System
+from simtk.openmm.app import Element, Simulation, Topology
 
 from narupatools.core.units import UnitsNarupa
 from narupatools.frame._converter import FrameConverter
@@ -53,6 +53,7 @@ from narupatools.frame.fields import (
     ResidueNames,
 )
 from narupatools.openmm._units import UnitsOpenMM
+from narupatools.override import override
 from narupatools.physics.typing import ScalarArray
 
 DEFAULT_OPENMM_STATE_PROPERTIES = frozenset((ParticlePositions.key, BoxVectors.key))
@@ -75,7 +76,7 @@ DEFAULT_OPENMM_TOPOLOGY_PROPERTIES = frozenset(
 )
 
 DEFAULT_OPENMM_SIMULATION_PROPERTIES = frozenset(
-    DEFAULT_OPENMM_TOPOLOGY_PROPERTIES | DEFAULT_OPENMM_TOPOLOGY_PROPERTIES
+    DEFAULT_OPENMM_STATE_PROPERTIES | DEFAULT_OPENMM_TOPOLOGY_PROPERTIES
 )
 
 OpenMMToNarupa = UnitsOpenMM >> UnitsNarupa
@@ -87,30 +88,37 @@ class OpenMMConverter(FrameConverter):
     """Frame converter for the OpenMM package."""
 
     @classmethod
+    @override
     def convert_to_frame(  # noqa:D102
-        cls, object: _TType, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls,
+        object_: _TType,
+        /,
+        *,
+        fields: InfiniteSet[str],
+        existing: Optional[FrameData],
     ) -> FrameData:
-        if isinstance(object, Context):
-            return openmm_context_to_frame(object, fields=fields, existing=existing)
-        if isinstance(object, State):
-            return openmm_state_to_frame(object, fields=fields, existing=existing)
-        if isinstance(object, Topology):
-            return openmm_topology_to_frame(object, fields=fields, existing=existing)
-        if isinstance(object, Simulation):
-            return openmm_simulation_to_frame(object, fields=fields, existing=existing)
-        raise NotImplementedError()
+        if isinstance(object_, Context):
+            return openmm_context_to_frame(object_, fields=fields, existing=existing)
+        if isinstance(object_, State):
+            return openmm_state_to_frame(object_, fields=fields, existing=existing)
+        if isinstance(object_, Topology):
+            return openmm_topology_to_frame(object_, fields=fields, existing=existing)
+        if isinstance(object_, Simulation):
+            return openmm_simulation_to_frame(object_, fields=fields, existing=existing)
+        raise NotImplementedError
 
     @classmethod
+    @override
     def convert_from_frame(  # noqa:D102
         cls,
         frame: FrameData,
-        type: Union[Type[_TType], _TType],
+        destination: Union[Type[_TType], _TType],
         *,
         fields: InfiniteSet[str],
     ) -> _TType:
-        if type == Topology:
+        if destination == Topology:
             return frame_to_openmm_topology(frame)  # type: ignore
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 def frame_to_openmm_system(frame: FrameData, /) -> System:

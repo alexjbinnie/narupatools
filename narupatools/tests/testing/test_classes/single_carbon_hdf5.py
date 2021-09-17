@@ -31,7 +31,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
     @pytest.fixture
     @abstractmethod
     def dynamics(self) -> InteractiveSimulationDynamics:  # noqa: PT004
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def test_hdf5_writer(self, dynamics, hdf5_filename):
         writer = add_hdf5_writer(
@@ -180,7 +180,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         assert len(traj2.interactions) == 1
 
         assert traj1.interactions[key].frame_range == range(25, 51)
-        assert traj2.interactions[key].frame_range == range(0, 26)
+        assert traj2.interactions[key].frame_range == range(26)
 
         assert traj1.times[0] == pytest.approx(0.0)
         assert traj2.times[0] == pytest.approx(0.0)

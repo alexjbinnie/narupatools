@@ -21,6 +21,7 @@ import numpy as np
 from ase import Atom, Atoms
 
 from narupatools.ase.calculators._calculator import Calculator
+from narupatools.override import override
 from narupatools.physics.typing import Vector3
 
 
@@ -29,6 +30,7 @@ class OneBodyPotentialCalculator(Calculator, metaclass=ABCMeta):
 
     implemented_properties = ["forces", "energy"]
 
+    @override
     def _calculate(self, atoms: Atoms, **kwargs: Any) -> None:  # noqa: D102
         forces = np.zeros((len(atoms), 3))
         energy = 0.0

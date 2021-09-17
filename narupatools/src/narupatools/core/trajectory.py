@@ -23,7 +23,8 @@ from narupa.trajectory import FrameData
 
 from narupatools.frame._frame_source import FrameSource
 
-from .playable import Playable
+from ._playable import Playable
+from ..override import override
 
 
 class TrajectoryPlayback(Playable, FrameSource, metaclass=ABCMeta):
@@ -56,9 +57,9 @@ class TrajectoryPlayback(Playable, FrameSource, metaclass=ABCMeta):
     @abstractmethod
     def _trajectory_length(self) -> int:
         """Length of the trajectory."""
-        pass
 
     @abstractmethod
+    @override
     def get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         """
         Get the `FrameData` representing the current frame of the trajectory.
@@ -66,7 +67,6 @@ class TrajectoryPlayback(Playable, FrameSource, metaclass=ABCMeta):
         :param fields: Collection of fields to include in the `FrameData`.
         :return: A Narupa `FrameData` representing the current frame of the trajectory.
         """
-        pass
 
     @property
     def index(self) -> int:
@@ -79,6 +79,7 @@ class TrajectoryPlayback(Playable, FrameSource, metaclass=ABCMeta):
             raise IndexError(f"Cannot set trajectory index {value}")
         self._index = value
 
+    @override
     def _advance(self) -> bool:
         self._index += 1
         if self._index >= self._trajectory_length():
@@ -89,5 +90,6 @@ class TrajectoryPlayback(Playable, FrameSource, metaclass=ABCMeta):
                 return False
         return True
 
+    @override
     def _restart(self) -> None:
         self._index = 0

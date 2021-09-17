@@ -100,7 +100,7 @@ class NarupaFrame(FrameData):
             return k.get(self)
         try:
             return get_frame_key(k).get(self)
-        except KeyError:
+        except KeyError as e:
             if k in self.raw.values:
                 return value_to_object(self.raw.values[k])
             if k in self.raw.arrays:
@@ -112,7 +112,7 @@ class NarupaFrame(FrameData):
                     return np.array(arr.ListFields()[0][1].values, dtype=float)
                 elif self.raw.arrays[k].HasField("string_values"):
                     return np.array(arr.ListFields()[0][1].values, dtype=object)
-            raise KeyError
+            raise KeyError from e
 
     def __len__(self) -> int:
         return len(self.raw.values) + len(self.raw.arrays)

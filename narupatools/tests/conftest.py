@@ -125,13 +125,12 @@ def villin_ase_atoms(villin_ase_atoms_readonly) -> Atoms:
 def villin_ase_langevin_dynamics(villin_ase_atoms) -> Langevin:
     atoms = villin_ase_atoms.copy()
     atoms.set_calculator(NullCalculator())
-    dynamics = Langevin(
+    return Langevin(
         atoms,
         timestep=0.005 * (1e-12 * second),
         friction=1.0 / (1e-12 * second),
         temperature_K=300,
     )
-    return dynamics
 
 
 @pytest.fixture

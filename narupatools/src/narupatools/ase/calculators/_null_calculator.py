@@ -21,6 +21,7 @@ from ase import Atoms
 from ase.calculators.calculator import all_changes
 
 from ._calculator import Calculator
+from ...override import override
 
 
 class NullCalculator(Calculator):
@@ -30,5 +31,6 @@ class NullCalculator(Calculator):
 
     implemented_properties = ["forces", "energy"]
 
+    @override
     def _calculate(self, atoms: Atoms, **kwargs: Any) -> None:  # noqa: D102
         self.results = {"forces": np.zeros((len(atoms), 3)), "energy": 0.0}

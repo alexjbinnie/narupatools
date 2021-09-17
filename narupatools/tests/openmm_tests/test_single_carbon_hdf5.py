@@ -59,5 +59,4 @@ class TestASEOpenMMSingleCarbonHDF5(SingleCarbonHDF5Tests):
             temperature_K=300,
             friction=0.01 / _NarupaToASE.time,
         )
-        dynamics = ASEDynamics(langevin)
-        return dynamics
+        return ASEDynamics(langevin)

@@ -15,9 +15,6 @@ def test_maxwell_boltzmann_mean():
 
     velocities = maxwell_boltzmann_velocities(masses=masses, temperature=temperature)
 
-    print(np.linalg.norm(velocities, axis=1).mean())
-    print(np.sqrt(8 * boltzmann_constant * temperature / (math.pi * mass)))
-
     assert np.linalg.norm(velocities, axis=1).mean() == pytest.approx(
         np.sqrt(8 * boltzmann_constant * temperature / (math.pi * mass)), rel=1e-2
     )
@@ -35,7 +32,5 @@ def test_maxwell_boltzmann_kinetic_energy():
         )
         ** 2
     ).mean()
-    print(ke)
-    print(1.5 * boltzmann_constant * temperature)
 
-    assert ke == pytest.approx(1.5 * boltzmann_constant * temperature, rel=1e-3)
+    assert ke == pytest.approx(1.5 * boltzmann_constant * temperature, rel=1e-2)

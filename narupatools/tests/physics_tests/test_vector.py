@@ -47,7 +47,8 @@ def vec3(seed):
 @pytest.fixture
 def vec3_list(seed):
     return [
-        random_vector(max_magnitude=100.0) for i in range(random_integer(min=5, max=50))
+        random_vector(max_magnitude=100.0)
+        for _ in range(random_integer(minimum=5, maximum=50))
     ]
 
 
@@ -63,7 +64,7 @@ def quat(seed):
 
 @pytest.fixture
 def quat_list(seed):
-    return [random_quaternion() for i in range(random_integer(min=5, max=50))]
+    return [random_quaternion() for _ in range(random_integer(minimum=5, maximum=50))]
 
 
 @pytest.fixture

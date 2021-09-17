@@ -25,6 +25,7 @@ from threading import Lock
 from typing import Generator, Literal, Optional, Union, overload
 
 from .health_check import HealthCheck
+from ..override import override
 
 
 class PlayableAlreadyRunningError(RuntimeError):
@@ -139,7 +140,7 @@ class Playable(HealthCheck, metaclass=ABCMeta):
         else:
             self.run(block=False)
 
-    def pause(self, wait: bool = True) -> None:
+    def pause(self, *, wait: bool = True) -> None:
         """
         Pause this object if it is running.
 
@@ -155,7 +156,7 @@ class Playable(HealthCheck, metaclass=ABCMeta):
             else:
                 self._paused = True
 
-    def stop(self, wait: bool = True) -> None:
+    def stop(self, *, wait: bool = True) -> None:
         """
         Stop the object if it is running.
 
@@ -179,27 +180,27 @@ class Playable(HealthCheck, metaclass=ABCMeta):
             self._advance()
             self._paused = True
 
-    def start(self, block: bool = True) -> None:
+    def start(self, *, block: bool = True) -> None:
         """
         An alias for run().
 
         :param block: Should this block?
         """
-        self.run(block)
+        self.run(block=block)
 
     @overload
-    def run(self, block: Literal[True]) -> bool:
+    def run(self, *, block: Literal[True]) -> bool:
         ...
 
     @overload
-    def run(self, block: Literal[False]) -> Future[bool]:
+    def run(self, *, block: Literal[False]) -> Future[bool]:
         ...
 
     @overload
-    def run(self, block: bool) -> Union[bool, Future[bool]]:
+    def run(self, *, block: bool) -> Union[bool, Future[bool]]:
         ...
 
-    def run(self, block: bool = True) -> Union[bool, Future[bool]]:
+    def run(self, *, block: bool = True) -> Union[bool, Future[bool]]:
         """
         Run this object, potentially in a background thread.
 
@@ -213,7 +214,7 @@ class Playable(HealthCheck, metaclass=ABCMeta):
                   with the same result.
         """
         if self.is_running:
-            raise PlayableAlreadyRunningError()
+            raise PlayableAlreadyRunningError
         if block:
             return self._run()
         else:
@@ -252,5 +253,6 @@ class Playable(HealthCheck, metaclass=ABCMeta):
     def _restart(self) -> None:
         ...
 
+    @override
     def health_check(self) -> None:  # noqa: D102
         HealthCheck.check_task(self._run_task)

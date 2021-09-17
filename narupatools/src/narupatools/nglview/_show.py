@@ -56,7 +56,7 @@ def show_narupa(frame_data: FrameData, /, **kwargs: Any) -> NGLWidget:
     return NGLWidget(structure, **kwargs)
 
 
-def show_narupatools_traj(source: TrajectorySource, /, **kwargs: Any) -> NGLWidget:
+def show_trajectory(source: TrajectorySource, /, **kwargs: Any) -> NGLWidget:
     """
     Open a NGLWidget showing the given narupatools `TrajectorySource`.
 

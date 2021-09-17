@@ -8,7 +8,7 @@ from narupatools.frame import NarupaFrame, convert
 from narupatools.frame.fields import BondPairs, FrameKey
 
 
-def check_equal(property, original, new):
+def check_equal(field, original, new):
     if property is BondPairs:
         assert np.array_equiv(np.sort(original, axis=0), np.sort(new, axis=0))
     elif isinstance(original, float) or (
@@ -36,22 +36,22 @@ class BaseTestConverter(metaclass=ABCMeta):
     def test_round_trip(self, frame):
         topology = convert(frame, self.object_type)
         frame_conv = convert(topology, NarupaFrame)
-        for property in self.frame_to_object_fields & self.object_to_frame_fields:
-            assert property.key in frame_conv
+        for field in self.frame_to_object_fields & self.object_to_frame_fields:
+            assert field.key in frame_conv
 
-            original = property.get(frame)
-            new = property.get(frame_conv)
+            original = field.get(frame)
+            new = field.get(frame_conv)
 
-            check_equal(property, original, new)
+            check_equal(field, original, new)
 
     def test_minimal(self, make_frame):
         frame = make_frame(self.minimal_fields)
         topology = convert(frame, self.object_type)
         frame_conv = convert(topology, NarupaFrame)
-        for property in self.minimal_fields:
-            assert property.key in frame_conv
+        for field in self.minimal_fields:
+            assert field.key in frame_conv
 
-            original = property.get(frame)
-            new = property.get(frame_conv)
+            original = field.get(frame)
+            new = field.get(frame_conv)
 
-            check_equal(property, original, new)
+            check_equal(field, original, new)

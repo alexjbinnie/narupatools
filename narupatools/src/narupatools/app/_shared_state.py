@@ -38,7 +38,6 @@ class OnSharedStateAddedCallback(Protocol):
         :param token: Access token used to add this item.
         :param time_added: Real time that this key was added.
         """
-        pass
 
 
 class OnSharedStateChangedCallback(Protocol):
@@ -52,7 +51,6 @@ class OnSharedStateChangedCallback(Protocol):
         :param token: Access token that is modifying this item.
         :param time_updated: Real time that this key was updated.
         """
-        pass
 
 
 class OnSharedStateRemovedCallback(Protocol):
@@ -66,7 +64,6 @@ class OnSharedStateRemovedCallback(Protocol):
         :param token: Access token that is deleting this item.
         :param time_deleted: Real time that this key was deleted.
         """
-        pass
 
 
 class SessionSharedState(SharedStateDictionaryView):
@@ -96,7 +93,7 @@ class SessionSharedState(SharedStateDictionaryView):
         """Callback when an item is removed from the shared state."""
         return self._on_removed
 
-    def on_dictionary_update(
+    def _on_dictionary_update(
         self, *, access_token: Optional[str], change: DictionaryChange
     ) -> None:
         """

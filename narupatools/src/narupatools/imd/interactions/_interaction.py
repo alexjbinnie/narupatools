@@ -17,12 +17,12 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Generic, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
 import numpy as np
 
 from narupatools.core.dynamics import DynamicsProperties
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._interactiondata import InteractionData, InteractionFeedback
 from narupatools.physics.typing import Vector3Array
 
 _TInteractionData = TypeVar("_TInteractionData", bound=InteractionData)
@@ -68,10 +68,10 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
     @classmethod
     def register_interaction_type(
-        cls, interaction_type: str, type: Type[Interaction]
+        cls, interaction_type: str, python_type: Type[Interaction], /
     ) -> None:
         """Register a new type of interaction."""
-        cls._types[interaction_type] = type
+        cls._types[interaction_type] = python_type
 
     @classmethod
     def _get_class(cls, interaction_type: str) -> Type[Interaction]:
@@ -95,10 +95,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         :param interaction: Initial interaction parameters.
         :return: Interaction instance.
         """
-        instance = cls._get_class(interaction.interaction_type)(
+        return cls._get_class(interaction.interaction_type)(
             key=key, dynamics=dynamics, start_time=start_time, interaction=interaction
         )
-        return instance
 
     def update(self, interaction: _TInteractionData) -> None:
         """Update the interaction based on new data."""
@@ -200,6 +199,14 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         self._previous_positions = _current_positions
 
+    def _get_feedback(self) -> InteractionFeedback:
+        feedback = InteractionFeedback()
+        feedback.interaction_type = self.interaction_type
+        feedback.work = self._total_work
+        feedback.potential_energy = self.potential_energy
+        return feedback
+
+
     @abstractmethod
     def calculate_forces_and_energy(self) -> None:
         """
@@ -207,4 +214,3 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         Overriding this allows a subclass to implement features such as caching.
         """
-        pass

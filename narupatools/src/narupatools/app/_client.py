@@ -34,6 +34,7 @@ from narupatools.state.view._wrappers import SharedStateClientWrapper
 
 from ._session import Session
 from ._shared_state import SessionSharedState
+from ..override import override
 
 
 class OnFrameReceivedCallback(Protocol):
@@ -45,24 +46,34 @@ class OnFrameReceivedCallback(Protocol):
 
 class Client(NarupaImdClient):
     """
-    An extension of NarupaImdClient with more features.
+    An extension of the standard Narupa python client with more features.
 
-    These features include:
+    These additional features include:
 
-    * Callback for when a frame is received.
-    * Exposing the shared state through the narupatools shared state API.
-    * Fixing a bug where the client connects to frames before it has defined the
-      needed variables to store them.
-
+    * A callback :obj:`on_frame_received` which is invoked each time a new frame is received.
+    * A :obj:`shared_state` field which exposes the shared state through the narupatools shared state API.
+    * Allows interactions to be started using a narupatools :obj:`InteractionData` object in addition to
+      the :obj:`ParticleInteraction` object.
+    * Fixes a bug where the client starts receiving frames before it has finished setting up the necessary
+      variables to store them.
     """
 
     _on_frame_received_event: Event[OnFrameReceivedCallback]
 
     def __init__(self, **kwargs: Any) -> None:
         """
-        Create a client.
+        Create a new :obj:`Client`.
 
-        :param kwargs: Keyword arguments to pass to NarupaImdClient.
+        It is recommended to use the class methods :obj:`connect_to_session` and
+        :obj:`connect_to_server` to create a new client, rather than using this constructor directly::
+
+            with Client.connect_to_session(session) as client:
+                ...
+
+            with Client.connect_to_server(address="localhost", port=38801) as client:
+                ...
+
+        :param kwargs: Keyword arguments to pass to :obj:`NarupaImdClient`.
         """
         self._on_frame_received_event = Event()
 
@@ -71,12 +82,12 @@ class Client(NarupaImdClient):
         super().__init__(**kwargs)
 
         self._multiplayer_client._state.content_updated.add_callback(  # type: ignore
-            self._shared_state.on_dictionary_update
+            self._shared_state._on_dictionary_update
         )
 
     @property
     def shared_state(self) -> SessionSharedState:
-        """Shared state of the client."""
+        """Shared state as currently seen by the client."""
         return self._shared_state
 
     @property
@@ -84,6 +95,7 @@ class Client(NarupaImdClient):
         """Event triggered when a frame is received by the client."""
         return self._on_frame_received_event
 
+    @override
     def _on_frame_received(self, frame_index: int, frame: FrameData) -> None:
         changes = frame.array_keys | frame.value_keys
         super()._on_frame_received(frame_index, frame)
@@ -93,10 +105,14 @@ class Client(NarupaImdClient):
     @contextmanager
     def connect_to_session(cls, session: Session, /) -> Generator[Client, None, None]:
         """
-        Connect to a session.
+        Create a new client and connect to the provided session.
+
+        This is for when the session and the client are both running on the same computer. The
+        connection will still go through the gRPC channels, as this method purely uses the
+        provided session to get its address and port.
 
         :param session: Session that is running.
-        :yields: Client connected to the given session.
+        :yields: New :obj:`Client` which is connected to the given session.
         """
         with cls.connect_to_server(address="localhost", port=session.port) as client:
             yield client
@@ -107,11 +123,11 @@ class Client(NarupaImdClient):
         cls, *, address: Optional[str] = None, port: Optional[int] = None
     ) -> Generator[Client, None, None]:
         """
-        Connect to a server.
+        Connect to a server with the given address and port.
 
         :param address: Address to connect to, or None to use the default.
         :param port: Port to connect to, or None to use the default.
-        :yield: Client connected to all available services on the server at the given
+        :yield: New :obj:`Client` connected to all available services on the server at the given
                  destination.
         """
         address = address or DEFAULT_CONNECT_ADDRESS
@@ -122,20 +138,19 @@ class Client(NarupaImdClient):
         ) as client:
             yield client
 
+    @override
     def start_interaction(
         self, interaction: Optional[Union[InteractionData, ParticleInteraction]] = None
     ) -> str:
         """
         Start an interaction with the IMD server.
 
-        This method can take either ParticleInteraction (narupa representation of an interaction)
-        or InteractionData (narupatools representation).
+        This method can take either a :obj:`ParticleInteraction` (narupa representation of an interaction)
+        or :obj:`InteractionData` (narupatools representation), with :obj:`InteractionData` being designed
+        to support a wider range of interaction types.
 
-        :param interaction: An optional :class: ParticleInteraction with which
-            to begin.
-        :return: The unique interaction ID of this interaction, which can be
-            used to update the interaction with
-            :func:`~NarupaClient.update_interaction`.
+        :param interaction: Initial interaction data.
+        :return: Unique interaction ID generated for this interaction.
         """
         if isinstance(interaction, InteractionData):
             interaction = dict_to_interaction(interaction.serialize())

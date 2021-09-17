@@ -345,8 +345,8 @@ class UnitSystem:
     def __getattr__(self, name: str) -> Unit:
         try:
             return self._units[name]
-        except KeyError:
-            raise AttributeError
+        except KeyError as e:
+            raise AttributeError from e
 
 
 UnitsNarupa = UnitSystem(

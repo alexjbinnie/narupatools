@@ -27,6 +27,7 @@ from narupa.trajectory.frame_data import FrameData
 from narupatools.frame._converter import frame_to_pdb_string
 from narupatools.frame._frame_source import FrameSource, TrajectorySource
 from narupatools.frame.fields import ParticlePositions
+from narupatools.override import override
 from narupatools.physics.typing import Vector3Array
 
 
@@ -37,6 +38,7 @@ class ASEStructure(nglview.Structure):
         super().__init__()
         self.atoms = atoms
 
+    @override
     def get_structure_string(self) -> str:
         """Create a PDB string so NGLView can read in the structure."""
         file = StringIO("")
@@ -51,6 +53,7 @@ class FrameDataStructure(nglview.Structure):
         super().__init__()
         self.frame = frame
 
+    @override
     def get_structure_string(self) -> str:
         """Create a PDB string so NGLView can read in the structure."""
         return frame_to_pdb_string(self.frame)
@@ -63,6 +66,7 @@ class NarupaToolsFrame(nglview.Structure):
         super().__init__()
         self.frame = frame
 
+    @override
     def get_structure_string(self) -> str:  # noqa: D102
         frame = self.frame.get_frame(fields=everything())
         return frame_to_pdb_string(frame)
@@ -76,15 +80,17 @@ class NarupaToolsTrajectory(nglview.Trajectory, nglview.Structure):
         super(nglview.Trajectory, self).__init__()
         self.trajectory = trajectory
 
+    @override
     def get_coordinates(self, index: int) -> Vector3Array:  # noqa: D102
         frame = self.trajectory.get_frame(index=index, fields={ParticlePositions.key})
-        positions = ParticlePositions.get(frame) * 10.0
-        return positions
+        return ParticlePositions.get(frame) * 10.0
 
+    @override
     @property
     def n_frames(self) -> int:  # noqa: D102
         return len(self.trajectory)
 
+    @override
     def get_structure_string(self) -> str:  # noqa: D102
         frame = self.trajectory.get_frame(index=0, fields=everything())
         return frame_to_pdb_string(frame)

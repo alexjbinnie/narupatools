@@ -29,13 +29,15 @@ from narupatools.physics.vector import vector
 class Region:
     """Region defined in a LAMMPS simulation."""
 
-    def __init__(self, simulation: Any, id: str, specification: RegionSpecification):
+    def __init__(
+        self, simulation: Any, region_id: str, specification: RegionSpecification
+    ):
         self._simulation = simulation
-        self._id = id
+        self._id = region_id
         self._specification = specification
 
     @property
-    def id(self) -> str:
+    def region_id(self) -> str:
         """ID of this region."""
         return self._id
 
@@ -52,7 +54,6 @@ class RegionSpecification(metaclass=ABCMeta):
     @abstractmethod
     def style(self) -> str:
         """Style of the region."""
-        pass
 
     @abstractmethod
     def args(self, conversion: UnitConversion) -> str:
@@ -62,7 +63,6 @@ class RegionSpecification(metaclass=ABCMeta):
         :param conversion: Unit conversion from Narupa to the units of the given
                            simulation.
         """
-        pass
 
 
 class Box(RegionSpecification):

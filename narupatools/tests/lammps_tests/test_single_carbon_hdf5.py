@@ -64,7 +64,6 @@ class TestASELAMMPSSingleCarbonHF5(SingleCarbonHDF5Tests):
     @pytest.fixture
     def dynamics(self, single_carbon_simulation):
         atoms = atoms_from_lammps_simulation(single_carbon_simulation)
-        dynamics = ASEDynamics.create_langevin(
+        return ASEDynamics.create_langevin(
             atoms, friction=0.01, timestep=0.01, temperature=300
         )
-        return dynamics

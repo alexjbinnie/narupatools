@@ -38,7 +38,8 @@ from narupatools.frame.fields import (
 from narupatools.physics.quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array
 
-from .playable import Playable
+from ._playable import Playable
+from ..override import override
 
 
 class OnResetCallback(Protocol):
@@ -68,25 +69,37 @@ class DynamicsProperties(Protocol):
     @property
     def positions(self) -> Vector3Array:
         """Positions of particles in nanometers."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
     def velocities(self) -> Vector3Array:
         """Velocities of particles in nanometers per picosecond."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
     def forces(self) -> Vector3Array:
         """Forces on particles in kilojoules per mole per nanometer."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
     def masses(self) -> ScalarArray:
         """Masses of particles in daltons."""
-        raise AttributeError()
+        raise AttributeError
+
+    @property
+    def kinetic_energy(self) -> float:
+        """Kinetic energy in kilojoules per mole."""
+        raise AttributeError
+
+    @property
+    def potential_energy(self) -> float:
+        """Potential energy in kilojoules per mole."""
+        raise AttributeError
 
 
 class SimulationRotationProperties:
+    """Mixin for defining common rotation properties."""
+
     @property
     def orientations(self) -> npt.NDArray[quaternion]:
         """Orientations of each atom as unit quaternions."""
@@ -106,6 +119,7 @@ class SimulationRotationProperties:
     def angular_velocities(self) -> Vector3Array:
         """
         Angular velocity of each particle abouts its center of mass.
+
         :return: Array of angular velocities in radians per picoseconds.
         """
         raise AttributeError
@@ -114,6 +128,7 @@ class SimulationRotationProperties:
     def torques(self) -> Vector3Array:
         """
         Torques on each particle abouts its center of mass.
+
         :return: Array of torques in kilojoules per mole.
         """
         raise AttributeError
@@ -123,7 +138,8 @@ class SimulationRotationProperties:
         """
         Moments of inertia for each particle abouts its origin in its local frame.
 
-        :return:
+        :return: Array of moments of inertia, either scalars (for symmetric shapes) or
+                 3-vectors.
         """
         raise AttributeError
 
@@ -199,6 +215,7 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         """
         super().restart()
 
+    @override
     def _restart(self) -> None:
         self._previous_total_time += self.elapsed_time
         self._previous_total_steps += self.elapsed_steps
@@ -207,8 +224,9 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         self._reset_internal()
         self._on_reset.invoke()
 
+    @override
     def run(  # type: ignore
-        self, steps: Optional[int] = None, block: Optional[bool] = None
+        self, *, steps: Optional[int] = None, block: Optional[bool] = None
     ) -> Union[bool, Future[bool]]:
         """
         Run the dynamics.
@@ -227,8 +245,9 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         if block is None:
             block = steps is not None
         self._remaining_steps = steps
-        return super().run(block)
+        return super().run(block=block)
 
+    @override
     def _advance(self) -> bool:
         self._on_pre_step.invoke()
         self._step_internal()
@@ -244,12 +263,12 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
     @abstractmethod
     def _step_internal(self) -> None:
         """Step the dynamics forward by a single timestep."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def _reset_internal(self) -> None:
         """Reset the simulation to its initial state."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def elapsed_time(self) -> float:
@@ -295,7 +314,7 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
 
         :raises AttributeError: Cannot get the current time step for this dynamics.
         """
-        raise AttributeError()
+        raise AttributeError
 
     @property
     def temperature(self) -> float:
@@ -304,12 +323,13 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
 
         :raises AttributeError: Temperature is not defined for this dynamics.
         """
-        raise AttributeError()
+        raise AttributeError
 
     @abstractmethod
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         pass
 
+    @override
     def get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         """
         Get the current state of the system as a Narupa `FrameData`.
@@ -325,31 +345,37 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         return frame
 
     @property
+    @override
     def positions(self) -> Vector3Array:
         """Positions of particles in nanometers."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
+    @override
     def velocities(self) -> Vector3Array:
         """Velocities of particles in nanometers per picosecond."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
+    @override
     def forces(self) -> Vector3Array:
         """Forces on particles in kilojoules per mole per nanometer."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
+    @override
     def masses(self) -> ScalarArray:
         """Masses of particles in daltons."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
+    @override
     def kinetic_energy(self) -> float:
         """Kinetic energy in kilojoules per mole."""
-        raise AttributeError()
+        raise AttributeError
 
     @property
+    @override
     def potential_energy(self) -> float:
         """Potential energy in kilojoules per mole."""
-        raise AttributeError()
+        raise AttributeError

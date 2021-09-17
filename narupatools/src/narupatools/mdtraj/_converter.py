@@ -39,6 +39,7 @@ from narupatools.frame.fields import (
     ResidueNames,
 )
 from narupatools.mdtraj._units import UnitsMDTraj
+from narupatools.override import override
 
 MDTRAJ_PROPERTIES = frozenset(
     (
@@ -66,24 +67,31 @@ class MDTrajConverter(FrameConverter):
     """FrameConverter for the mdtraj package."""
 
     @classmethod
+    @override
     def convert_to_frame(  # noqa: D102
-        cls, object: _TType, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls,
+        object_: _TType,
+        /,
+        *,
+        fields: InfiniteSet[str],
+        existing: Optional[FrameData],
     ) -> FrameData:
-        if isinstance(object, Trajectory):
-            return mdtraj_trajectory_to_frame(object, fields=fields, frame=existing)
-        if isinstance(object, Topology):
-            return mdtraj_topology_to_frame(object, fields=fields, frame=existing)
-        raise NotImplementedError()
+        if isinstance(object_, Trajectory):
+            return mdtraj_trajectory_to_frame(object_, fields=fields, frame=existing)
+        if isinstance(object_, Topology):
+            return mdtraj_topology_to_frame(object_, fields=fields, frame=existing)
+        raise NotImplementedError
 
     @classmethod
+    @override
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
-        type: Union[Type[_TType], _TType],
+        destination: Union[Type[_TType], _TType],
         *,
         fields: InfiniteSet[str],
     ) -> _TType:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 def mdtraj_trajectory_to_frame(

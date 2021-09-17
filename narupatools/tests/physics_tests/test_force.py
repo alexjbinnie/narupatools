@@ -31,17 +31,17 @@ def offset(seed):
 
 @pytest.fixture
 def spring_constant(seed):
-    return random_float(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def depth(seed):
-    return random_float(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def sigma(seed):
-    return random_float(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
@@ -71,22 +71,22 @@ def force(seed):
 
 @pytest.fixture
 def damping_coefficient(seed):
-    return random_float(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def mass(seed):
-    return random_float(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def system_size(seed):
-    return random_integer(1, 10)
+    return random_integer(minimum=1, maximum=10)
 
 
 @pytest.fixture
 def masses(seed, system_size):
-    return [random_float(min=0.0, max=100.0) for _ in range(system_size)]
+    return [random_float(minimum=0.0, maximum=100.0) for _ in range(system_size)]
 
 
 @pytest.fixture

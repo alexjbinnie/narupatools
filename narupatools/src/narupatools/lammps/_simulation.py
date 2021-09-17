@@ -90,22 +90,25 @@ class LAMMPSSimulation:
         self._needs_pre_run = True
 
         self.mass_compute = COMPUTES.AtomProperty(
-            self.__lammps, id="mass", properties=["mass"], type=VariableType.DOUBLE
+            self.__lammps,
+            compute_id="mass",
+            properties=["mass"],
+            datatype=VariableType.DOUBLE,
         )
 
         self._kinetic_energy_compute = COMPUTES.KineticEnergy.create(
-            self.__lammps, id="ke"
+            self.__lammps, compute_id="ke"
         )
 
         self._potential_energy_compute = COMPUTES.ComputeGlobalReference.create(
-            self.__lammps, id="thermo_pe", dimension=VariableDimension.SCALAR
+            self.__lammps, compute_id="thermo_pe", dimension=VariableDimension.SCALAR
         )
 
         self._temperature_compute = COMPUTES.ComputeGlobalReference.create(
-            self.__lammps, id="thermo_temp", dimension=VariableDimension.SCALAR
+            self.__lammps, compute_id="thermo_temp", dimension=VariableDimension.SCALAR
         )
         self._pressure_compute = COMPUTES.ComputeGlobalReference.create(
-            self.__lammps, id="thermo_press", dimension=VariableDimension.SCALAR
+            self.__lammps, compute_id="thermo_press", dimension=VariableDimension.SCALAR
         )
 
         self.atoms = AtomArray(self)
@@ -172,36 +175,35 @@ class LAMMPSSimulation:
             lammps.command("atom_modify map yes")
             lammps.file(filename)
             lammps.command("run 0")
-        simulation = cls(lammps, units)
-        return simulation
+        return cls(lammps, units)
 
     def __len__(self) -> int:
         return self.extract(SETTINGS.NumberAllAtoms)
 
     def gather_atoms(
-        self, property: PROPERTIES.AtomProperty[_TReturnType]
+        self, atom_property: PROPERTIES.AtomProperty[_TReturnType]
     ) -> _TReturnType:
         """
         Gather an atom property from across all processors, and order by Atom ID.
 
-        :param property: The atom property to gather.
+        :param atom_property: The atom property to gather.
         :return: The atom data as a numpy array.
         """
         return self.__lammps.gather_atoms(  # type: ignore[return-value]
-            property.key, property.components
+            atom_property.key, atom_property.components
         )
 
     def scatter_atoms(
-        self, property: PROPERTIES.AtomProperty, value: np.ndarray
+        self, atom_property: PROPERTIES.AtomProperty, value: np.ndarray
     ) -> None:
         """
         Scatter an atom property across all processors.
 
-        :param property: The atom property to scatter.
+        :param atom_property: The atom property to scatter.
         :param value: The value to distribute.
         """
         self.__lammps.scatter_atoms(
-            property.key, property.type, property.components, value
+            atom_property.key, atom_property.datatype, atom_property.components, value
         )
 
     def run(self, steps: int = 1) -> None:
@@ -273,8 +275,8 @@ class LAMMPSSimulation:
                 self.gather_atoms(PROPERTIES.Charge)
                 * self._lammps_to_narupa.charge.value
             )
-        except UnknownAtomPropertyError:
-            raise AttributeError
+        except UnknownAtomPropertyError as e:
+            raise AttributeError from e
 
     @property
     def masses(self) -> npt.NDArray[np.float64]:
@@ -313,9 +315,9 @@ class LAMMPSSimulation:
                 raise AttributeError("orientations not supported for this simulation.")
             self._quat_compute = COMPUTES.AtomProperty(
                 self.__lammps,
-                id="quat",
+                compute_id="quat",
                 properties=["quatw", "quati", "quatj", "quatk"],
-                type=VariableType.DOUBLE,
+                datatype=VariableType.DOUBLE,
             )
         return quaternion.as_quat_array(self._quat_compute.gather())
 
@@ -329,9 +331,9 @@ class LAMMPSSimulation:
                 )
             self._shape_compute = COMPUTES.AtomProperty(
                 self.__lammps,
-                id="shape",
+                compute_id="shape",
                 properties=["shapex", "shapey", "shapez"],
-                type=VariableType.DOUBLE,
+                datatype=VariableType.DOUBLE,
             )
         return self._shape_compute.gather() * self._lammps_to_narupa.length
 
@@ -345,17 +347,18 @@ class LAMMPSSimulation:
                 )
             self._angmom_compute = COMPUTES.AtomProperty(
                 self.__lammps,
-                id="angmom",
+                compute_id="angmom",
                 properties=["angmomx", "angmomy", "angmomz"],
-                type=VariableType.DOUBLE,
+                datatype=VariableType.DOUBLE,
             )
         return self._angmom_compute.gather() * self._lammps_to_narupa.angular_momentum
 
     @property
     def bond_energies(self) -> npt.NDArray[np.float64]:
+        """Get the energy of each bond."""
         if not hasattr(self, "_bond_energy_compute"):
             self._bond_energy_compute = COMPUTES.BondLocal(
-                self.__lammps, id="bond_energy", properties=["engpot"]
+                self.__lammps, compute_id="bond_energy", properties=["engpot"]
             )
         return self._bond_energy_compute.extract() * self._lammps_to_narupa.energy
 
@@ -499,7 +502,7 @@ class LAMMPSSimulation:
             if self.bond_compute is None:
                 self.bond_compute = COMPUTES.LocalProperty(
                     self.__lammps,
-                    id="bonds",
+                    compute_id="bonds",
                     properties=["btype", "batom1", "batom2"],
                 )
             bonds = self.bond_compute.extract()
@@ -531,12 +534,12 @@ class LAMMPSSimulation:
         self._timestep = None
 
     def create_atom(
-        self, *, type: int, position: Vector3, rotation: Optional[Rotation] = None
+        self, *, atom_type: int, position: Vector3, rotation: Optional[Rotation] = None
     ) -> SingleAtomReference:
         """
         Insert an atom into the simulation.
 
-        :param type: Type of the atom to insert.
+        :param atom_type: Type of the atom to insert.
         :param position: Position of the atom in nanometers.
         :param rotation: Initial rotation of the atom.
         """
@@ -562,7 +565,7 @@ class LAMMPSSimulation:
         return self.atoms[int(list(diff)[0])]
 
     def create_region(
-        self, region: RegionSpecification, *, id: Optional[str] = None
+        self, region: RegionSpecification, *, region_id: Optional[str] = None
     ) -> Region:
         """
         Create a region in the simulation.
@@ -571,12 +574,12 @@ class LAMMPSSimulation:
         :param id: Optional id for the region.
         :return: Region object.
         """
-        if id is None:
-            id = self.__lammps.regions.generate_id()
+        if region_id is None:
+            region_id = self.__lammps.regions.generate_id()
         self.command(
-            f"region {id} {region.style} {region.args(self._narupa_to_lammps)}"
+            f"region {region_id} {region.style} {region.args(self._narupa_to_lammps)}"
         )
-        return Region(self, id, region)
+        return Region(self, region_id, region)
 
     def create_box(
         self, n_types: int, region: Union[Region, RegionSpecification]
@@ -592,7 +595,7 @@ class LAMMPSSimulation:
             region = self.create_region(region)
         elif region._simulation is not self:
             raise ValueError("Region does not belong to this simulation!")
-        self.command(f"create_box {n_types} {region.id}")
+        self.command(f"create_box {n_types} {region.region_id}")
 
     def setup_langevin(self, *, temperature: float, friction: float, seed: int) -> None:
         """
@@ -639,9 +642,9 @@ class LAMMPSIndexing:
         self._simulation = simulation
         self.__atom_ids = COMPUTES.AtomProperty(
             simulation._wrapper,
-            id="atomids",
+            compute_id="atomids",
             properties=["id"],
-            type=VariableType.INTEGER,
+            datatype=VariableType.INTEGER,
         )
         self._unordered_to_atom_ids: np.ndarray = np.array([])
         self._ordered_to_unordered: np.ndarray = np.array([])
@@ -692,18 +695,18 @@ class AtomArray:
         self._simulation = simulation
 
     @overload
-    def __getitem__(self, item: int) -> SingleAtomReference:
+    def __getitem__(self, index: int, /) -> SingleAtomReference:
         ...
 
     @overload
-    def __getitem__(self, range: slice) -> AtomRangeReference:
+    def __getitem__(self, index: slice, /) -> AtomRangeReference:
         ...
 
-    def __getitem__(self, range: Union[int, slice]) -> AtomSetReference:
-        if isinstance(range, (int, np.integer)):
-            return SingleAtomReference(self._simulation, int(range))
+    def __getitem__(self, index: Union[int, slice]) -> AtomSetReference:
+        if isinstance(index, (int, np.integer)):
+            return SingleAtomReference(self._simulation, int(index))
         else:
-            return AtomRangeReference(self._simulation, range)
+            return AtomRangeReference(self._simulation, index)
 
 
 class TypeArray:
@@ -713,12 +716,12 @@ class TypeArray:
         self._simulation = simulation
 
     def __getitem__(
-        self, range: Union[int, slice]
+        self, index: Union[int, slice]
     ) -> Union[SingleTypeReference, TypeRangeReference]:
-        if isinstance(range, int):
-            return SingleTypeReference(self._simulation, range)
+        if isinstance(index, int):
+            return SingleTypeReference(self._simulation, index)
         else:
-            return TypeRangeReference(self._simulation, range)
+            return TypeRangeReference(self._simulation, index)
 
 
 class MolArray:
@@ -728,12 +731,12 @@ class MolArray:
         self._simulation = simulation
 
     def __getitem__(
-        self, range: Union[int, slice]
+        self, index: Union[int, slice]
     ) -> Union[SingleMolReference, MolRangeReference]:
-        if isinstance(range, int):
-            return SingleMolReference(self._simulation, range)
+        if isinstance(index, int):
+            return SingleMolReference(self._simulation, index)
         else:
-            return MolRangeReference(self._simulation, range)
+            return MolRangeReference(self._simulation, index)
 
 
 class AtomSetReference(metaclass=ABCMeta):
@@ -755,13 +758,13 @@ class AtomSetReference(metaclass=ABCMeta):
             f"set {self._type_str()} {self._selection_str()} {command}"
         )
 
-    def set_type(self, *, type: int) -> None:
+    def set_type(self, *, atom_type: int) -> None:
         """
         Set the atom type of the given atom(s).
 
-        :param type: Atom type.
+        :param atom_type: Atom type.
         """
-        self._set(f"type {type}")
+        self._set(f"type {atom_type}")
 
     def set_quat(self, *, rotation: Rotation) -> None:
         """
@@ -809,9 +812,9 @@ class AtomSetReference(metaclass=ABCMeta):
 class SingleAtomReference(AtomSetReference):
     """Reference to a single atom by its ID."""
 
-    def __init__(self, simulation: LAMMPSSimulation, id: int):
+    def __init__(self, simulation: LAMMPSSimulation, atom_id: int):
         super().__init__(simulation)
-        self.__id = id
+        self.__id = atom_id
 
     def _selection_str(self) -> str:
         return f"{self.__id}"
@@ -823,9 +826,9 @@ class SingleAtomReference(AtomSetReference):
 class AtomRangeReference(AtomSetReference):
     """Reference to a range of atoms between two IDs."""
 
-    def __init__(self, simulation: LAMMPSSimulation, range: slice):
+    def __init__(self, simulation: LAMMPSSimulation, atom_id_range: slice):
         super().__init__(simulation)
-        self.__range = range
+        self.__range = atom_id_range
 
     def _selection_str(self) -> str:
         return f"{_slice_to_lammps(self.__range)}"
@@ -851,9 +854,9 @@ class _TypeReferenceMixin:
 class SingleTypeReference(AtomSetReference, _TypeReferenceMixin):
     """Reference to a single atom type and all atoms with that type."""
 
-    def __init__(self, simulation: LAMMPSSimulation, id: int):
+    def __init__(self, simulation: LAMMPSSimulation, atom_type: int):
         super().__init__(simulation)
-        self.__id = id
+        self.__id = atom_type
 
     def _selection_str(self) -> str:
         return f"{self.__id}"
@@ -865,9 +868,9 @@ class SingleTypeReference(AtomSetReference, _TypeReferenceMixin):
 class TypeRangeReference(AtomSetReference, _TypeReferenceMixin):
     """Reference to a range of atom types and all atoms with those types."""
 
-    def __init__(self, simulation: LAMMPSSimulation, range: slice):
+    def __init__(self, simulation: LAMMPSSimulation, atom_type_range: slice):
         super().__init__(simulation)
-        self.__range = range
+        self.__range = atom_type_range
 
     def _selection_str(self) -> str:
         return f"{_slice_to_lammps(self.__range)}"
@@ -879,9 +882,9 @@ class TypeRangeReference(AtomSetReference, _TypeReferenceMixin):
 class SingleMolReference(AtomSetReference):
     """Reference to a single molecule ID and all atoms with that type."""
 
-    def __init__(self, simulation: LAMMPSSimulation, id: int):
+    def __init__(self, simulation: LAMMPSSimulation, mol_id: int):
         super().__init__(simulation)
-        self.__id = id
+        self.__id = mol_id
 
     def _selection_str(self) -> str:
         return f"{self.__id}"
@@ -893,9 +896,9 @@ class SingleMolReference(AtomSetReference):
 class MolRangeReference(AtomSetReference):
     """Reference to a range of molecule IDs and all atoms with those types."""
 
-    def __init__(self, simulation: LAMMPSSimulation, range: slice):
+    def __init__(self, simulation: LAMMPSSimulation, mol_id_range: slice):
         super().__init__(simulation)
-        self.__range = range
+        self.__range = mol_id_range
 
     def _selection_str(self) -> str:
         return f"mol {_slice_to_lammps(self.__range)}"
@@ -907,9 +910,9 @@ class MolRangeReference(AtomSetReference):
 class GroupReference(AtomSetReference):
     """Reference to a group and all atoms within that group."""
 
-    def __init__(self, simulation: LAMMPSSimulation, id: int):
+    def __init__(self, simulation: LAMMPSSimulation, group_id: int):
         super().__init__(simulation)
-        self.__id = id
+        self.__id = group_id
 
     def _selection_str(self) -> str:
         return f"group {self.__id}"

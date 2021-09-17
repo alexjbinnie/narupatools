@@ -3,7 +3,7 @@ import numpy.typing as npt
 from ase.atoms import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 
-from narupatools.physics.quaternion import quaternion, as_quat_array
+from narupatools.physics.quaternion import as_quat_array, quaternion
 from narupatools.physics.typing import Vector3Array, Vector3Like
 
 ANGMOM_ARRAY = "angmom"
@@ -112,6 +112,11 @@ Atoms.get_torques = get_torques  # type: ignore[attr-defined]
 
 
 def get_angular_velocities(atoms: Atoms, /) -> Vector3Array:
+    """
+    Get angular velocities from an ASE atoms object.
+
+    This is the per-particle angular velocites about their individual center of masses.
+    """
     return calculate_angular_velocity(
         principal_moments=get_principal_moments(atoms),
         angular_momenta=get_angular_momenta(atoms),

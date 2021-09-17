@@ -21,7 +21,6 @@ from ._dynamics import ASEDynamics
 from ._trajectory import ASETrajectoryPlayback
 from ._units import UnitsASE
 from .calculators import ConstantCalculator, NullCalculator, OneBodyPotentialCalculator
-from ._rotations import *
 
 __all__ = [
     "ase_atoms_to_frame",

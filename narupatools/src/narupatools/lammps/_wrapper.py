@@ -47,6 +47,8 @@ from narupatools.lammps.exceptions import (
 
 SUPPORTED_VERSION = datetime.date(2020, 10, 29)
 
+NULL_POINTER_ACCESS_MESSAGE = "NULL pointer access"
+
 
 class LAMMPSWrapper:
     """
@@ -232,19 +234,19 @@ class LAMMPSWrapper:
         if not isinstance(name, str):
             raise GlobalNotFoundError(name)
 
-        type = self.__lammps.extract_global_datatype(name)
+        datatype = self.__lammps.extract_global_datatype(name)
 
-        if type == -1:
+        if datatype == -1:
             raise GlobalNotFoundError(name)
 
-        if type == VariableType.STRING:
+        if datatype == VariableType.STRING:
             self.__lammps_clib.lammps_extract_global.restype = POINTER(c_char)
             ptr = self.__lammps_clib.lammps_extract_global(
                 self.__lammps_handle, name.encode()
             )
             return ctypes.string_at(ptr).decode("ascii")
         else:
-            value = self.__lammps.extract_global(name, type)
+            value = self.__lammps.extract_global(name, datatype)
             if value is None:
                 raise GlobalNotFoundError(name)
             return value
@@ -301,15 +303,15 @@ class LAMMPSWrapper:
                     compute_id, VariableStyle.GLOBAL, dimension
                 )
             except ValueError as e:
-                if e.args[0] == "NULL pointer access":
+                if e.args[0] == NULL_POINTER_ACCESS_MESSAGE:
                     if compute_id not in self.computes:
-                        raise ComputeNotFoundError(compute_id)
+                        raise ComputeNotFoundError(compute_id) from e
                     else:
                         raise InvalidComputeSpecificationError(
                             compute_id, VariableStyle.GLOBAL, dimension
-                        )
+                        ) from e
                 else:
-                    raise e
+                    raise
         if value is None:
             if compute_id not in self.computes:
                 raise ComputeNotFoundError(compute_id)
@@ -337,23 +339,25 @@ class LAMMPSWrapper:
                 compute_id, VariableStyle.LOCAL, LMP_SIZE_COLS
             )
         except ValueError as e:
-            if e.args[0] == "NULL pointer access":
-                raise ComputeNotFoundError(compute_id)
+            if e.args[0] == NULL_POINTER_ACCESS_MESSAGE:
+                raise ComputeNotFoundError(compute_id) from e
             else:
-                raise e
+                raise
 
         if ncols == 0:
-            type: Literal[
+            dimension: Literal[
                 VariableDimension.VECTOR1D, VariableDimension.ARRAY2D
             ] = VariableDimension.VECTOR1D
         else:
-            type = VariableDimension.ARRAY2D
+            dimension = VariableDimension.ARRAY2D
 
-        value = self.__lammps.extract_compute(compute_id, VariableStyle.LOCAL, type)
+        value = self.__lammps.extract_compute(
+            compute_id, VariableStyle.LOCAL, dimension
+        )
 
-        if type == VariableDimension.VECTOR1D:
+        if dimension == VariableDimension.VECTOR1D:
             return self._to_numpy(value, (nrows,))
-        elif type == VariableDimension.ARRAY2D:
+        elif dimension == VariableDimension.ARRAY2D:
             return self._to_numpy(value, (nrows, ncols))
 
     def extract_atom_compute(self, compute_id: str) -> npt.NDArray[np.float64]:
@@ -369,25 +373,25 @@ class LAMMPSWrapper:
                 compute_id, VariableStyle.ATOM, LMP_SIZE_COLS
             )
         except ValueError as e:
-            if e.args[0] == "NULL pointer access":
-                raise ComputeNotFoundError(compute_id)
+            if e.args[0] == NULL_POINTER_ACCESS_MESSAGE:
+                raise ComputeNotFoundError(compute_id) from e
             else:
-                raise e
+                raise
 
         natoms = self.__lammps.get_natoms()
 
         if ncols == 0:
-            type: Literal[
+            dimension: Literal[
                 VariableDimension.VECTOR1D, VariableDimension.ARRAY2D
             ] = VariableDimension.VECTOR1D
         else:
-            type = VariableDimension.ARRAY2D
+            dimension = VariableDimension.ARRAY2D
 
-        value = self.__lammps.extract_compute(compute_id, VariableStyle.ATOM, type)
+        value = self.__lammps.extract_compute(compute_id, VariableStyle.ATOM, dimension)
 
-        if type == VariableDimension.VECTOR1D:
+        if dimension == VariableDimension.VECTOR1D:
             return self._to_numpy(value, (natoms,))
-        elif type == VariableDimension.ARRAY2D:
+        elif dimension == VariableDimension.ARRAY2D:
             return self._to_numpy(value, (natoms, ncols))
 
     def _to_numpy(self, raw_ptr: Any, shape: Tuple[int, ...]) -> np.ndarray:
@@ -423,25 +427,25 @@ class LAMMPSWrapper:
         try:
             ncols = self.__lammps.extract_fix(fix_id, VariableStyle.ATOM, LMP_SIZE_COLS)
         except ValueError as e:
-            if e.args[0] == "NULL pointer access":
-                raise FixNotFoundError(fix_id)
+            if e.args[0] == NULL_POINTER_ACCESS_MESSAGE:
+                raise FixNotFoundError(fix_id) from e
             else:
-                raise e
+                raise
 
         natoms = self.__lammps.get_natoms()
 
         if ncols == 0:
-            type: Literal[
+            dimension: Literal[
                 VariableDimension.VECTOR1D, VariableDimension.ARRAY2D
             ] = VariableDimension.VECTOR1D
         else:
-            type = VariableDimension.ARRAY2D
+            dimension = VariableDimension.ARRAY2D
 
-        value = self.__lammps.extract_fix(fix_id, VariableStyle.ATOM, type)
+        value = self.__lammps.extract_fix(fix_id, VariableStyle.ATOM, dimension)
 
-        if type == VariableDimension.VECTOR1D:
+        if dimension == VariableDimension.VECTOR1D:
             return self._to_numpy(value, (natoms,))
-        elif type == VariableDimension.ARRAY2D:
+        elif dimension == VariableDimension.ARRAY2D:
             return self._to_numpy(value, (natoms, ncols))
 
     def gather_atoms(
@@ -457,26 +461,26 @@ class LAMMPSWrapper:
         :raises UnknownAtomPropertyError: Property was not found in the simulation.
         :return: Value of the atom property.
         """
-        type = self.__lammps.extract_atom_datatype(key)
-        if type == -1:
+        datatype = self.__lammps.extract_atom_datatype(key)
+        if datatype == -1:
             raise UnknownAtomPropertyError(key)
         try:
-            if type in [VariableType.DOUBLE, VariableType.DOUBLE_ARRAY]:
+            if datatype in [VariableType.DOUBLE, VariableType.DOUBLE_ARRAY]:
                 dtype: npt.DTypeLike = np.float64
                 ctype: Any = ctypes.c_double
-                type = VariableType.DOUBLE
-            elif type in [VariableType.INTEGER, VariableType.INTEGER_ARRAY]:
+                datatype = VariableType.DOUBLE
+            elif datatype in [VariableType.INTEGER, VariableType.INTEGER_ARRAY]:
                 dtype = np.int32
                 ctype = ctypes.c_int
-                type = VariableType.INTEGER
+                datatype = VariableType.INTEGER
             else:
-                raise LAMMPSError(f"Invalid variable type {type}")
+                raise LAMMPSError(f"Invalid variable type {datatype}")
             with catch_lammps_warnings_and_exceptions():
                 natoms = self.__lammps.get_natoms()
                 data = ((dimension * natoms) * ctype)()
 
                 self.__lammps_clib.lammps_gather_atoms(
-                    self.__lammps_handle, key.encode(), type, dimension, data
+                    self.__lammps_handle, key.encode(), datatype, dimension, data
                 )
 
             if dimension == 1:
@@ -485,9 +489,9 @@ class LAMMPSWrapper:
                 array = np.array(data, dtype=dtype).reshape((-1, dimension))
             array.flags.writeable = False
             return array
-        except UnknownPropertyNameError:
+        except UnknownPropertyNameError as e:
             # Reraise as a different error so we know what key caused the error.
-            raise UnknownAtomPropertyError(key)
+            raise UnknownAtomPropertyError(key) from e
 
     def gather_compute(self, compute_id: str) -> npt.NDArray[np.float64]:
         """
@@ -501,10 +505,10 @@ class LAMMPSWrapper:
                 compute_id, VariableStyle.ATOM, LMP_SIZE_COLS
             )
         except ValueError as e:
-            if e.args[0] == "NULL pointer access":
-                raise ComputeNotFoundError(compute_id)
+            if e.args[0] == NULL_POINTER_ACCESS_MESSAGE:
+                raise ComputeNotFoundError(compute_id) from e
             else:
-                raise e
+                raise
         return self.gather("c_" + compute_id, ncols)
 
     def gather_fix(self, fix_id: str) -> npt.NDArray[np.float64]:
@@ -517,10 +521,10 @@ class LAMMPSWrapper:
         try:
             ncols = self.__lammps.extract_fix(fix_id, VariableStyle.ATOM, LMP_SIZE_COLS)
         except ValueError as e:
-            if e.args[0] == "NULL pointer access":
-                raise FixNotFoundError(fix_id)
+            if e.args[0] == NULL_POINTER_ACCESS_MESSAGE:
+                raise FixNotFoundError(fix_id) from e
             else:
-                raise e
+                raise
         return self.gather("f_" + fix_id, ncols)
 
     def gather(
@@ -533,30 +537,30 @@ class LAMMPSWrapper:
             dimension = 1
 
         if key[:2] in ["d_", "c_", "f_"]:
-            type = VariableType.DOUBLE
+            datatype = VariableType.DOUBLE
         elif key[:2] in ["i_"]:
-            type = VariableType.INTEGER
+            datatype = VariableType.INTEGER
         else:
             raw = self.__lammps.extract_atom_datatype(key)
             if raw == -1:
                 raise UnknownAtomPropertyError(key)
-            type = VariableType(raw)
+            datatype = VariableType(raw)
 
-        if type in [VariableType.DOUBLE, VariableType.DOUBLE_ARRAY]:
+        if datatype in [VariableType.DOUBLE, VariableType.DOUBLE_ARRAY]:
             dtype: npt.DTypeLike = np.float64
             ctype: Any = ctypes.c_double
-        elif type in [VariableType.INTEGER, VariableType.INTEGER_ARRAY]:
+        elif datatype in [VariableType.INTEGER, VariableType.INTEGER_ARRAY]:
             dtype = np.int32
             ctype = ctypes.c_int
         else:
-            raise LAMMPSError(f"Invalid variable type {type}")
+            raise LAMMPSError(f"Invalid variable type {datatype}")
 
         with catch_lammps_warnings_and_exceptions():
             natoms = self.__lammps.get_natoms()
             data = ((dimension * natoms) * ctype)()
 
             self.__lammps_clib.lammps_gather(
-                self.__lammps_handle, key.encode(), type, dimension, data
+                self.__lammps_handle, key.encode(), datatype, dimension, data
             )
 
         if dimension == 1:
@@ -567,13 +571,13 @@ class LAMMPSWrapper:
         return array
 
     def scatter_atoms(
-        self, name: str, type: VariableType, dimensions: int, value: np.ndarray
+        self, name: str, datatype: VariableType, dimensions: int, value: np.ndarray
     ) -> None:
         """See :meth:`lammps.scatter_atoms`."""
         n_atoms = self.__lammps.get_natoms()
         with catch_lammps_warnings_and_exceptions():
             self.__lammps.scatter_atoms(
-                name, type, dimensions, _to_ctypes(value, n_atoms)
+                name, datatype, dimensions, _to_ctypes(value, n_atoms)
             )
 
     def get_thermo(self, keyword: str) -> float:
@@ -599,23 +603,23 @@ class LAMMPSWrapper:
         """See :meth:`PyLammps.file`."""
         self.__pylammps.file(filename)
 
-    def _has_id(self, category: str, id: str) -> bool:
-        return self.__lammps.has_id(category, id)
+    def _has_id(self, category: str, id_: str, /) -> bool:
+        return self.__lammps.has_id(category, id_)
 
-    def _has_style(self, category: str, id: str) -> bool:
-        return self.__lammps.has_style(category, id)
+    def _has_style(self, category: str, id_: str, /) -> bool:
+        return self.__lammps.has_style(category, id_)
 
-    def _id_count(self, category: str) -> int:
+    def _id_count(self, category: str, /) -> int:
         return self.__lammps_clib.lammps_id_count(  # type:ignore[no-any-return]
             self.__lammps_handle, category.encode()
         )
 
-    def _style_count(self, category: str) -> int:
+    def _style_count(self, category: str, /) -> int:
         return self.__lammps_clib.lammps_style_count(  # type:ignore[no-any-return]
             self.__lammps_handle, category.encode()
         )
 
-    def _id_name(self, category: str, index: int) -> str:
+    def _id_name(self, category: str, index: int, /) -> str:
         sb = ctypes.create_string_buffer(100)
         result = self.__lammps_clib.lammps_id_name(
             self.__lammps_handle, category.encode(), index, sb, 100
@@ -643,9 +647,8 @@ class LAMMPSWrapper:
 
         :param command: LAMMPS command to run.
         """
-        with self._command_lock:
-            with catch_lammps_warnings_and_exceptions():
-                self.__pylammps.command(command)
+        with self._command_lock, catch_lammps_warnings_and_exceptions():
+            self.__pylammps.command(command)
 
 
 class _StyleCategory(typing.Sequence[str]):
@@ -653,8 +656,10 @@ class _StyleCategory(typing.Sequence[str]):
         self.__lammps = lammps
         self.__category = category
 
-    def __contains__(self, id: object) -> bool:
-        return isinstance(id, str) and self.__lammps._has_style(self.__category, id)
+    def __contains__(self, style: object) -> bool:
+        return isinstance(style, str) and self.__lammps._has_style(
+            self.__category, style
+        )
 
     def __len__(self) -> int:
         return self.__lammps._style_count(self.__category)
@@ -670,8 +675,8 @@ class _Category(typing.Sequence[str]):
         self.__lammps = lammps
         self.__category = category
 
-    def __contains__(self, id: object) -> bool:
-        return isinstance(id, str) and self.__lammps._has_id(self.__category, id)
+    def __contains__(self, style: object) -> bool:
+        return isinstance(style, str) and self.__lammps._has_id(self.__category, style)
 
     def __len__(self) -> int:
         return self.__lammps._id_count(self.__category)
@@ -698,7 +703,6 @@ class Extractable(Generic[_TReturnType], metaclass=abc.ABCMeta):
     @abstractmethod
     def extract(self, lammps: LAMMPSWrapper) -> _TReturnType:
         """Extract the value from a LAMMPS instance."""
-        pass
 
 
 def _to_ctypes(array: np.ndarray, natoms: int) -> ctypes.Array:

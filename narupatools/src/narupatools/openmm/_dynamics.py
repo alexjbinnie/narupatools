@@ -22,7 +22,7 @@ import warnings
 from io import BytesIO
 from os import PathLike
 from threading import Lock
-from typing import AbstractSet, Any, Dict, Union, List
+from typing import AbstractSet, Any, Dict, List, Union
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
@@ -30,7 +30,6 @@ from narupa.trajectory import FrameData
 from simtk.openmm import CustomExternalForce, System
 from simtk.openmm.app import Simulation
 
-from narupatools.core.broadcastable import Broadcastable
 from narupatools.imd import InteractiveSimulationDynamics
 from narupatools.imd._feature_setclear import SetAndClearInteractionFeature
 from narupatools.physics.typing import (
@@ -46,20 +45,24 @@ from ._converter import (
     openmm_topology_to_frame,
 )
 from ._serializer import deserialize_simulation
+from ..override import override
 
 
-class OpenMMDynamics(InteractiveSimulationDynamics, Broadcastable):
+class OpenMMDynamics(InteractiveSimulationDynamics):
     """Dynamics based on an OpenMM simulation."""
 
+    @override
     def _step_internal(self) -> None:
         with self._simulation_lock:
             self._simulation.step(steps=1)
 
+    @override
     def _reset_internal(self) -> None:
         with self._simulation_lock, BytesIO(self._checkpoint) as bytesio:
             self._simulation.loadCheckpoint(bytesio)
             self._simulation.context.reinitialize(preserveState=True)
 
+    @override
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         frame = FrameData()
         with self._simulation_lock:
@@ -84,18 +87,22 @@ class OpenMMDynamics(InteractiveSimulationDynamics, Broadcastable):
             self._checkpoint = bytesio.getvalue()
 
     @property
+    @override
     def imd(self) -> OpenMMIMDFeature:  # noqa: D102
         return self._imd
 
     @property
+    @override
     def timestep(self) -> float:  # noqa: D102
         return self._simulation.integrator.getStepSize()._value
 
     @property
+    @override
     def masses(self) -> ScalarArray:  # noqa: D102
         return self._masses
 
     @property
+    @override
     def positions(self) -> Vector3Array:  # noqa: D102
         with self._simulation_lock:
             state = self._simulation.context.getState(getPositions=True)
@@ -107,6 +114,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, Broadcastable):
             self._simulation.context.setPositions(np.asfarray(value))
 
     @property
+    @override
     def velocities(self) -> Vector3Array:  # noqa: D102
         with self._simulation_lock:
             state = self._simulation.context.getState(getVelocities=True)
@@ -118,18 +126,21 @@ class OpenMMDynamics(InteractiveSimulationDynamics, Broadcastable):
             self._simulation.context.setVelocities(np.asfarray(value))
 
     @property
+    @override
     def forces(self) -> Vector3Array:  # noqa: D102
         with self._simulation_lock:
             state = self._simulation.context.getState(getForces=True)
         return state.getForces(asNumpy=True)._value
 
     @property
+    @override
     def kinetic_energy(self) -> float:  # noqa: D102
         with self._simulation_lock:
             state = self._simulation.context.getState(getEnergy=True)
         return state.getKineticEnergy()._value
 
     @property
+    @override
     def potential_energy(self) -> float:  # noqa: D102
         with self._simulation_lock:
             state = self._simulation.context.getState(getEnergy=True)
@@ -191,6 +202,7 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
         self._forces_dirty = True
         self.imd_force = _get_or_create_imd_force(dynamics._simulation)
 
+    @override
     def _on_pre_step(self, **kwargs: Any) -> None:
         super()._on_pre_step(**kwargs)
         self._calculate_and_apply_interactions()
@@ -198,11 +210,13 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
             self.imd_force.updateParametersInContext(self.dynamics._simulation.context)
         self._forces_dirty = False
 
+    @override
     def _set_forces(self, forces: Dict[int, Vector3]) -> None:
         for index, force in forces.items():
             self.imd_force.setParticleParameters(int(index), int(index), force)
             self._forces_dirty = True
 
+    @override
     def _clear_forces(self, indices: InfiniteSet[int] = everything()) -> None:
         all_indices: AbstractSet[int] = (
             set(range(len(self.dynamics.masses))) & indices  # type: ignore
@@ -211,6 +225,7 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
             self.imd_force.setParticleParameters(int(index), int(index), (0, 0, 0))
             self._forces_dirty = True
 
+    @override
     @property
     def _system_size(self) -> int:
         return len(self.dynamics.masses)

@@ -41,4 +41,5 @@ class _ClientWidget:
 
 
 def show_client(client: Client) -> NGLWidget:
+    """Show an NGLWidget that is tied to a Narupa client."""
     return _ClientWidget(client).show()

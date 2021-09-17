@@ -61,12 +61,12 @@ def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
             yield
         except Exception as e:
             if isinstance(e, LAMMPSError):
-                raise e
+                raise
             if e.args[0].startswith("ERROR on proc 0: "):
                 _handle_error(e.args[0][17:])
             if e.args[0].startswith("ERROR: "):
                 _handle_error(e.args[0][7:])
-            raise LAMMPSError(e.args[0])
+            raise LAMMPSError(e.args[0]) from e
         output = o.output
     for line in output.splitlines():
         if line.startswith("WARNING: "):

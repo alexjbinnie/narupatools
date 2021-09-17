@@ -66,6 +66,7 @@ from typing import Any, ClassVar, Dict, Union
 from narupatools.state.typing import Serializable
 
 from ._serializable_object import SerializableObject
+from ..override import override
 
 
 class SharedStateObject(SerializableObject):
@@ -99,11 +100,13 @@ class SharedStateObject(SerializableObject):
                 cls._serializable_properties[key] = value
 
     @classmethod
+    @override
     def deserialize(cls, value: Serializable) -> "SharedStateObject":  # noqa: D102
         if isinstance(value, Mapping):
             return cls(**value)
-        raise ValueError()
+        raise ValueError
 
+    @override
     def serialize(self) -> Dict[str, Serializable]:  # noqa: D102
         dictionary = {k: v for k, v in self._arbitrary_data.items()}
         for key, python_property in self.__class__._serializable_properties.items():
@@ -157,8 +160,8 @@ class SharedStateObject(SerializableObject):
     def __getattr__(self, key: str) -> Serializable:
         try:
             return self._arbitrary_data[key]
-        except KeyError:
-            raise AttributeError
+        except KeyError as e:
+            raise AttributeError from e
 
     def __eq__(self, other: Any) -> bool:
         return (

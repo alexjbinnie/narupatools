@@ -18,8 +18,7 @@ def ase_atoms(neuraminidase_pdb_filename):
 
 @pytest.fixture(scope="module")
 def mda_universe(neuraminidase_pdb_filename):
-    universe = Universe(neuraminidase_pdb_filename, guess_bonds=True)
-    return universe
+    return Universe(neuraminidase_pdb_filename, guess_bonds=True)
 
 
 def test_empty_frame():

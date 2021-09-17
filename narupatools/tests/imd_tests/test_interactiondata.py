@@ -19,9 +19,9 @@ def test_gaussian_particle_interaction_to_interactiondata():
         position=[0.2, 1.0, -2.0],
     )
 
-    dict = interaction_to_dict(particle_interaction)
+    dict_ = interaction_to_dict(particle_interaction)
 
-    data = InteractionData.deserialize(dict)
+    data = InteractionData.deserialize(dict_)
 
     assert data.interaction_type == GAUSSIAN_INTERACTION_TYPE
     assert isinstance(data, PointInteractionData)
@@ -44,9 +44,9 @@ def test_spring_particle_interaction_to_interactiondata():
         position=[0.2, 1.0, -2.0],
     )
 
-    dict = interaction_to_dict(particle_interaction)
+    dict_ = interaction_to_dict(particle_interaction)
 
-    data = InteractionData.deserialize(dict)
+    data = InteractionData.deserialize(dict_)
 
     assert data.interaction_type == SPRING_INTERACTION_TYPE
     assert isinstance(data, PointInteractionData)

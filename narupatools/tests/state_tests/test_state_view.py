@@ -449,8 +449,8 @@ def test_reference_set_absent(serializable_dictionary, view):
 # SharedStateReference.modify() returns a dict that can be edited
 def test_reference_modify_dict(serializable_dictionary, view):
     reference = view[KEY_OF_DICT_VALUE]
-    with reference.modify() as dict:
-        dict[DICT_KEY] = DICT_NEW_VALUE
+    with reference.modify() as dict_:
+        dict_[DICT_KEY] = DICT_NEW_VALUE
     assert serializable_dictionary[KEY_OF_DICT_VALUE] == NEW_DICT_VALUE
 
 

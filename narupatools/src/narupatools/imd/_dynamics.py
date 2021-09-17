@@ -18,10 +18,10 @@
 
 from abc import ABCMeta, abstractmethod
 
-from narupatools.app._session import Session
-from narupatools.core.broadcastable import Broadcastable, Broadcaster
+from narupatools.app._session import Session, Broadcastable
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.imd._feature import InteractionFeature
+from narupatools.override import override
 
 
 class InteractiveSimulationDynamics(
@@ -33,12 +33,12 @@ class InteractiveSimulationDynamics(
     @abstractmethod
     def imd(self) -> InteractionFeature:
         """Access to the interactions currently being applied to the simulation."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    def start_broadcast(self, broadcaster: Broadcaster) -> None:  # noqa: D102
-        if isinstance(broadcaster, Session):
-            self.imd.add_source(broadcaster.shared_state.interactions.snapshot)
+    @override
+    def start_broadcast(self, session: Session) -> None:  # noqa: D102
+        self.imd.add_source(session.shared_state.interactions.snapshot)
 
-    def end_broadcast(self, broadcaster: Broadcaster) -> None:  # noqa: D102
-        if isinstance(broadcaster, Session):
-            self.imd.remove_source(broadcaster.shared_state.interactions.snapshot)
+    @override
+    def end_broadcast(self, session: Session) -> None:  # noqa: D102
+        self.imd.remove_source(session.shared_state.interactions.snapshot)

@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from .units import joule, kelvin, coulomb, kilo, gram, meter, second
+"""Various physical constants."""
+
+from .units import coulomb, gram, joule, kelvin, kilo, meter, second
 
 boltzmann_constant = 1.380649e-23 * joule / kelvin
 """Boltzmann constant in kilojoules per mole per kelvin."""

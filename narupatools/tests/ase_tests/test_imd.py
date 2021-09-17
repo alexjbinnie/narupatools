@@ -20,7 +20,6 @@ from ase.atoms import Atoms
 from ase.md import VelocityVerlet
 
 from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
-from narupatools.ase._dynamics import ASEIMDFeature
 from narupatools.core import UnitsNarupa
 from narupatools.imd import gaussian_interaction
 
@@ -55,9 +54,7 @@ def test_initial_no_interactions(single_carbon_verlet):
     assert len(single_carbon_verlet.imd.current_interactions) == 0
 
 
-def test_add_interaction(
-    single_carbon_imd, single_carbon_verlet
-):
+def test_add_interaction(single_carbon_imd, single_carbon_verlet):
     single_carbon_imd["abc"] = gaussian_interaction(particles=[0], position=[1, 0, 0])
     assert len(single_carbon_verlet.imd.current_interactions) == 0
     single_carbon_verlet.run(steps=1)

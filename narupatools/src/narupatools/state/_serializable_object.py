@@ -59,7 +59,7 @@ class SerializableObject(Protocol):
 
         :param value: Object to deserialize to the given object.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def serialize(self) -> Serializable:
@@ -68,4 +68,4 @@ class SerializableObject(Protocol):
 
         All properties and arbitrary data will be writen to the dictionary.
         """
-        raise NotImplementedError()
+        raise NotImplementedError

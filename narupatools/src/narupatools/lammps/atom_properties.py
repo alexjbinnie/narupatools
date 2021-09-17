@@ -41,7 +41,7 @@ class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
 
     key: str
     """Key used to identify property in LAMMPS, such as 'x' or 'f'."""
-    type: VariableType
+    datatype: VariableType
     """Enum which informs LAMMPS what data type the property is internally."""
     components: int
     """Number of components for each atom value."""
@@ -55,7 +55,7 @@ class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
     def define(
         cls,
         key: str,
-        type: Literal[VariableType.INTEGER, VariableType.INTEGER_ARRAY],
+        datatype: Literal[VariableType.INTEGER, VariableType.INTEGER_ARRAY],
         components: int,
     ) -> AtomProperty[npt.NDArray[np.int64]]:
         ...
@@ -65,7 +65,7 @@ class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
     def define(
         cls,
         key: str,
-        type: Literal[VariableType.DOUBLE, VariableType.DOUBLE_ARRAY],
+        datatype: Literal[VariableType.DOUBLE, VariableType.DOUBLE_ARRAY],
         components: int,
     ) -> AtomProperty[npt.NDArray[np.float64]]:
         ...
@@ -74,7 +74,7 @@ class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
     def define(
         cls,
         key: str,
-        type: VariableType,
+        datatype: VariableType,
         components: int,
     ) -> Union[
         AtomProperty[npt.NDArray[np.float64]], AtomProperty[npt.NDArray[np.int64]]
@@ -89,19 +89,19 @@ class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
         all the default properties are already defined in :mod:`narupatools.lammps.atom_properties`
 
         :param key: Key used to identify property in LAMMPS, such as 'x' or 'f'.
-        :param type: The type of the returned value, either a floating point number or an integer.
+        :param datatype: The type of the returned value, either a floating point number or an integer.
         :param components: The number of components in this property. Normally '1' for scalar values such as
                           charge, and '3' for vector values such as position.
         :return: An :class:`AtomProperty` that can be used with :meth:`LAMMPSSimulation.gather_atoms`.
         """
-        if type not in [
+        if datatype not in [
             VariableType.INTEGER,
             VariableType.INTEGER_ARRAY,
             VariableType.DOUBLE,
             VariableType.DOUBLE_ARRAY,
         ]:
-            raise LAMMPSError(f"Atom property cannot be of variable type {type}")
-        return AtomProperty(key, type, components)  # type: ignore[return-value]
+            raise LAMMPSError(f"Atom property cannot be of variable type {datatype}")
+        return AtomProperty(key, datatype, components)  # type: ignore[return-value]
 
 
 AtomID = AtomProperty.define("id", VariableType.INTEGER, 1)

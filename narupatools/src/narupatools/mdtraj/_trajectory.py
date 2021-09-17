@@ -19,6 +19,7 @@
 from mdtraj import Trajectory
 
 from narupatools.core.trajectory import TrajectoryPlayback
+from narupatools.override import override
 
 
 class MDTrajTrajectoryPlayback(TrajectoryPlayback):
@@ -28,5 +29,6 @@ class MDTrajTrajectoryPlayback(TrajectoryPlayback):
         super().__init__()
         self._trajectory = trajectory
 
+    @override
     def _trajectory_length(self) -> int:
         return len(self._trajectory)

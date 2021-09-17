@@ -27,7 +27,7 @@ class infinite_seq(Generic[_T]):
     """
     Represents an (infinitely long) sequence of the same value.
 
-    This is similar to :class:`functools.repeat`, except it also returns the value when called using
+    This is similar to :class:`itertools.repeat`, except it also returns the value when called using
     index notation.
 
     .. code-block:: python

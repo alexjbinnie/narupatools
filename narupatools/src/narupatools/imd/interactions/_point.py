@@ -32,6 +32,7 @@ from narupatools.physics.rigidbody import center_of_mass
 from narupatools.physics.typing import Vector3, Vector3Array
 
 from ._interaction import Interaction
+from ...override import override
 
 SPRING_INTERACTION_TYPE = "spring"
 GAUSSIAN_INTERACTION_TYPE = "gaussian"
@@ -71,11 +72,13 @@ class PointInteraction(Interaction[PointInteractionData]):
         super().__init__(**kwargs)
         self._force_func = force_func
 
+    @override
     def update(self, interaction: PointInteractionData) -> None:  # noqa: D102
         super().update(interaction)
         self.position = interaction.position
         self.interaction_scale = interaction.scale
 
+    @override
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]

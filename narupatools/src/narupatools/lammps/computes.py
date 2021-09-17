@@ -40,7 +40,7 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
     @overload
     @classmethod
     def define(
-        cls, id: str, dimension: Literal[VariableDimension.SCALAR]
+        cls, compute_style: str, dimension: Literal[VariableDimension.SCALAR]
     ) -> ComputeGlobalStyle[float]:
         ...
 
@@ -48,7 +48,7 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
     @classmethod
     def define(
         cls,
-        id: str,
+        compute_style: str,
         dimension: Literal[VariableDimension.VECTOR1D, VariableDimension.ARRAY2D],
     ) -> ComputeGlobalStyle[npt.NDArray[np.float64]]:
         ...
@@ -56,25 +56,27 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
     @overload
     @classmethod
     def define(
-        cls, id: str, dimension: VariableDimension
+        cls, compute_style: str, dimension: VariableDimension
     ) -> Union[ComputeGlobalStyle[npt.NDArray[np.float64]], ComputeGlobalStyle[float]]:
         ...
 
     @classmethod
     def define(
         cls,
-        id: str,
+        compute_style: str,
         dimension: VariableDimension,
     ) -> ComputeGlobalStyle:
         """Define a compute style used by LAMMPS."""
-        return ComputeGlobalStyle(id, dimension)
+        return ComputeGlobalStyle(compute_style, dimension)
 
-    def create(self, lammps: LAMMPSWrapper, id: str) -> ComputeReference[_TReturnType]:
+    def create(
+        self, lammps: LAMMPSWrapper, compute_id: str
+    ) -> ComputeReference[_TReturnType]:
         """Create a new compute using this style."""
-        lammps.command(f"compute {id} all {self.__style_id}")
+        lammps.command(f"compute {compute_id} all {self.__style_id}")
         return ComputeGlobalReference.create(
             lammps,
-            id=id,
+            compute_id=compute_id,
             dimension=self.__dimension,
         )
 
@@ -82,15 +84,20 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
 def AtomProperty(
     lammps: LAMMPSWrapper,
     *,
-    id: str,
+    compute_id: str,
     properties: List[str],
-    type: Literal[VariableType.DOUBLE, VariableType.INTEGER],
+    datatype: Literal[VariableType.DOUBLE, VariableType.INTEGER],
 ) -> ComputeAtomReference[npt.NDArray[np.float64]]:
-    lammps.command(f"compute {id} all property/atom {' '.join(properties)}")
+    """
+    Create a new atom property compute.
+
+    This creates a new compute using the 'property/atom' style.
+    """
+    lammps.command(f"compute {compute_id} all property/atom {' '.join(properties)}")
     return ComputeAtomReference(
         lammps,
-        id=id,
-        type=type,
+        compute_id=compute_id,
+        datatype=datatype,
         count=len(properties),
     )
 
@@ -98,30 +105,47 @@ def AtomProperty(
 def LocalProperty(
     lammps: LAMMPSWrapper,
     *,
-    id: str,
+    compute_id: str,
     properties: List[str],
 ) -> ComputeReference[npt.NDArray[np.float64]]:
-    lammps.command(f"compute {id} all property/local {' '.join(properties)}")
+    """
+    Create a new local property compute.
+
+    This creates a new compute using the 'property/local' style.
+    """
+    lammps.command(f"compute {compute_id} all property/local {' '.join(properties)}")
     return ComputeLocalReference(
         lammps,
-        id=id,
+        compute_id=compute_id,
     )
 
 
 def BondLocal(
     lammps: LAMMPSWrapper,
     *,
-    id: str,
+    compute_id: str,
     properties: List[str],
 ) -> ComputeReference[npt.NDArray[np.float64]]:
-    lammps.command(f"compute {id} all bond/local {' '.join(properties)}")
+    """
+    Create a new local bond property compute.
+
+    This creates a new compute using the 'property/local' style.
+    """
+    lammps.command(f"compute {compute_id} all bond/local {' '.join(properties)}")
     return ComputeLocalReference(
         lammps,
-        id=id,
+        compute_id=compute_id,
     )
 
 
-KineticEnergy = ComputeGlobalStyle.define(id="ke", dimension=VariableDimension.SCALAR)
+KineticEnergy = ComputeGlobalStyle.define(
+    compute_style="ke", dimension=VariableDimension.SCALAR
+)
+"""
+Compute that calculates the kinetic energy.
+
+This corresponds to the 'ke' compute. For more information, see _`https://docs.lammps.org/compute_ke.html`
+"""
 
 
 class ComputeReference(Generic[_TReturnType], metaclass=abc.ABCMeta):
@@ -129,7 +153,6 @@ class ComputeReference(Generic[_TReturnType], metaclass=abc.ABCMeta):
 
     def extract(self) -> _TReturnType:
         """Extract the value of the compute."""
-        pass
 
 
 class ComputeGlobalReference(ComputeReference[_TReturnType]):
@@ -139,11 +162,11 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
         self,
         lammps: LAMMPSWrapper,
         *,
-        id: str,
+        compute_id: str,
         dimension: VariableDimension,
     ):
         self._lammps = lammps
-        self._id = id
+        self._id = compute_id
         self._dimension = dimension
 
     @overload
@@ -152,7 +175,7 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
         cls,
         lammps: LAMMPSWrapper,
         *,
-        id: str,
+        compute_id: str,
         dimension: Literal[VariableDimension.SCALAR],
     ) -> ComputeGlobalReference[float]:
         ...
@@ -163,7 +186,7 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
         cls,
         lammps: LAMMPSWrapper,
         *,
-        id: str,
+        compute_id: str,
         dimension: Literal[VariableDimension.VECTOR1D, VariableDimension.ARRAY2D],
     ) -> ComputeGlobalReference[npt.NDArray[np.float64]]:
         ...
@@ -174,7 +197,7 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
         cls,
         lammps: LAMMPSWrapper,
         *,
-        id: str,
+        compute_id: str,
         dimension: VariableDimension,
     ) -> ComputeGlobalReference:
         ...
@@ -184,18 +207,20 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
         cls,
         lammps: LAMMPSWrapper,
         *,
-        id: str,
+        compute_id: str,
         dimension: VariableDimension,
     ) -> ComputeGlobalReference:
         """
         Create a compute in the given LAMMPS instance, and return a reference.
 
         :param lammps: LAMMPS instance to use.
-        :param id: The ID to use for this compute.
+        :param compute_id: The ID to use for this compute.
         :param dimension: The dimension of the data the compute returns.
         :return: A reference to the defined compute, that can be used to extract the value at any time.
         """
-        return ComputeGlobalReference(lammps, id=id, dimension=dimension)
+        return ComputeGlobalReference(
+            lammps, compute_id=compute_id, dimension=dimension
+        )
 
     def extract(self) -> _TReturnType:  # noqa: D102
         return self._lammps.extract_global_compute(  # type: ignore[return-value]
@@ -207,9 +232,9 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
 class ComputeLocalReference(ComputeReference[_TReturnType]):
     """Reference to a local compute."""
 
-    def __init__(self, lammps: LAMMPSWrapper, *, id: str):
+    def __init__(self, lammps: LAMMPSWrapper, *, compute_id: str):
         self._lammps = lammps
-        self._id = id
+        self._id = compute_id
 
     def extract(self) -> _TReturnType:  # noqa: D102
         return self._lammps.extract_local_compute(self._id)  # type: ignore[return-value]
@@ -222,14 +247,14 @@ class ComputeAtomReference(ComputeReference[_TReturnType]):
         self,
         lammps: LAMMPSWrapper,
         *,
-        id: str,
-        type: Literal[VariableType.DOUBLE, VariableType.INTEGER],
+        compute_id: str,
+        datatype: Literal[VariableType.DOUBLE, VariableType.INTEGER],
         count: int,
     ):
         self._lammps = lammps
-        self._id = id
+        self._id = compute_id
         self._count = count
-        self._type = type
+        self._type = datatype
 
     def extract(self) -> _TReturnType:  # noqa: D102
         return self._lammps.extract_atom_compute(self._id)  # type: ignore[return-value]

@@ -24,7 +24,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
     @pytest.fixture
     @abstractmethod
     def dynamics(self) -> InteractiveSimulationDynamics:  # noqa: PT004
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @pytest.mark.parametrize(
         ("position"), [vector(3, 0, 0), vector(0, -7, 0), vector(0, 0, 10)]

@@ -59,5 +59,4 @@ class TestASELAMMPSSingleCarbonSystem(SingleCarbonSystemTests):
     def dynamics(self, single_carbon_verlet_simulation):
         atoms = atoms_from_lammps_simulation(single_carbon_verlet_simulation)
         verlet = VelocityVerlet(atoms, timestep=0.01 * _NarupaToASE.time)
-        dynamics = ASEDynamics(verlet)
-        return dynamics
+        return ASEDynamics(verlet)

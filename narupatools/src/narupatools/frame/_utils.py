@@ -52,17 +52,19 @@ def mass_to_element(mass: float, tolerance: float = 0.1) -> Optional[int]:
 
         mass_list = np.array(list(mass_dict.values()))
         symbol_list = np.array(list(mass_dict.keys()))
-        sorted = np.argsort(mass_list)
+        masses_sorted = np.argsort(mass_list)
 
         __mass_cutoff_table = []
 
-        for i in range(len(sorted) - 1):
-            cutoff = 0.5 * (mass_list[sorted[i]] + mass_list[sorted[i + 1]])
+        for i in range(len(masses_sorted) - 1):
+            cutoff = 0.5 * (
+                mass_list[masses_sorted[i]] + mass_list[masses_sorted[i + 1]]
+            )
             __mass_cutoff_table.append(
                 [
                     cutoff,
-                    mass_list[sorted[i]],
-                    SYMB2Z[symbol_list[sorted[i]].capitalize()],
+                    mass_list[masses_sorted[i]],
+                    SYMB2Z[symbol_list[masses_sorted[i]].capitalize()],
                 ]
             )
 

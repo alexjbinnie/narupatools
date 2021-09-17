@@ -24,6 +24,8 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator as ASECalculator
 from ase.calculators.calculator import CalculatorSetupError, all_changes
 
+from narupatools.override import override
+
 
 class Calculator(ASECalculator, metaclass=ABCMeta):
     """
@@ -60,8 +62,8 @@ class Calculator(ASECalculator, metaclass=ABCMeta):
 
         :param atoms: Atoms object which has been assigned to this calculator.
         """
-        pass
 
+    @override
     @final
     def calculate(  # noqa: D102
         self,

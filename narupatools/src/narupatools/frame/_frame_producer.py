@@ -22,7 +22,7 @@ from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from narupatools.core.playable import Playable
+from narupatools.core._playable import Playable
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -41,6 +41,7 @@ from narupatools.frame.fields import (
     ResidueCount,
     ResidueNames,
 )
+from narupatools.override import override
 
 
 class ProduceFrameCallback(Protocol):
@@ -154,6 +155,7 @@ class FrameProducer(Playable):
         self._is_dirty = True
         self._dirty_fields = self._dirty_fields | (self._fields & fields)
 
+    @override
     def _advance(self) -> bool:
         if self._is_dirty:
             frame = self._produce(fields=self._dirty_fields)
@@ -162,5 +164,6 @@ class FrameProducer(Playable):
             self._dirty_fields = set()
         return True
 
+    @override
     def _restart(self) -> None:
         self._dirty_fields = everything()

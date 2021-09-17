@@ -38,7 +38,9 @@ from typing import (
     TypeVar,
 )
 
-TCallback = TypeVar("TCallback", contravariant=True)
+from narupatools.override import override
+
+_TCallback = TypeVar("_TCallback", contravariant=True)
 
 
 class CallbackMissingParametersError(SyntaxError):
@@ -51,10 +53,10 @@ class CallbackMissingParametersError(SyntaxError):
         )
 
 
-class EventListener(Protocol[TCallback]):
+class EventListener(Protocol[_TCallback]):
     """Protocol describing an event as seen from an external class."""
 
-    def add_callback(self, callback: TCallback) -> None:
+    def add_callback(self, callback: _TCallback) -> None:
         """
         Add a callback.
 
@@ -62,7 +64,7 @@ class EventListener(Protocol[TCallback]):
         """
         ...
 
-    def remove_callback(self, callback: TCallback) -> None:
+    def remove_callback(self, callback: _TCallback) -> None:
         """
         Remove a callback.
 
@@ -106,6 +108,7 @@ class Event(EventListener, Generic[TEventCallback]):
                     signature(callback_type.__call__)
                 )
 
+    @override
     def add_callback(self, callback: TEventCallback) -> None:
         """
         Add a callback to this event.
@@ -136,6 +139,7 @@ class Event(EventListener, Generic[TEventCallback]):
 
         self._callbacks.append(callback)
 
+    @override
     def remove_callback(self, callback: TEventCallback) -> None:
         """
         Remove a callback from this event.

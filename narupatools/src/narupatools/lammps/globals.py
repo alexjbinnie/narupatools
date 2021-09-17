@@ -39,24 +39,26 @@ class Global(Extractable[_TReturnType]):
 
     @overload
     @classmethod
-    def define(cls, key: str, type: Literal[VariableType.INTEGER]) -> Global[int]:
+    def define(cls, key: str, datatype: Literal[VariableType.INTEGER]) -> Global[int]:
         ...
 
     @overload
     @classmethod
-    def define(cls, key: str, type: Literal[VariableType.DOUBLE]) -> Global[float]:
+    def define(cls, key: str, datatype: Literal[VariableType.DOUBLE]) -> Global[float]:
         ...
 
     @overload
     @classmethod
-    def define(cls, key: str, type: Literal[VariableType.STRING]) -> Global[str]:
+    def define(cls, key: str, datatype: Literal[VariableType.STRING]) -> Global[str]:
         ...
 
     @classmethod
     def define(
         cls,
         key: str,
-        type: Literal[VariableType.DOUBLE, VariableType.INTEGER, VariableType.STRING],
+        datatype: Literal[
+            VariableType.DOUBLE, VariableType.INTEGER, VariableType.STRING
+        ],
     ) -> Union[Global[str], Global[int], Global[float]]:
         """Define a global that is defined by LAMMPS."""
         return Global(key)  # type: ignore[return-value]

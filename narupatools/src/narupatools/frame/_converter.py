@@ -43,6 +43,7 @@ from .fields import (
     ParticleResidues,
     ResidueNames,
 )
+from ..override import override
 
 _T = TypeVar("_T")
 
@@ -64,14 +65,18 @@ class FrameConverter(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def convert_to_frame(  # noqa: D102
-        cls, object: _T, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls, object_: _T, /, *, fields: InfiniteSet[str], existing: Optional[FrameData]
     ) -> FrameData:
         pass
 
     @classmethod
     @abstractmethod
     def convert_from_frame(  # noqa: D102
-        cls, frame: FrameData, type: Union[Type[_T], _T], *, fields: InfiniteSet[str]
+        cls,
+        frame: FrameData,
+        destination: Union[Type[_T], _T],
+        *,
+        fields: InfiniteSet[str],
     ) -> _T:
         pass
 
@@ -160,22 +165,28 @@ class DictConverter(FrameConverter):
     """Converter between a Narupa FrameData and a python dictionary."""
 
     @classmethod
+    @override
     def convert_to_frame(  # noqa: D102
-        cls, object: _T, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls, object_: _T, /, *, fields: InfiniteSet[str], existing: Optional[FrameData]
     ) -> FrameData:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
+    @override
     def convert_from_frame(  # noqa: D102
-        cls, frame: FrameData, type: Union[Type[_T], _T], *, fields: InfiniteSet[str]
+        cls,
+        frame: FrameData,
+        destination: Union[Type[_T], _T],
+        *,
+        fields: InfiniteSet[str],
     ) -> _T:
-        if type == Dict:
+        if destination == Dict:
             return frame_data_to_dictionary(frame, fields=fields)  # type: ignore
-        elif isinstance(type, dict):
+        elif isinstance(destination, dict):
             return frame_data_to_dictionary(
-                frame, fields=fields, existing=type  # type: ignore
+                frame, fields=fields, existing=destination  # type: ignore
             )
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 def frame_data_to_dictionary(

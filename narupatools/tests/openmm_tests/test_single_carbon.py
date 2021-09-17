@@ -54,5 +54,4 @@ class TestASEOpenMMSingleCarbonSystem(SingleCarbonSystemTests):
     def dynamics(self, simulation):
         atoms = openmm_simulation_to_ase_atoms(simulation)
         verlet = VelocityVerlet(atoms, timestep=0.01 * _NarupaToASE.time)
-        dynamics = ASEDynamics(verlet)
-        return dynamics
+        return ASEDynamics(verlet)

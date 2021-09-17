@@ -37,6 +37,7 @@ from narupatools.frame.fields import (
     ParticleNames,
     ParticlePositions,
 )
+from narupatools.override import override
 from narupatools.rdkit._units import UnitsRDKit
 
 _RDKitToNarupa = UnitsRDKit >> UnitsNarupa
@@ -73,24 +74,31 @@ class RDKitConverter(FrameConverter):
     """Frame converter for the RDKit package."""
 
     @classmethod
+    @override
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
-        type: Union[Type[_TType], _TType],
+        destination: Union[Type[_TType], _TType],
         *,
         fields: InfiniteSet[str],
     ) -> _TType:
-        if type == Chem.rdchem.Mol:
+        if destination == Chem.rdchem.Mol:
             return frame_to_rdkit_mol(frame)  # type: ignore
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
+    @override
     def convert_to_frame(  # noqa: D102
-        cls, object: _TType, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls,
+        object_: _TType,
+        /,
+        *,
+        fields: InfiniteSet[str],
+        existing: Optional[FrameData],
     ) -> FrameData:
-        if isinstance(object, Chem.rdchem.Mol):
-            return rdkit_mol_to_frame(object, fields=fields, frame=existing)
-        raise NotImplementedError()
+        if isinstance(object_, Chem.rdchem.Mol):
+            return rdkit_mol_to_frame(object_, fields=fields, frame=existing)
+        raise NotImplementedError
 
 
 def rdkit_mol_to_frame(

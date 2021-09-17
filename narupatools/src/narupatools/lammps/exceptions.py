@@ -21,49 +21,33 @@ from typing import Any
 class UntestedVersionWarning(UserWarning):
     """Warning raised when a version of LAMMPS is used that may not be supported."""
 
-    pass
-
 
 class LAMMPSWarning(UserWarning):
     """Warning raised by LAMMPS."""
-
-    pass
 
 
 class LAMMPSError(RuntimeError):
     """Error raised by LAMMPS."""
 
-    pass
-
 
 class CannotOpenFileError(LAMMPSError, FileNotFoundError):
     """Error raised when a file is not found by LAMMPS."""
-
-    pass
 
 
 class MissingInputScriptError(CannotOpenFileError):
     """Error raised when a file is not found by LAMMPS."""
 
-    pass
-
 
 class UnknownCommandError(LAMMPSError):
     """Error raised when an unknown command is used in LAMMPS."""
-
-    pass
 
 
 class IllegalCommandError(LAMMPSError):
     """Error raised when a command is used incorrectly in LAMMPS."""
 
-    pass
-
 
 class UnrecognizedStyleError(LAMMPSError):
     """Error raised when a style not recognized by LAMMPS is used."""
-
-    pass
 
 
 class UnknownPropertyNameError(LAMMPSError):
@@ -104,8 +88,6 @@ class GlobalNotFoundError(LAMMPSError):
 class InvalidThermoKeywordError(LAMMPSError):
     """Error raised when an invalid thermo keyword is specified."""
 
-    pass
-
 
 class ComputeNotFoundError(LAMMPSError):
     """Error raised when a compute is requested which is not defined."""
@@ -124,9 +106,9 @@ class FixNotFoundError(LAMMPSError):
 class InvalidComputeSpecificationError(LAMMPSError):
     """Error raised when a compute is requested where the types are not defined."""
 
-    def __init__(self, key: str, style: Any, type: Any):
+    def __init__(self, key: str, style: Any, datatype: Any):
         super().__init__(
-            f"Invalid compute specification for {key}: Style {style} and type {type}"
+            f"Invalid compute specification for {key}: Style {style} and type {datatype}"
         )
 
 

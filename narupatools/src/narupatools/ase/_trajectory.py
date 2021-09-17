@@ -28,6 +28,7 @@ from narupa.trajectory import FrameData
 
 from narupatools.ase import ase_atoms_to_frame
 from narupatools.core.trajectory import TrajectoryPlayback
+from narupatools.override import override
 
 
 class ASETrajectoryPlayback(TrajectoryPlayback):
@@ -53,6 +54,7 @@ class ASETrajectoryPlayback(TrajectoryPlayback):
         super().__init__(playback_interval=playback_interval, looping=looping)
         self._trajectory = trajectory
 
+    @override
     def _trajectory_length(self) -> int:
         return len(self._trajectory)
 
@@ -60,6 +62,7 @@ class ASETrajectoryPlayback(TrajectoryPlayback):
         """Currently selected Atoms object in the trajectory."""
         return self._trajectory[self.index]
 
+    @override
     def get_frame(self, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
         frame = FrameData()
         ase_atoms_to_frame(self._trajectory[self.index], fields=fields, frame=frame)

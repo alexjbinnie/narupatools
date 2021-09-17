@@ -110,8 +110,8 @@ def test_illegal_command():
 
 def test_invalid_gather_atoms_name():
     simulation = LAMMPSSimulation.from_file("in.peptide")
-    property = AtomProperty.define(
-        "unknown_key", type=VariableType.DOUBLE, components=3
+    atom_property = AtomProperty.define(
+        "unknown_key", datatype=VariableType.DOUBLE, components=3
     )
     with pytest.raises(UnknownAtomPropertyError):
-        simulation.gather_atoms(property)
+        simulation.gather_atoms(atom_property)

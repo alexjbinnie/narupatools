@@ -315,6 +315,7 @@ class InteractionFeature(Generic[TDynamics]):
         )
 
     def clear_interactions(self) -> None:
+        """Remove all current interactions."""
         keys = self.current_interactions.keys()
         for key in list(keys):
             self.remove_interaction(key)
@@ -346,7 +347,7 @@ class InteractionFeature(Generic[TDynamics]):
                 masses=self.dynamics.masses[interaction.particle_indices],
                 temperature=300,
             )
-            self.dynamics.velocities = velocities
+            self.dynamics.velocities = velocities  # type: ignore
 
         return interaction
 

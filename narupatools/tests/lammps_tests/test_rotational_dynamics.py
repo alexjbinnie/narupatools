@@ -81,7 +81,7 @@ def initial_angular_momentum(spherical_atom, angular_momentum):
 
 @pytest.fixture
 def n_steps(seed):
-    return random_integer(min=5, max=50)
+    return random_integer(minimum=5, maximum=50)
 
 
 def test_spherical_angmom(

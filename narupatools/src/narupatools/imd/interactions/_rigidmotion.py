@@ -18,7 +18,7 @@ import math
 from typing import Any, Optional, Union
 
 import numpy as np
-from numpy.linalg import inv, LinAlgError
+from numpy.linalg import LinAlgError, inv
 
 from narupatools.core.properties import (
     float_property,
@@ -42,6 +42,7 @@ from narupatools.physics.vector import (
 
 from ._interaction import Interaction
 from ._interactiondata import InteractionData
+from ...override import override
 
 
 class RigidMotionInteractionData(InteractionData):
@@ -74,6 +75,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         self._accumulated_displacement: Vector3 = vector(0, 0, 0)
         self._accumulated_rotation = Rotation.identity
 
+    @override
     def update(self, interaction: RigidMotionInteractionData) -> None:  # noqa: D102
         super().update(interaction)
         try:
@@ -132,15 +134,16 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
     def _get_angular_velocity(
         self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
     ) -> Vector3Array:
-        I = self._get_inertia(positions=positions, masses=masses)
-        L = self._get_angular_momentum(
+        inertia_tensor = self._get_inertia(positions=positions, masses=masses)
+        angular_momentum = self._get_angular_momentum(
             positions=positions, masses=masses, velocities=velocities
         )
         try:
-            return inv(I) @ L  # type: ignore
+            return inv(inertia_tensor) @ angular_momentum  # type: ignore
         except LinAlgError:
             return zero_vector()
 
+    @override
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         velocities = self.dynamics.velocities[self.particle_indices]
@@ -187,6 +190,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         self._energy = 0.0
 
+    @override
     def on_post_step(self, timestep: float, **kwargs: Any) -> None:  # noqa: D102
         super().on_post_step(timestep=timestep, **kwargs)
 

@@ -26,7 +26,7 @@ from narupatools.physics.vector import (
 
 @pytest.fixture
 def system_size(seed):
-    return random_integer(1, 10)
+    return random_integer(minimum=1, maximum=10)
 
 
 @pytest.fixture

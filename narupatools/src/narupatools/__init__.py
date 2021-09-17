@@ -28,13 +28,14 @@ import narupatools.openmm  # noqa: F401
 if importlib.util.find_spec("mdtraj") is not None:
     import narupatools.mdtraj  # noqa: F401
 
-
 if importlib.util.find_spec("lammps") is not None:
     import narupatools.lammps  # noqa: F401
 
-
 if importlib.util.find_spec("rdkit") is not None:
     import narupatools.rdkit  # noqa: F401
+
+if importlib.util.find_spec("nglview") is not None:
+    import narupatools.nglview  # noqa: F401
 
 __location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 with open(__location + "/VERSION") as _version_file:

@@ -35,7 +35,6 @@ class FrameSource(Protocol, metaclass=ABCMeta):
         :param fields: Collection of fields that should be added to FrameData if
                        available.
         """
-        pass
 
 
 class TrajectorySource(Protocol, metaclass=ABCMeta):
@@ -50,7 +49,7 @@ class TrajectorySource(Protocol, metaclass=ABCMeta):
         :param fields: Collection of fields that should be added to FrameData if
                        available.
         """
-        pass
 
+    @abstractmethod
     def __len__(self) -> int:
         pass

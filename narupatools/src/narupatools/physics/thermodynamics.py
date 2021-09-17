@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Methods relating to thermodynamics."""
+
 import numpy as np
 from numpy.random import standard_normal
 
@@ -32,4 +34,4 @@ def maxwell_boltzmann_velocities(
     :return: NumPy array of velocities in nanometers per picoseconds.
     """
     dirs = standard_normal((len(masses), 3))
-    return dirs * np.sqrt(boltzmann_constant * temperature / masses)[:, np.newaxis]
+    return dirs * np.sqrt(boltzmann_constant * temperature / masses)[:, np.newaxis]  # type: ignore

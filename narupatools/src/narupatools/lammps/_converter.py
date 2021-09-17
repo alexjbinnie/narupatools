@@ -35,21 +35,21 @@ class LAMMPSConverter(FrameConverter):
 
     @classmethod
     def convert_to_frame(  # noqa: D102
-        cls, object: Any, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls, object_: Any, /, *, fields: InfiniteSet[str], existing: Optional[FrameData]
     ) -> FrameData:
-        if isinstance(object, LAMMPSSimulation):
-            return object.get_frame(fields=fields, existing=existing)
-        raise NotImplementedError()
+        if isinstance(object_, LAMMPSSimulation):
+            return object_.get_frame(fields=fields, existing=existing)
+        raise NotImplementedError
 
     @classmethod
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
-        type: Union[Type[_TType], _TType],
+        destination: Union[Type[_TType], _TType],
         *,
         fields: InfiniteSet[str],
     ) -> _TType:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 def atoms_from_lammps_simulation(simulation: LAMMPSSimulation) -> Atoms:

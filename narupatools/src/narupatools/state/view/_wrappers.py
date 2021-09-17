@@ -94,22 +94,22 @@ class SharedStateServerWrapper(MutableMapping[str, Serializable]):
         self._server = server
 
     def __getitem__(self, key: str) -> Serializable:
-        with self._server.lock_state() as dict:
-            return dict[key]  # type: ignore
+        with self._server.lock_state() as dict_:
+            return dict_[key]  # type: ignore
 
     def __setitem__(self, key: str, value: Serializable) -> None:
         self._server.update_state(None, DictionaryChange(updates={key: value}))
 
     def __delitem__(self, key: str) -> None:
-        with self._server.lock_state() as dict:
-            if key not in dict:
+        with self._server.lock_state() as dict_:
+            if key not in dict_:
                 raise KeyError
         self._server.update_state(None, DictionaryChange(removals={key}))
 
     def __iter__(self) -> Iterator[str]:
-        with self._server.lock_state() as dict:
-            return dict.__iter__()
+        with self._server.lock_state() as dict_:
+            return dict_.__iter__()
 
     def __len__(self) -> int:
-        with self._server.lock_state() as dict:
-            return dict.__len__()
+        with self._server.lock_state() as dict_:
+            return dict_.__len__()

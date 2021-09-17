@@ -39,3 +39,4 @@ UnitsRDKit = UnitSystem(
     angle=degree,
     temperature=kelvin,
 )
+"""Unit system for use with RDKit."""

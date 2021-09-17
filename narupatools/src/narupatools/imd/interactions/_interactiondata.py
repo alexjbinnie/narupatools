@@ -18,9 +18,13 @@ from __future__ import annotations
 
 from typing import Dict, Mapping, Type
 
-from narupatools.core.properties import numpy_property, str_property, bool_property
+from narupatools.core.properties import bool_property, numpy_property, str_property, float_property
+from narupatools.override import override
 from narupatools.state import SharedStateObject
 from narupatools.state.typing import Serializable
+
+_InteractionData_Types: Dict[str, Type[InteractionData]] = {}
+_InteractionFeedback_Types: Dict[str, Type[InteractionFeedback]] = {}
 
 
 class InteractionData(SharedStateObject):
@@ -29,8 +33,6 @@ class InteractionData(SharedStateObject):
 
     This class is dynamically subclassed based on the interaction_type field.
     """
-
-    _types: Dict[str, Type[InteractionData]] = {}
 
     @numpy_property(dtype=int)
     def particles(self) -> None:
@@ -52,20 +54,57 @@ class InteractionData(SharedStateObject):
         """Is this interaction mass-weighted?"""
         ...
 
-    @classmethod
+    @staticmethod
     def register_interaction_type(
-        cls, interaction_type: str, type: Type[InteractionData]
+            interaction_type: str, python_type: Type[InteractionData], /
     ) -> None:
         """Register a new subclass of InteractionData and the interaction_type it affects."""
-        cls._types[interaction_type] = type
+        _InteractionData_Types[interaction_type] = python_type
 
     @classmethod
-    def _get_type(cls, interaction_type: str) -> Type[InteractionData]:
-        return cls._types[interaction_type]
-
-    @classmethod
+    @override
     def deserialize(cls, value: Serializable) -> InteractionData:  # noqa: D102
         if cls is InteractionData and isinstance(value, Mapping):
             interaction_type = value["interaction_type"]
-            return cls._get_type(interaction_type).deserialize(value)
+            return _InteractionData_Types[interaction_type].deserialize(value)
+        return super().deserialize(value)  # type: ignore[return-value]
+
+
+class InteractionFeedback(SharedStateObject):
+    """
+    Data which is produced about the interaction and streamed back to clients.
+
+    This class is dynamically subclassed based on the interaction_type field.
+    """
+
+
+    @str_property
+    def interaction_type(self) -> str:
+        """Internal type of the interaction."""
+        ...
+
+
+    @float_property
+    def work(self) -> str:
+        """Internal type of the interaction."""
+        ...
+
+    @float_property
+    def potential_energy(self) -> bool:
+        """Should this interaction perform velocity reset afterwards?"""
+        ...
+
+    @staticmethod
+    def register_interaction_type(
+            interaction_type: str, python_type: Type[InteractionFeedback], /
+    ) -> None:
+        """Register a new subclass of InteractionData and the interaction_type it affects."""
+        _InteractionFeedback_Types[interaction_type] = python_type
+
+    @classmethod
+    @override
+    def deserialize(cls, value: Serializable) -> InteractionData:  # noqa: D102
+        if cls is InteractionFeedback and isinstance(value, Mapping):
+            interaction_type = value["interaction_type"]
+            return _InteractionFeedback_Types[interaction_type].deserialize(value)
         return super().deserialize(value)  # type: ignore[return-value]

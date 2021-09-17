@@ -64,13 +64,13 @@ class InteractionView:
             self._end_index = int(interaction._v_attrs["endIndex"])
         except KeyError:
             self._end_index = int(interaction.frameIndex[-1])
-        self._type = interaction._v_attrs["type"]
+        self._interaction_type = interaction._v_attrs["type"]
         self._indices = np.array(interaction.indices, dtype=int)
 
     @property
-    def type(self) -> str:
+    def interaction_type(self) -> str:
         """Type of the interaction."""
-        return self._type  # type: ignore
+        return self._interaction_type  # type: ignore
 
     @property
     def start_frame_index(self) -> int:

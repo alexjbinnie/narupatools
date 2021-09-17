@@ -25,6 +25,7 @@ from narupa.utilities.event import Event
 from narupatools.core.event import EventListener
 
 from ._constraint import ASECellConstraint, ASEMomentaConstraint
+from ...override import override
 
 
 class ASEObserver(ASECellConstraint, ASEMomentaConstraint):
@@ -56,17 +57,21 @@ class ASEObserver(ASECellConstraint, ASEMomentaConstraint):
         """Event triggered when the system has its cell vectors modified."""
         return self._on_set_cell
 
+    @override
     def adjust_positions(  # noqa: D102
         self, atoms: Atoms, positions: np.ndarray, /
     ) -> None:
         self._on_set_positions.invoke()
 
+    @override
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102
         pass
 
+    @override
     def adjust_cell(self, atoms: Atoms, cell: np.ndarray, /) -> None:  # noqa: D102
         self._on_set_cell.invoke()
 
+    @override
     def adjust_momenta(  # noqa: D102
         self, atoms: Atoms, momenta: np.ndarray, /
     ) -> None:

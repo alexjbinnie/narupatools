@@ -32,6 +32,7 @@ from .._serializable_object import SerializableObject
 from ._collection_view import SharedStateCollectionView
 from ._reference import SharedStateReference
 from ._view import SharedStateView
+from ...override import override
 
 TSerializableObjectType = TypeVar("TSerializableObjectType", bound=SerializableObject)
 
@@ -68,25 +69,34 @@ class SharedStateDictionaryView(SharedStateView[Serializable]):
                 self._dictionary, prefix
             )
 
+    @override
     def _make_reference(self, full_key: str, /) -> SharedStateReference[Serializable]:
         return SharedStateReference.untyped_reference(self._dictionary, full_key)
 
     @overload  # type: ignore
-    def get(self, key: str, /) -> SharedStateReference[Serializable]:  # noqa: D102
+    def get(
+        self, key: str, default: Optional[SharedStateReference[Serializable]] = None, /
+    ) -> SharedStateReference[Serializable]:  # noqa: D102
         pass
 
     @overload
     def get(
         self,
         key: str,
+        default: Optional[SharedStateReference[TSerializableObjectType]] = None,
+        *,
         snapshot_type: Type[TSerializableObjectType],
-        /
         # noqa: D102
     ) -> SharedStateReference[TSerializableObjectType]:
         pass
 
-    def get(
-        self, key: str, snapshot_type: Optional[Type[TSerializableObjectType]] = None, /
+    @override
+    def get(  # type: ignore[override]
+        self,
+        key: str,
+        default: Optional[SharedStateReference] = None,
+        *,
+        snapshot_type: Optional[Type[TSerializableObjectType]] = None,
     ) -> SharedStateReference:
         """Get a reference to a specific key."""
         if snapshot_type is None:

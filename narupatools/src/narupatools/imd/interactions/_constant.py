@@ -16,17 +16,17 @@
 
 from __future__ import annotations
 
-from typing import Any, Tuple
+from typing import Any
 
 import numpy as np
 
 from narupatools.core.properties import float_property, numpy_property
 from narupatools.physics.force import mass_weighted_forces
 from narupatools.physics.rigidbody import center_of_mass
-from narupatools.physics.typing import Vector3Array
 
 from ._interaction import Interaction
 from ._interactiondata import InteractionData
+from ...override import override
 
 CONSTANT_INTERACTION_TYPE = "constant"
 """Key identifying the constant interaction type."""
@@ -64,11 +64,13 @@ class ConstantInteraction(Interaction[ConstantInteractionData]):
     def scale(self) -> None:
         """Scaling factor to apply to the force."""
 
+    @override
     def update(self, interaction: ConstantInteractionData) -> None:  # noqa: D102
         super().update(interaction)
         self.force = interaction.force
         self.scale = interaction.scale
 
+    @override
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]

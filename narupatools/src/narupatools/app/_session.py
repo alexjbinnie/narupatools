@@ -22,7 +22,17 @@ import time
 from abc import ABCMeta
 from contextlib import contextmanager
 from types import TracebackType
-from typing import Any, Generator, Generic, Optional, Protocol, Set, Type, TypeVar
+from typing import (
+    Any,
+    Generator,
+    Generic,
+    Optional,
+    Protocol,
+    Set,
+    Type,
+    TypeVar,
+    runtime_checkable,
+)
 
 from infinite_sets import InfiniteSet
 from narupa.app import NarupaImdApplication
@@ -37,19 +47,17 @@ from narupa.trajectory.frame_server import (
     STEP_COMMAND_KEY,
 )
 
-from narupatools.core.broadcastable import Broadcastable, Broadcaster
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.core.event import Event
 from narupatools.core.health_check import HealthCheck
-from narupatools.core.playable import Playable
+from narupatools.core._playable import Playable
 from narupatools.frame._frame_producer import FrameProducer
 from narupatools.frame._frame_source import FrameSource
-from narupatools.frame.fields import (
-    DYNAMIC_FIELDS,
-)
+from narupatools.frame.fields import DYNAMIC_FIELDS
 from narupatools.state.view._wrappers import SharedStateServerWrapper
 
 from ._shared_state import SessionSharedState
+from ..override import override
 
 TTarget = TypeVar("TTarget")
 
@@ -68,18 +76,48 @@ class OnTargetChanged(Protocol[TTarget_Co]):
         :param target: The new target of the session, if any.
         :param previous_target: The previous target of the session, if any.
         """
+
+
+@runtime_checkable
+class Broadcastable(Protocol):
+    """
+    Base class for objects that can be broadcast in a session.
+
+    An object that subclasses this protocol will have its :func:`start_broadcast` and
+    :func:`end_broadcast` functions called when it is added and removed to a :obj:`Session`.
+    """
+
+    def start_broadcast(self, session: Session) -> None:
+        """
+        Called when this object is about to be broadcast.
+
+        :param session: Broadcaster that is about to broadcast this object.
+        """
+        pass
+
+    def end_broadcast(self, session: Session) -> None:
+        """
+        Called when this object is stopped being broadcasted.
+
+        :param session: Broadcaster that is about to stop broadcasting this object.
+        """
         pass
 
 
-class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
+class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     """
-    Narupa server bundled with the ability to change what is being displayed.
+    Generic Narupa server that can broadcast various objects.
+
+    This class separates the logic of a Narupa server from the dynamics that are running
+    on it. Treat it as a 'broadcaster' - the dynamics can be running regardless of whether
+    anyone is watching. What a session does is take periodic snapshots of its target and
+    sends them out via a Narupa server.
 
     A session has one target at a time, which can be a simulation, trajectory or a
     single frame.
 
-    The session has a background loop which periodically gets a FrameData to send to the
-    clients. If the target implements FrameSource, this indicates the target can produce
+    The session has a background loop which periodically gets a :obj:`FrameData` to send to the
+    clients. If the target implements :obj:`FrameSource`, this indicates the target can produce
     a frame and this will be sent to the clients. This background loop only sends fields
     which have been marked as dirty. Unlike Narupa, this means the sending of frames is
     completely detached from the MD loop, and hence can be specified in real time.
@@ -88,6 +126,12 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     def __init__(self, **kwargs: Any):
         """
         Create a session.
+
+        Note that the session will not broadcast anything unless you set it's target using
+        :obj:`Session.show()`. For example::
+
+            with Session(port=38801) as session:
+                session.show(dynamics)
 
         :param kwargs: Parameters to initialise the server with.
         """
@@ -105,7 +149,7 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._shared_state = SessionSharedState(SharedStateServerWrapper(narupa_server))
 
         narupa_server._state_service.state_dictionary.content_updated.add_callback(
-            self._shared_state.on_dictionary_update
+            self._shared_state._on_dictionary_update
         )
 
         self._on_target_changed = Event(OnTargetChanged)
@@ -143,7 +187,7 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         """
         if not isinstance(self._target, Playable):
             raise RuntimeError("Runner has invalid target.")
-        self._target.run(block)
+        self._target.run(block=block)
 
     def stop(self) -> None:
         """Stop the target if it is a playable object."""
@@ -257,6 +301,7 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._frame_producer.stop(wait=True)
         self._server.close()
 
+    @override
     def health_check(self) -> None:  # noqa: D102
         self._frame_producer.health_check()
         if isinstance(self._target, HealthCheck):

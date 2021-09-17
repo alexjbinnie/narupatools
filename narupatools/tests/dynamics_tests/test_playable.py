@@ -19,7 +19,7 @@ from typing import Optional
 
 import pytest
 
-from narupatools.core.playable import Playable
+from narupatools.core._playable import Playable
 
 
 class ExamplePlayable(Playable):

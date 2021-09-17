@@ -20,24 +20,24 @@ import random
 import string
 
 
-def random_float(min: float = 0.0, max: float = 1.0) -> float:
+def random_float(*, minimum: float = 0.0, maximum: float = 1.0) -> float:
     """
     Generate a uniform random scalar in a range.
 
-    :param min: Minimum value (inclusive).
-    :param max: Maximum value (inclusive).
+    :param minimum: Minimum value (inclusive).
+    :param maximum: Maximum value (inclusive).
     """
-    return random.random() * (max - min) + min
+    return random.random() * (maximum - minimum) + minimum
 
 
-def random_integer(min: int = 0, max: int = 1) -> int:
+def random_integer(*, minimum: int = 0, maximum: int = 1) -> int:
     """
     Generate a uniform random integer in a range.
 
-    :param min: Minimum value (inclusive).
-    :param max: Maximum value (inclusive).
+    :param minimum: Minimum value (inclusive).
+    :param maximum: Maximum value (inclusive).
     """
-    return random.randint(min, max)
+    return random.randint(minimum, maximum)
 
 
 def random_letter() -> str:
@@ -45,12 +45,12 @@ def random_letter() -> str:
     return random.choice(string.ascii_letters)
 
 
-def random_word(min_length: int = 1, max_length: int = 10) -> str:
+def random_word(*, minimum_length: int = 1, maximum_length: int = 10) -> str:
     """
     Generate a random word formed of random letters in a mixture of cases.
 
-    :param min_length: Minimum number of characters.
-    :param max_length: Maximum number of characters.
+    :param minimum_length: Minimum number of characters.
+    :param maximum_length: Maximum number of characters.
     """
-    length = random_integer(min_length, max_length)
+    length = random_integer(minimum=minimum_length, maximum=maximum_length)
     return "".join([random_letter() for _ in range(length)])

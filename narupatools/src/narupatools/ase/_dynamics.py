@@ -35,23 +35,24 @@ from narupatools.imd._feature import InteractionFeature
 from narupatools.imd.interactions._interactiondata import InteractionData
 from narupatools.physics.quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+
+from ..core.dynamics import SimulationRotationProperties
+from ._converter import ase_atoms_to_frame
 from ._rotations import (
-    get_angular_velocities,
-    get_torques,
     get_angular_momenta,
+    get_angular_velocities,
     get_principal_moments,
     get_rotations,
+    get_torques,
     set_angular_momenta,
     set_principal_moments,
     set_rotations,
 )
-
-from ..core.dynamics import SimulationRotationProperties
-from ._converter import ase_atoms_to_frame
 from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
 from .constraints import InteractionConstraint
+from ..override import override
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
 
@@ -151,6 +152,7 @@ class ASEDynamics(
         return ASEDynamics.from_ase_dynamics(dynamics)
 
     @property
+    @override
     def imd(self) -> ASEIMDFeature:  # noqa:D102
         return self._imd
 
@@ -172,10 +174,12 @@ class ASEDynamics(
         """
         return self._dynamics
 
+    @override
     def _step_internal(self) -> None:
         with self._atom_lock:
             self._dynamics.run(1)
 
+    @override
     def _reset_internal(self) -> None:
         with self._atom_lock:
             self.atoms.set_positions(self._initial_positions)
@@ -183,6 +187,7 @@ class ASEDynamics(
             self.atoms.set_cell(self._initial_box)
 
     @property
+    @override
     def timestep(self) -> float:  # noqa: D102
         return self.molecular_dynamics.dt * _ASEToNarupa.time
 
@@ -190,6 +195,7 @@ class ASEDynamics(
     def timestep(self, value: float) -> None:
         self.molecular_dynamics.dt = value * _NarupaToASE.time
 
+    @override
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         frame = FrameData()
         with self._atom_lock:
@@ -197,6 +203,7 @@ class ASEDynamics(
         return frame
 
     @property
+    @override
     def positions(self) -> Vector3Array:  # noqa: D102
         return self.atoms.positions * _ASEToNarupa.length  # type: ignore
 
@@ -204,6 +211,7 @@ class ASEDynamics(
     def positions(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_positions(np.asfarray(value) * _NarupaToASE.length)
 
+    @override
     @property
     def velocities(self) -> Vector3Array:  # noqa: D102
         return self.atoms.get_velocities() * _ASEToNarupa.velocity  # type: ignore
@@ -212,23 +220,28 @@ class ASEDynamics(
     def velocities(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_velocities(np.asfarray(value) * _NarupaToASE.velocity)
 
+    @override
     @property
     def forces(self) -> Vector3Array:  # noqa: D102
         return self.atoms.get_forces() * _ASEToNarupa.force  # type: ignore
 
     @property
+    @override
     def masses(self) -> ScalarArray:  # noqa: D102
         return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
     @property
+    @override
     def kinetic_energy(self) -> float:  # noqa: D102
         return self.atoms.get_kinetic_energy() * _ASEToNarupa.energy
 
     @property
+    @override
     def potential_energy(self) -> float:  # noqa: D102
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
 
     @property
+    @override
     def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
         return get_rotations(self.atoms)
 
@@ -237,6 +250,7 @@ class ASEDynamics(
         set_rotations(self.atoms, value)
 
     @property
+    @override
     def angular_momenta(self) -> Vector3Array:  # noqa: D102
         return get_angular_momenta(self.atoms) * _ASEToNarupa.angular_momentum
 
@@ -247,10 +261,12 @@ class ASEDynamics(
         )
 
     @property
+    @override
     def angular_velocities(self) -> Vector3Array:  # noqa: D102
         """Angular velocity of each particle abouts its center of mass, in radians per picoseconds."""
         return get_angular_velocities(self.atoms) * _ASEToNarupa.angular_velocity
 
+    @override
     @property
     def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
@@ -262,6 +278,7 @@ class ASEDynamics(
         )
 
     @property
+    @override
     def torques(self) -> Vector3Array:  # noqa: D102
         return get_torques(self.atoms) * _NarupaToASE.torque
 
@@ -274,9 +291,11 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         self.constraints: Dict[str, InteractionConstraint] = {}
 
     @property
+    @override
     def _system_size(self) -> int:
         return len(self.dynamics.atoms)
 
+    @override
     def create_interaction(  # noqa: D102
         self, *, key: str, interaction: InteractionData, start_time: float
     ) -> Interaction:
@@ -292,6 +311,7 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         self.dynamics.atoms.constraints.append(constraint)
         return instance
 
+    @override
     def remove_interaction(self, key: str) -> Interaction:  # noqa: D102
         instance = super().remove_interaction(key)
         constraint = self.constraints[key]

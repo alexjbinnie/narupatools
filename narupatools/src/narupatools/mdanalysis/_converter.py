@@ -62,6 +62,7 @@ from narupatools.frame.fields import (
 )
 from narupatools.mdanalysis._units import UnitsMDAnalysis
 from narupatools.mdanalysis._utils import guess_atomic_number
+from narupatools.override import override
 
 MDAnalysisToNarupa = UnitsMDAnalysis >> UnitsNarupa
 NarupaToMDAnalysis = UnitsNarupa >> UnitsMDAnalysis
@@ -119,28 +120,35 @@ class MDAnalysisConverter(FrameConverter):
     """Frame converter for the MDAnalysis package."""
 
     @classmethod
+    @override
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
-        type: Union[Type[_TType], _TType],
+        destination: Union[Type[_TType], _TType],
         *,
         fields: InfiniteSet[str],
     ) -> _TType:
-        if type == Topology:
+        if destination == Topology:
             return frame_to_mdanalysis_topology(frame, fields=fields)  # type: ignore
-        if type == Universe:
+        if destination == Universe:
             return frame_to_mdanalysis_universe(frame, fields=fields)  # type: ignore
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
+    @override
     def convert_to_frame(  # noqa: D102
-        cls, object: _TType, *, fields: InfiniteSet[str], existing: Optional[FrameData]
+        cls,
+        object_: _TType,
+        /,
+        *,
+        fields: InfiniteSet[str],
+        existing: Optional[FrameData],
     ) -> FrameData:
-        if isinstance(object, Universe):
-            return mdanalysis_universe_to_frame(object, fields=fields, frame=existing)
-        if isinstance(object, AtomGroup):
-            return mdanalysis_atomgroup_to_frame(object, fields=fields, frame=existing)
-        raise NotImplementedError()
+        if isinstance(object_, Universe):
+            return mdanalysis_universe_to_frame(object_, fields=fields, frame=existing)
+        if isinstance(object_, AtomGroup):
+            return mdanalysis_atomgroup_to_frame(object_, fields=fields, frame=existing)
+        raise NotImplementedError
 
 
 ALL_FIELDS = everything()

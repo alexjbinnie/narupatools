@@ -27,6 +27,7 @@ from narupatools.imd import Interaction
 
 from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
 from ._null_constraint import NullConstraint
+from ...override import override
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
@@ -45,6 +46,7 @@ class _ASEAtomsWrapper(ASEAtomsWrapper):
     def __init__(self, atoms: Atoms):
         self._atoms = atoms
 
+    @override
     @property
     def atoms(self) -> Atoms:
         return self._atoms
@@ -73,12 +75,14 @@ class InteractionConstraint(
         """
         self.interaction = interaction
 
+    @override
     def adjust_positions(  # noqa: D102
         self, atoms: Atoms, positions: np.ndarray, /
     ) -> None:
         # Assume all interactions depend on positions
         self.interaction.calculate_forces_and_energy()
 
+    @override
     def adjust_momenta(  # noqa: D102
         self, atoms: Atoms, momenta: np.ndarray, /
     ) -> None:
@@ -86,15 +90,20 @@ class InteractionConstraint(
         # When they do, this should conditionally invalidate the cache
         self.interaction.calculate_forces_and_energy()
 
+    @override
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102
         forces[self.interaction.particle_indices] += (
             self.interaction.forces * _NarupaToASE.force
         )
 
+    @override
     def adjust_potential_energy(self, /, atoms: Atoms) -> float:  # noqa: D102
         return self.interaction.potential_energy * _NarupaToASE.energy
 
-    def adjust_torques(self, atoms: Atoms, torques: np.ndarray, /) -> None:
+    @override
+    def adjust_torques(  # noqa: D102
+        self, atoms: Atoms, torques: np.ndarray, /
+    ) -> None:  # noqa: D102
         torques[self.interaction.particle_indices] += (
             self.interaction.torques * _NarupaToASE.force
         )

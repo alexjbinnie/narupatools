@@ -16,7 +16,7 @@
 
 from typing import Any, Optional
 
-import numpy as np
+from .component import ComponentViewer
 
 class Structure:
     def __init__(self): ...
@@ -31,6 +31,3 @@ class Trajectory:
 class NGLWidget:
     def __init__(self, structure: Optional[Structure] = ..., **kwargs: Any) -> None: ...
     def add_structure(self, structure: Structure) -> ComponentViewer: ...
-
-class ComponentViewer:
-    def set_coordinates(self, coordinates: np.ndarray) -> None: ...
