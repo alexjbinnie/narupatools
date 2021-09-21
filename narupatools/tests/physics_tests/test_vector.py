@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from narupatools.core.random import random_integer
-from narupatools.physics.quaternion import quaternion
+from narupatools.physics._quaternion import quaternion
 from narupatools.physics.random import random_float, random_quaternion, random_vector
 from narupatools.physics.vector import (
     angle,

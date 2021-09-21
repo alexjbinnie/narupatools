@@ -24,7 +24,9 @@ from __future__ import annotations
 
 import contextlib
 import warnings
+from dataclasses import dataclass
 from inspect import Parameter, Signature, signature
+from operator import attrgetter
 from typing import (
     AbstractSet,
     Any,
@@ -56,13 +58,12 @@ class CallbackMissingParametersError(SyntaxError):
 class EventListener(Protocol[_TCallback]):
     """Protocol describing an event as seen from an external class."""
 
-    def add_callback(self, callback: _TCallback) -> None:
+    def add_callback(self, callback: TCallback, priority: float = 0) -> None:
         """
         Add a callback.
 
         :param callback: Function to be invoked when the event is triggered.
         """
-        ...
 
     def remove_callback(self, callback: _TCallback) -> None:
         """
@@ -71,10 +72,18 @@ class EventListener(Protocol[_TCallback]):
         :param callback: Function previous added using
                          :meth:`~narupatools.core.event.EventListener.add_callback`.
         """
-        ...
 
 
 TEventCallback = TypeVar("TEventCallback", bound=Callable[..., None])
+
+
+@dataclass
+class _Callback(Generic[TEventCallback]):
+    callback: TEventCallback
+    priority: float
+
+    def __eq__(self, other):
+        return other is self or self.callback == other
 
 
 class Event(EventListener, Generic[TEventCallback]):
@@ -87,7 +96,7 @@ class Event(EventListener, Generic[TEventCallback]):
     practise that future proof callbacks.
     """
 
-    _callbacks: List[TEventCallback]
+    _callbacks: List[_Callback[TEventCallback]]
     _parameter_names: AbstractSet[str]
 
     def __init__(self, callback_type: Optional[Type[TEventCallback]] = None) -> None:
@@ -109,7 +118,7 @@ class Event(EventListener, Generic[TEventCallback]):
                 )
 
     @override
-    def add_callback(self, callback: TEventCallback) -> None:
+    def add_callback(self, callback: TEventCallback, priority: float = 0) -> None:
         """
         Add a callback to this event.
 
@@ -137,7 +146,8 @@ class Event(EventListener, Generic[TEventCallback]):
             if len(missing_params) > 0:
                 raise CallbackMissingParametersError(missing_params)
 
-        self._callbacks.append(callback)
+        self._callbacks.append(_Callback(callback, priority))
+        self._callbacks = list(reversed(sorted(self._callbacks, key=attrgetter("priority"))))
 
     @override
     def remove_callback(self, callback: TEventCallback) -> None:
@@ -163,7 +173,7 @@ class Event(EventListener, Generic[TEventCallback]):
 
         def _invoke(*args: Any, **kwargs: Any) -> None:
             for callback in self._callbacks:
-                callback(*args, **kwargs)
+                callback.callback(*args, **kwargs)
 
         return _invoke  # type: ignore
 

@@ -12,8 +12,11 @@ from narupatools.ase._system import ASESystem
 from narupatools.core import UnitsNarupa
 from narupatools.core.random import random_float, random_integer
 from narupatools.imd import rigidmotion_interaction
-from narupatools.physics.quaternion import from_rotation_vector, quaternion
-from narupatools.physics.random import random_unit_quaternion, random_vector
+from narupatools.physics._quaternion import from_rotation_vector, quaternion
+from narupatools.physics.random import (
+    random_unit_quaternion,
+    random_vector,
+)
 from narupatools.physics.transformation import Rotation
 from narupatools.physics.vector import normalized, vector
 
@@ -115,14 +118,14 @@ def approx(obj, rel=None, abs=None):  # noqa: A002
 
 
 def test_no_forces(
-    mass,
-    symmetric_inertia,
-    angular_velocities,
-    orientations,
-    velocity,
-    timestep,
-    nsteps,
-    single_carbon_atoms,
+        mass,
+        symmetric_inertia,
+        angular_velocities,
+        orientations,
+        velocity,
+        timestep,
+        nsteps,
+        single_carbon_atoms,
 ):
     atoms = single_carbon_atoms
     atoms.calc = NullCalculator()
@@ -147,7 +150,7 @@ def test_no_forces(
 
 
 def test_constant_torque(
-    mass, symmetric_inertia, angular_velocities, nsteps, timestep, single_carbon_atoms
+        mass, symmetric_inertia, angular_velocities, nsteps, timestep, single_carbon_atoms
 ):
     atoms = single_carbon_atoms
     torque = random_vector(max_magnitude=0.5)

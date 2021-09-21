@@ -39,6 +39,7 @@ from narupatools.physics.vector import (
     vector,
     zero_vector,
 )
+from ._feedback import InteractionFeedback
 
 from ._interaction import Interaction
 from ._interactiondata import InteractionData
@@ -64,8 +65,24 @@ class RigidMotionInteractionData(InteractionData):
         ...
 
 
+class RigidMotionInteractionFeedback(InteractionFeedback):
+    """Interaction feedback for a rigid motion interaction."""
+
+    @numpy_property(dtype=float)
+    def accumulated_translation(self) -> None:
+        """Total translation target has moved, in nanometers."""
+        ...
+
+    @quaternion_property
+    def accumulated_rotation(self) -> None:
+        """Total rotation target has rotated, as a unit quaternion."""
+        ...
+
+
 class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
     """Interaction that applies rotations and translations using damped springs."""
+
+    _feedback_type = RigidMotionInteractionFeedback
 
     def __init__(self, **kwargs: Any):
         self.translation: Optional[Translation] = None
@@ -163,7 +180,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             )
             theta = desired_rotation.rotation_vector
 
-            angular_acceleration = (k / M) * theta - (gamma / M) * omega
+            angular_acceleration = (k * theta - gamma * omega) / M
 
             rotation_matrix = cross_product_matrix(
                 angular_acceleration
@@ -171,7 +188,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         if self.translation is not None:
             desired_translation = self.translation - self._accumulated_displacement
-            translation_vector = -(k * -desired_translation + gamma * com_vel) / M
+            translation_vector = (k * desired_translation - gamma * com_vel) / M
 
         self._forces = np.zeros((len(self.particle_indices), 3))
         self._torques = np.zeros((len(self.particle_indices), 3))
@@ -208,6 +225,13 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             @ self._accumulated_rotation
         )
         self._accumulated_displacement += center_velocity * timestep
+
+    def create_feeback(self) -> InteractionFeedback:
+        feedback: RigidMotionInteractionFeedback = super().create_feeback()
+        feedback.accumulated_rotation = self._accumulated_rotation
+        feedback.accumulated_translation = self._accumulated_displacement
+        return feedback
+
 
 
 RIGIDMOTION_INTERACTION_TYPE = "rigid_motion"

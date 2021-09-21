@@ -18,7 +18,7 @@ from narupatools.physics.typing import (
 from narupatools.physics.vector import magnitude, normalized, vector
 
 from ..core.units import degree, radian
-from .quaternion import (
+from ._quaternion import (
     as_rotation_matrix,
     as_rotation_vector,
     from_rotation_vector,

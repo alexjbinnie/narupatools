@@ -216,3 +216,5 @@ log.lammps
 docs/source/_autosummary
 
 sandbox/
+
+.idea/

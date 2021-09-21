@@ -59,3 +59,45 @@ def test_event_add_callback_with_wrong_signature():
     event.add_callback(callback_wrong_signature_with_kwargs)
 
     event.add_callback(callback_kwargs)
+
+
+def test_event_priority_lower():
+    arr = []
+
+    def callback_normal():
+        nonlocal arr
+        arr.append("A")
+
+    def callback_lower():
+        nonlocal arr
+        arr.append("B")
+
+    event = Event()
+
+    event.add_callback(callback_lower, priority=-1)
+    event.add_callback(callback_normal)
+
+    event.invoke()
+
+    assert arr == ["A", "B"]
+
+
+def test_event_priority_higher():
+    arr = []
+
+    def callback_normal():
+        nonlocal arr
+        arr.append("B")
+
+    def callback_higher():
+        nonlocal arr
+        arr.append("A")
+
+    event = Event()
+
+    event.add_callback(callback_normal)
+    event.add_callback(callback_higher, priority=1)
+
+    event.invoke()
+
+    assert arr == ["A", "B"]
