@@ -126,4 +126,4 @@ class SessionSharedState(SharedStateDictionaryView):
     @property
     def interactions(self) -> SharedStateCollectionView:
         """View of current interactions affecting the system."""
-        return self.collection("interaction", InteractionData)
+        return self.collection("interaction.", InteractionData)

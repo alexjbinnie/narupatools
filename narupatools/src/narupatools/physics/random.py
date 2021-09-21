@@ -25,7 +25,7 @@ from narupatools.core.random import random_float, random_integer
 from narupatools.physics.typing import Vector3
 from narupatools.physics.vector import normalized
 
-from .quaternion import quaternion
+from ._quaternion import quaternion
 
 
 def random_sphere() -> Vector3:

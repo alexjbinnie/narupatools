@@ -15,3 +15,9 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Methods relating to calculating physical quantities."""
+
+from ._quaternion import quaternion
+
+__all__ = [
+    "quaternion"
+]

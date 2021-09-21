@@ -12,7 +12,7 @@ from narupatools.ase._system import ASESystem
 from narupatools.core import UnitsNarupa
 from narupatools.core.random import random_float, random_integer
 from narupatools.imd import rigidmotion_interaction
-from narupatools.physics.quaternion import from_rotation_vector, quaternion
+from narupatools.physics._quaternion import from_rotation_vector, quaternion
 from narupatools.physics.random import (
     random_unit_quaternion,
     random_vector,

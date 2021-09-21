@@ -6,7 +6,7 @@ from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 from ase.md.md import MolecularDynamics
 
-from narupatools.physics.quaternion import from_vector_part, quaternion
+from narupatools.physics._quaternion import from_vector_part, quaternion
 from narupatools.physics.typing import Vector3, Vector3Array
 from narupatools.physics.vector import normalized
 from ._rotations import set_angular_momenta, get_torques, get_angular_momenta, get_principal_moments, get_rotations, \

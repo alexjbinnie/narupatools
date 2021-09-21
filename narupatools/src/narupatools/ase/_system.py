@@ -27,11 +27,11 @@ from narupa.trajectory import FrameData
 from narupatools.core import UnitsNarupa
 from narupatools.core.dynamics import DynamicsProperties
 from narupatools.frame._frame_source import FrameSource
-from narupatools.physics.quaternion import quaternion
+from narupatools.physics._quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 
 from ._converter import ase_atoms_to_frame
-from ._rotational_velocity_verlet import (
+from ._rotations import (
     get_angular_momenta,
     get_principal_moments,
     get_rotations,

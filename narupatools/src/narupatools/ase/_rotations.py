@@ -3,7 +3,7 @@ import numpy.typing as npt
 from ase.atoms import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 
-from narupatools.physics.quaternion import quaternion, as_quat_array
+from narupatools.physics._quaternion import quaternion, as_quat_array
 from narupatools.physics.typing import Vector3Array, Vector3Like
 
 ANGMOM_ARRAY = "angmom"

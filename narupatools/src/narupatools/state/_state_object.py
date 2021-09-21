@@ -157,8 +157,8 @@ class SharedStateObject(SerializableObject):
     def __getattr__(self, key: str) -> Serializable:
         try:
             return self._arbitrary_data[key]
-        except KeyError:
-            raise AttributeError
+        except KeyError as e:
+            raise AttributeError from e
 
     def __eq__(self, other: Any) -> bool:
         return (

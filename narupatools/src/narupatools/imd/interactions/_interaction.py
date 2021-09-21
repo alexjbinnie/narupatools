@@ -17,21 +17,26 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Generic, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, Dict, Generic, Optional, Tuple, Type, TypeVar, cast, Protocol
 
 import numpy as np
 
 from narupatools.core.dynamics import DynamicsProperties
+from narupatools.core.event import Event
+from narupatools.imd.interactions._feedback import InteractionFeedback
 from narupatools.imd.interactions._interactiondata import InteractionData
 from narupatools.physics.typing import Vector3Array
 
 _TInteractionData = TypeVar("_TInteractionData", bound=InteractionData)
 
 
+
 class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     """Base class for a stateful interaction that tracks work done."""
 
     _types: Dict[str, Type[Interaction]] = {}
+
+    _feedback_type: Type[InteractionFeedback] = InteractionFeedback
 
     def __init__(
         self,
@@ -199,6 +204,13 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._total_work += work_this_step
 
         self._previous_positions = _current_positions
+
+    def create_feeback(self) -> InteractionFeedback:
+        feedback = self._feedback_type()
+        feedback.interaction_type = self.interaction_type
+        feedback.total_work = self._total_work
+        feedback.potential_energy = self.potential_energy
+        return feedback
 
     @abstractmethod
     def calculate_forces_and_energy(self) -> None:

@@ -33,7 +33,7 @@ from narupatools.core.units import UnitsNarupa
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.imd._feature import InteractionFeature
 from narupatools.imd.interactions._interactiondata import InteractionData
-from narupatools.physics.quaternion import quaternion
+from narupatools.physics._quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 from ._rotations import (
     get_angular_velocities,

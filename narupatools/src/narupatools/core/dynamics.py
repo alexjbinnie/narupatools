@@ -35,7 +35,7 @@ from narupatools.frame.fields import (
     SimulationTotalSteps,
     SimulationTotalTime,
 )
-from narupatools.physics.quaternion import quaternion
+from narupatools.physics._quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array
 
 from .playable import Playable

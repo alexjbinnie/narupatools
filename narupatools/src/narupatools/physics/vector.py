@@ -22,7 +22,7 @@ from typing import Union, overload
 import numpy as np
 import numpy.typing as npt
 
-from .quaternion import quaternion
+from ._quaternion import quaternion
 from .typing import Matrix3x3, Vector3, Vector3Like, VectorN, VectorNLike
 
 
