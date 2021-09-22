@@ -75,9 +75,9 @@ class TrajectoryPlayback(Playable, FrameSourceWithNotify):
     def looping(self, looping: bool) -> None:
         self._looping = looping
 
-    def get_frame(
+    def get_frame(  # noqa: D102
         self, fields: InfiniteSet[str] = everything()
-    ) -> FrameData:  # noqa: D102
+    ) -> FrameData:
         return self.trajectory.get_frame(index=self.index, fields=fields)
 
     @property

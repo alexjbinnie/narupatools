@@ -32,9 +32,9 @@ class MDAnalysisTrajectory(TrajectorySource):
     def __init__(self, universe: Universe):
         self.universe = universe
 
-    def get_frame(
+    def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
-    ) -> FrameData:  # noqa: D102
+    ) -> FrameData:
         _ = self.universe.trajectory[index]
         return mdanalysis_atomgroup_to_frame(self.universe.atoms, fields=fields)
 

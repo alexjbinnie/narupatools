@@ -8,5 +8,6 @@ Tutorials
    server
    lammps
    openmm
+   trajectory
    hdf5_writing
    hdf5_reading

@@ -36,9 +36,9 @@ class MDTrajTrajectory(TrajectorySource):
         super().__init__()
         self._trajectory = trajectory
 
-    def get_frame(
+    def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
-    ) -> FrameData:  # noqa: D102
+    ) -> FrameData:
         return mdtraj_trajectory_to_frame(
             self._trajectory, frame_index=index, fields=everything()
         )

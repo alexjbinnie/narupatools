@@ -44,9 +44,9 @@ class ASETrajectory(TrajectorySource):
     def __len__(self) -> int:
         return len(self._trajectory)
 
-    def get_frame(
+    def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
-    ) -> FrameData:  # noqa: D102
+    ) -> FrameData:
         frame = FrameData()
         if self._universe:
             ase_atoms_to_frame(self._trajectory[index], fields=fields, frame=frame)
