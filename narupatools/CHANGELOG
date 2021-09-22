@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2021-09-22
+### Added
+- Session can take a target as a first argument, to be used as the initial thing to broadcast
+- Session has an autoplay argument, which automatically plays the initial target if present
+- FrameProducer has an always_dirty property, which is set by the Session when the target does not implement FrameSourceWithNotify. This means that the session has no idea when frames are being changed, so it will err on the safe side and assume all fields are always dirty.
+- Subclasses of TrajectorySource can override the _create_from_object class method. When TrajectorySource.create_from_object is called, all subclasses are checked to see if they can convert this arbitrary object to a TrajectorySource. This avoids the middle step of creating something such as an MDAnalysisTrajectory.
+
+### Changed
+- Changed how information about which fields of a frame are dirty is communicated. Now, the Session is not involved and instead there is a subclass of FrameSource which provides an event notifying listeners of any changes. This puts the onus on objects like the dynamics to inform listeners when certain fields change.
+- Can use narupatools with OpenMM installed
+- Unified ASETrajectory, MDAnalysisTrajectory and MDTrajTrajectory as all subclasses of TrajectorySource
+- Instead of subclassing TrajectoryPlayback, now one unified TrajectoryPlayback can play any instance of a TrajectorySource
+
+### Fixed
+- More exceptions use the ... as ... and ... from ... pattern.
+
 ## [1.1.3] - 2021-08-06
 ### Added
 - Documentation now tested with CI using doctest

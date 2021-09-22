@@ -57,5 +57,5 @@ def matrix_inverse(matrix: Matrix3x3Like) -> Matrix3x3:
     """
     try:
         return np.linalg.inv(matrix)  # type: ignore
-    except np.linalg.LinAlgError:
-        raise ValueError("Matrix is singular and hence cannot be inverted.")
+    except np.linalg.LinAlgError as e:
+        raise ValueError("Matrix is singular and hence cannot be inverted.") from e

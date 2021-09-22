@@ -104,6 +104,7 @@ class FrameProducer(Playable):
 
     _produce: ProduceFrameCallback
     _is_dirty: bool
+    _always_dirty: bool
     _fields: InfiniteSet[str]
     _dirty_fields: InfiniteSet[str]
     _on_frame_produced: Event[OnFrameProducedCallback]
@@ -118,9 +119,23 @@ class FrameProducer(Playable):
         super().__init__(playback_interval=frame_interval)
         self._produce = produce
         self._is_dirty = True
+        """Have any fields been marked as dirty since the last frame was produced."""
+        self._always_dirty = False
+        """Should it be assumed that all fields have changed."""
         self._fields = set(fields)
+        """Fields which this producer should read."""
         self._dirty_fields = set(fields)
+        """Fields which have been marked as dirty since the last frame was produced."""
         self._on_frame_produced = Event()
+
+    @property
+    def always_dirty(self) -> bool:
+        """Should it be assumed that all fields are always dirty?"""
+        return self._always_dirty
+
+    @always_dirty.setter
+    def always_dirty(self, value: bool) -> None:
+        self._always_dirty = value
 
     def add_fields(self, fields: InfiniteSet[str], /) -> None:
         """
@@ -155,7 +170,7 @@ class FrameProducer(Playable):
         self._dirty_fields = self._dirty_fields | (self._fields & fields)
 
     def _advance(self) -> bool:
-        if self._is_dirty:
+        if self._is_dirty or self._always_dirty:
             frame = self._produce(fields=self._dirty_fields)
             self._on_frame_produced.invoke(frame=frame)
             self._is_dirty = False

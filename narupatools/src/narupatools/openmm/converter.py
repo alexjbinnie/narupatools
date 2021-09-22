@@ -26,8 +26,8 @@ from typing import Iterable, Optional, Sequence, Type, TypeVar, Union
 import numpy as np
 from infinite_sets import InfiniteSet
 from narupa.trajectory.frame_data import FrameData
+from simtk.openmm import Context, State, System
 from simtk.openmm.app import Element, Simulation, Topology
-from simtk.openmm.openmm import Context, State, System
 
 from narupatools.core.units import UnitsNarupa
 from narupatools.frame import (

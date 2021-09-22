@@ -38,13 +38,11 @@ from narupa.trajectory.frame_server import (
 )
 
 from narupatools.core.broadcastable import Broadcastable, Broadcaster
-from narupatools.core.dynamics import SimulationDynamics
 from narupatools.core.event import Event
 from narupatools.core.health_check import HealthCheck
 from narupatools.core.playable import Playable
-from narupatools.frame import KineticEnergy, ParticlePositions, PotentialEnergy
 from narupatools.frame.frame_producer import FrameProducer
-from narupatools.frame.frame_source import FrameSource
+from narupatools.frame.frame_source import FrameSource, FrameSourceWithNotify
 from narupatools.state.view.wrappers import SharedStateServerWrapper
 
 from .shared_state import SharedStateView
@@ -83,10 +81,13 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     completely detached from the MD loop, and hence can be specified in real time.
     """
 
-    def __init__(self, **kwargs: Any):
+    def __init__(
+        self, target: Optional[TTarget] = None, *, autoplay: bool = True, **kwargs: Any
+    ):
         """
         Create a session.
 
+        :param autoplay: If the target is playable, should it be automatically started if its not running.
         :param kwargs: Parameters to initialise the server with.
         """
         self._target: Optional[TTarget] = None
@@ -114,6 +115,12 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         narupa_server.register_command(RESET_COMMAND_KEY, self.restart)  # type: ignore
         narupa_server.register_command(STEP_COMMAND_KEY, self.step)  # type: ignore
         narupa_server.register_command(PAUSE_COMMAND_KEY, self.pause)  # type: ignore
+
+        if target is not None:
+            self.show(target)
+
+        if isinstance(target, Playable) and autoplay:
+            target.play()
 
     @property
     def app(self) -> NarupaImdApplication:
@@ -182,18 +189,19 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     def target(self, value: TTarget) -> None:
         if isinstance(self._target, Playable):
             self._target.stop(wait=True)
-        if isinstance(self._target, SimulationDynamics):
-            self._target.on_reset.remove_callback(self._on_target_reset)
-            self._target.on_post_step.remove_callback(self._on_target_step)
+        if isinstance(self._target, FrameSourceWithNotify):
+            self._target.on_field_changed.remove_callback(self._on_field_changed)
         if isinstance(self._target, Broadcastable):
             self._target.end_broadcast(self)
 
         previous_target = self._target
         self._target = value
 
-        if isinstance(self._target, SimulationDynamics):
-            self._target.on_reset.add_callback(self._on_target_reset)
-            self._target.on_post_step.add_callback(self._on_target_step)
+        if isinstance(self._target, FrameSourceWithNotify):
+            self._target.on_field_changed.add_callback(self._on_field_changed)
+            self._frame_producer.always_dirty = False
+        else:
+            self._frame_producer.always_dirty = True
         if isinstance(self._target, Broadcastable):
             self._target.start_broadcast(self)
 
@@ -204,13 +212,8 @@ class Session(Broadcaster, Generic[TTarget], HealthCheck, metaclass=ABCMeta):
             target=self._target, previous_target=previous_target  # type: ignore
         )
 
-    def _on_target_reset(self, **kwargs: Any) -> None:
-        self._frame_producer.mark_dirty()
-
-    def _on_target_step(self, **kwargs: Any) -> None:
-        self._frame_producer.mark_dirty(
-            {ParticlePositions.key, PotentialEnergy.key, KineticEnergy.key}
-        )
+    def _on_field_changed(self, *, fields: InfiniteSet, **kwargs: Any) -> None:
+        self._frame_producer.mark_dirty(fields)
 
     def _produce_frame(self, fields: InfiniteSet[str]) -> FrameData:
         """

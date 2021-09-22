@@ -22,18 +22,25 @@ from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
 from typing import Optional, Protocol, Union
 
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
+from narupatools.frame.frame_source import (
+    FrameSourceWithNotify,
+    OnFieldsChangedCallback,
+)
 
 from ..frame import (
+    KineticEnergy,
+    ParticlePositions,
+    ParticleVelocities,
+    PotentialEnergy,
     SimulationElapsedSteps,
     SimulationElapsedTime,
     SimulationTotalSteps,
     SimulationTotalTime,
 )
-from ..frame.frame_source import FrameSource
 from .playable import Playable
 
 
@@ -58,7 +65,7 @@ class OnPostStepCallback(Protocol):
         ...
 
 
-class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
+class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
     """
     Base class for an implementation of dynamics driven by Narupa.
 
@@ -75,6 +82,15 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
     _on_reset: Event[OnResetCallback]
     _on_pre_step: Event[OnPreStepCallback]
     _on_post_step: Event[OnPostStepCallback]
+    _on_fields_changed: Event[OnFieldsChangedCallback]
+
+    dynamic_fields = {
+        ParticlePositions.key,
+        PotentialEnergy.key,
+        KineticEnergy.key,
+        ParticleVelocities.key,
+    }
+    """Set of fields which are marked as having changed after a dynamics step."""
 
     def __init__(self, *, playback_interval: float):
         """
@@ -88,6 +104,7 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
         self._on_reset = Event(OnResetCallback)
         self._on_pre_step = Event(OnPreStepCallback)
         self._on_post_step = Event(OnPostStepCallback)
+        self._on_fields_changed = Event(OnFieldsChangedCallback)
         self._previous_total_time = 0.0
         self._previous_total_steps = 0
         self._elapsed_time = 0.0
@@ -135,6 +152,7 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
         self._elapsed_steps = 0
         self._reset_internal()
         self._on_reset.invoke()
+        self._on_fields_changed.invoke(fields=everything())
 
     def run(  # type: ignore
         self, steps: Optional[int] = None, block: Optional[bool] = None
@@ -164,6 +182,7 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
         self._elapsed_steps += 1
         self._elapsed_time += self.timestep
         self._on_post_step.invoke()
+        self._on_fields_changed.invoke(fields=self.dynamic_fields)
         if self._remaining_steps is not None:
             self._remaining_steps -= 1
             return self._remaining_steps > 0
@@ -252,3 +271,7 @@ class SimulationDynamics(Playable, FrameSource, metaclass=ABCMeta):
         SimulationTotalTime.set(frame, self.total_time)
         SimulationTotalSteps.set(frame, self.total_steps)
         return frame
+
+    @property
+    def on_field_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
+        return self._on_fields_changed
