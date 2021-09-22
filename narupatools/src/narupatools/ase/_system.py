@@ -48,6 +48,33 @@ _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
+def create_ase_atoms(*, positions: Vector3ArrayLike, velocities: Vector3ArrayLike, masses: ScalarArray):
+    """
+    Create a new ASE atoms object in Narupa units.
+
+    :param positions: Position of each atom in nanometers.
+    :param velocities: Velocity of each atom in nanometers per picoseconds.
+    :param masses: Mass of each atom in daltons.
+    :return: ASE atoms object.
+    """
+    kwargs = {}
+
+    if positions is not None:
+        kwargs["positions"] = positions * _NarupaToASE.length
+
+    if velocities is not None:
+        kwargs["velocities"] = velocities * _NarupaToASE.velocity
+
+    if masses is not None:
+        kwargs["masses"] = masses * _NarupaToASE.mass
+
+    atoms = Atoms(**kwargs)
+
+    atoms.calc = NullCalculator()
+
+    return atoms
+
+
 class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
     """Wrapper around an ASE `Atoms` object so it is exposed consistently."""
 

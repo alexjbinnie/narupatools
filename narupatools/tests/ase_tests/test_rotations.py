@@ -8,7 +8,7 @@ from narupatools.ase import ASEDynamics, ConstantCalculator, NullCalculator, Uni
 from narupatools.ase._rotational_velocity_verlet import (
     RotationalVelocityVerletIntegrator,
 )
-from narupatools.ase._system import ASESystem
+from narupatools.ase._system import ASESystem, create_ase_atoms
 from narupatools.core import UnitsNarupa
 from narupatools.core.random import random_float, random_integer
 from narupatools.imd import rigidmotion_interaction
@@ -18,7 +18,7 @@ from narupatools.physics.random import (
     random_vector,
 )
 from narupatools.physics.transformation import Rotation
-from narupatools.physics.vector import normalized, vector
+from narupatools.physics.vector import normalized, vector, distance
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 
@@ -197,9 +197,37 @@ def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
     for _ in range(100):
         print(Rotation(dynamics.orientations[0]))
         print(dynamics.torques[0])
-        dynamics.run(5)
+        dynamics.run(steps=5)
 
     end = dynamics.orientations[0]
 
     print(rotation)
     print(end)
+
+X_AXIS = vector(1, 0, 0)
+
+Y_AXIS = vector(0, 1, 0)
+
+
+def test_diatomic_rotation():
+    separation = 1.0
+    vel = 0.5
+    mass = 1.0
+
+    positions = np.array([X_AXIS * separation * 0.5, -X_AXIS * separation * 0.5])
+    velocities = np.array([-Y_AXIS * vel, Y_AXIS * vel])
+    masses = np.array([mass, mass])
+
+    system = create_ase_atoms(positions=positions, velocities=velocities, masses=masses)
+    dynamics = ASEDynamics.create_velocity_verlet(system, timestep=0.01)
+
+    dynamics.imd.add_interaction(rigidmotion_interaction(
+        particles=[0, 1],
+        scale = 0.0
+    ))
+
+    assert distance(dynamics.positions[0], dynamics.positions[1]) == pytest.approx(separation)
+
+    dynamics.run(100)
+
+    assert distance(dynamics.positions[0], dynamics.positions[1]) == pytest.approx(separation, rel=1e-3)

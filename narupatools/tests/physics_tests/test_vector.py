@@ -26,17 +26,17 @@ from narupatools.physics.vector import (
 
 @pytest.fixture
 def x():
-    return random_float(min=-100.0, max=100.0)
+    return random_float(minimum=-100.0, maximum=100.0)
 
 
 @pytest.fixture
 def y():
-    return random_float(min=-100.0, max=100.0)
+    return random_float(minimum=-100.0, maximum=100.0)
 
 
 @pytest.fixture
 def z():
-    return random_float(min=-100.0, max=100.0)
+    return random_float(minimum=-100.0, maximum=100.0)
 
 
 @pytest.fixture

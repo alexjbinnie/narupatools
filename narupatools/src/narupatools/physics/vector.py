@@ -116,10 +116,8 @@ def normalized(
     if arr.dtype == quaternion:
         return np.normalized(arr)  # type: ignore
     else:
-        mag = np.sqrt((arr ** 2).sum())
-        if mag < 1e-12:
-            return np.zeros(arr.shape)
-        return np.nan_to_num(arr / mag)  # type: ignore
+        mag = np.sqrt((arr ** 2).sum(axis=-1))
+        return np.nan_to_num(arr / mag[:, np.newaxis])  # type: ignore
 
 
 def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:

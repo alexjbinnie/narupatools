@@ -37,7 +37,7 @@ from narupatools.physics.vector import (
     cross_product_matrix,
     left_vector_triple_product_matrix,
     vector,
-    zero_vector,
+    zero_vector, magnitude,
 )
 from ._feedback import InteractionFeedback
 
@@ -158,7 +158,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         try:
             return inv(inertia_tensor) @ angular_momentum  # type: ignore
         except LinAlgError:
-            return zero_vector()
+            return -2.0 * angular_momentum / np.trace(inertia_tensor)
 
     @override
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
@@ -172,6 +172,12 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         com = center_of_mass(masses=masses, positions=positions)
         com_vel = center_of_mass_velocity(masses=masses, velocities=velocities)
 
+        omega = self._get_angular_velocity(
+            masses=masses, positions=positions, velocities=velocities
+        )
+
+        rotation_matrix = left_vector_triple_product_matrix(omega, omega)
+
         if self.rotation is not None:
             desired_rotation = self.rotation @ ~self._accumulated_rotation
 
@@ -182,9 +188,9 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
             angular_acceleration = (k * theta - gamma * omega) / M
 
-            rotation_matrix = cross_product_matrix(
+            rotation_matrix += cross_product_matrix(
                 angular_acceleration
-            ) + left_vector_triple_product_matrix(omega, omega)
+            )
 
         if self.translation is not None:
             desired_translation = self.translation - self._accumulated_displacement
@@ -197,9 +203,10 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         for i in range(len(self.particle_indices)):
 
+            r_i = positions[i] - com
+            self._forces[i] += masses[i] * (rotation_matrix @ r_i)
+
             if self.rotation is not None:
-                r_i = positions[i] - com
-                self._forces[i] += masses[i] * (rotation_matrix @ r_i)
                 self._torques += masses[i] * inertias[i] * angular_acceleration
 
             if self.translation is not None:
@@ -224,6 +231,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             Rotation.from_rotation_vector(ang_vel * timestep)
             @ self._accumulated_rotation
         )
+
         self._accumulated_displacement += center_velocity * timestep
 
     def create_feeback(self) -> InteractionFeedback:

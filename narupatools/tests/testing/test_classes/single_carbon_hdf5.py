@@ -151,7 +151,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         interactions = {}
         dynamics.imd.add_source(interactions)
 
-        key = "my_interaction"
+        key = "interaction.my_interaction"
         interactions[key] = constant_interaction(
             force=vector(50.0, 0.0, 0.0), particles=[0]
         )

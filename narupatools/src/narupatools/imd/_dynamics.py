@@ -58,15 +58,13 @@ class InteractiveSimulationDynamics(
             feedback = interaction.create_feeback()
             self._shared_state[feedback_key] = feedback
 
-    def start_broadcast(self, broadcaster: Broadcaster) -> None:  # noqa: D102
-        if isinstance(broadcaster, Session):
-            self._shared_state = broadcaster.shared_state
-            self.imd.add_source(broadcaster.shared_state.interactions.snapshot)
-            self.imd.on_end_interaction.add_callback(self._interaction_ended)
-            # Low priority to ensure interaction has updated first
-            self.on_post_step.add_callback(self._send_interaction_feedback, priority=-10)
+    def start_broadcast(self, session: Session) -> None:  # noqa: D102
+        self._shared_state = session.shared_state
+        self.imd.add_source(session.shared_state.interactions.snapshot)
+        self.imd.on_end_interaction.add_callback(self._interaction_ended)
+        # Low priority to ensure interaction has updated first
+        self.on_post_step.add_callback(self._send_interaction_feedback, priority=-10)
 
-    def end_broadcast(self, broadcaster: Broadcaster) -> None:  # noqa: D102
-        if isinstance(broadcaster, Session):
-            self.imd.remove_source(broadcaster.shared_state.interactions.snapshot)
-            self.imd.on_end_interaction.remove_callback(self._interaction_ended)
+    def end_broadcast(self, session: Session) -> None:  # noqa: D102
+        self.imd.remove_source(session.shared_state.interactions.snapshot)
+        self.imd.on_end_interaction.remove_callback(self._interaction_ended)

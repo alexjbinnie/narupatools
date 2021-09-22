@@ -108,7 +108,7 @@ def test_ref_snapshot_raw(view):
 # Can cast snapshot to arbitrary object using second argument of SharedStateView.get
 def test_ref_snapshot_typed(view):
     assert (
-        view.get(KEY_NON_COLLECTION, ExampleStateObject).snapshot()
+        view.get(KEY_NON_COLLECTION, snapshot_type=ExampleStateObject).snapshot()
         == VALUE_NON_COLLECTION_OBJ
     )
 

@@ -226,7 +226,7 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
 
     @override
     def run(  # type: ignore
-        self, *, steps: Optional[int] = None, block: Optional[bool] = None
+        self, steps: Optional[int] = None, *, block: Optional[bool] = None
     ) -> Union[bool, Future[bool]]:
         """
         Run the dynamics.
