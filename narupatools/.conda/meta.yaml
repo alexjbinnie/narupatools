@@ -18,6 +18,7 @@ requirements:
     - python>=3.8
     - numpy>=1.20.*
     - narupa-server=0.1.2061
+    - openmm<7.6.0
     - mdtraj>=1.9.*
     - lxml>=4.6.*
     - infinite-sets==1.0.*
