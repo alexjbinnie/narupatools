@@ -47,6 +47,7 @@ from .fields import (
 )
 from .frame import NarupaFrame
 from .patch import *  # noqa: F401, F403
+from .trajectory_playback import TrajectoryPlayback
 
 __all__ = [
     "convert",
@@ -77,4 +78,5 @@ __all__ = [
     "SimulationTotalSteps",
     "SimulationElapsedSteps",
     "NarupaFrame",
+    "TrajectoryPlayback",
 ]

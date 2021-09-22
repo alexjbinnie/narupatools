@@ -239,9 +239,9 @@ class LAMMPSSimulation:
                 return np.array(data, dtype=dtype).reshape((-1,))
             else:
                 return np.array(data, dtype=dtype).reshape((-1, dimension))
-        except UnknownPropertyNameError:
+        except UnknownPropertyNameError as e:
             # Reraise as a different error so we know what key caused the error.
-            raise UnknownAtomPropertyError(key)
+            raise UnknownAtomPropertyError(key) from e
 
     def _scatter_atoms(
         self, name: str, type: PropertyType, dimensions: int, value: np.ndarray
@@ -358,8 +358,8 @@ class LAMMPSSimulation:
                     self.gather_atoms("q", PropertyType.DOUBLE, 1)
                     * self._lammps_to_narupa.charge
                 )
-            except UnknownAtomPropertyError:
-                raise AttributeError
+            except UnknownAtomPropertyError as e:
+                raise AttributeError from e
         return self._charges
 
     @property
@@ -709,7 +709,7 @@ def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
                 _handle_error(e.args[0][17:])
             if e.args[0].startswith("ERROR: "):
                 _handle_error(e.args[0][7:])
-            raise LAMMPSError(e.args[0])
+            raise LAMMPSError(e.args[0]) from e
         output = o.output
     for line in output.splitlines():
         if line.startswith("WARNING: "):

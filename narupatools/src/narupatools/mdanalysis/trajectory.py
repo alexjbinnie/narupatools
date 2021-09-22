@@ -14,40 +14,35 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Adapts a MDTraj trajectory for trajectory playback."""
-
-from __future__ import annotations
+"""Adapts a MDAnalysis trajectory for trajectory playback."""
 
 from typing import Any
 
-from infinite_sets import InfiniteSet, everything
-from mdtraj import Trajectory
+from infinite_sets import InfiniteSet
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
 from narupatools.frame.frame_source import TrajectorySource
+from narupatools.mdanalysis import mdanalysis_atomgroup_to_frame
 
-from .converter import mdtraj_trajectory_to_frame
 
+class MDAnalysisTrajectory(TrajectorySource):
+    """Wrapper around an MDAnalysis universe to serve as a trajectory source."""
 
-class MDTrajTrajectory(TrajectorySource):
-    """MDTraj trajectory playback."""
-
-    def __init__(self, trajectory: Trajectory, /):
-        super().__init__()
-        self._trajectory = trajectory
+    def __init__(self, universe: Universe):
+        self.universe = universe
 
     def get_frame(
         self, *, index: int, fields: InfiniteSet[str]
     ) -> FrameData:  # noqa: D102
-        return mdtraj_trajectory_to_frame(
-            self._trajectory, frame_index=index, fields=everything()
-        )
+        _ = self.universe.trajectory[index]
+        return mdanalysis_atomgroup_to_frame(self.universe.atoms, fields=fields)
 
     def __len__(self) -> int:
-        return len(self._trajectory)
+        return len(self.universe.trajectory)
 
     @classmethod
-    def _create_from_object(cls, obj: Any) -> MDTrajTrajectory:
-        if isinstance(obj, Trajectory):
-            return MDTrajTrajectory(obj)
+    def _create_from_object(cls, obj: Any) -> TrajectorySource:
+        if isinstance(obj, Universe):
+            return MDAnalysisTrajectory(obj)
         raise NotImplementedError

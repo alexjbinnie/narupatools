@@ -16,11 +16,22 @@
 
 """Describes the base class for anything that supports get_frame."""
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
-from typing import Protocol, runtime_checkable
+from typing import Any, List, Optional, Protocol, Type, runtime_checkable
 
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
+
+from narupatools.core.event import EventListener
+
+
+class OnFieldsChangedCallback(Protocol):
+    """Callback for when certain fields of a Frame have changed."""
+
+    def __call__(self, *, fields: InfiniteSet[str]) -> None:  # noqa: D102
+        pass
 
 
 @runtime_checkable
@@ -38,7 +49,19 @@ class FrameSource(Protocol, metaclass=ABCMeta):
         pass
 
 
-class TrajectorySource(Protocol, metaclass=ABCMeta):
+class FrameSourceWithNotify(FrameSource, metaclass=ABCMeta):
+    """Base class for objects which inform others when fields are made dirty."""
+
+    @property
+    @abstractmethod
+    def on_field_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
+        ...
+
+
+_TRAJ_SOURCE_SUBCLASSES: List[Type[TrajectorySource]] = []
+
+
+class TrajectorySource(metaclass=ABCMeta):
     """Base class for object which can create multiple FrameData."""
 
     @abstractmethod
@@ -54,3 +77,31 @@ class TrajectorySource(Protocol, metaclass=ABCMeta):
 
     def __len__(self) -> int:
         pass
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)  # type: ignore
+        if cls != TrajectorySource:
+            _TRAJ_SOURCE_SUBCLASSES.append(cls)
+
+    @staticmethod
+    def create_from_object(obj: Any) -> Optional[TrajectorySource]:
+        """Attempt to convert an arbitrary object to a trajectory source."""
+        try:
+            return TrajectorySource._create_from_object(obj)
+        except NotImplementedError:
+            return None
+
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> TrajectorySource:
+        """
+        Attempt to convert an arbitrary object to a trajectory source.
+
+        Subclasses can override this to allow automatic conversion of objects to trajectory sources.
+        """
+        if cls == TrajectorySource:
+            for subclass in _TRAJ_SOURCE_SUBCLASSES:
+                try:
+                    return subclass._create_from_object(obj)
+                except NotImplementedError:
+                    continue
+        raise NotImplementedError

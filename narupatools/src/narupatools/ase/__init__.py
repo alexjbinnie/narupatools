@@ -19,13 +19,13 @@
 from .calculators import ConstantCalculator, NullCalculator, OneBodyPotentialCalculator
 from .converter import ase_atoms_to_frame
 from .dynamics import ASEDynamics
-from .trajectory import ASETrajectoryPlayback
+from .trajectory import ASETrajectory
 from .units import UnitsASE
 
 __all__ = [
     "ase_atoms_to_frame",
     "ASEDynamics",
-    "ASETrajectoryPlayback",
+    "ASETrajectory",
     "UnitsASE",
     "OneBodyPotentialCalculator",
     "ConstantCalculator",
