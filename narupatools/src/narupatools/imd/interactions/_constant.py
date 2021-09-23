@@ -25,14 +25,14 @@ from narupatools.physics.force import mass_weighted_forces
 from narupatools.physics.rigidbody import center_of_mass
 
 from ._interaction import Interaction
-from ._interactiondata import InteractionData
+from ._parameters import InteractionParameters
 from ...override import override
 
 CONSTANT_INTERACTION_TYPE = "constant"
 """Key identifying the constant interaction type."""
 
 
-class ConstantInteractionData(InteractionData):
+class ConstantInteractionData(InteractionParameters):
     """Interaction data for a constant force interaction."""
 
     @numpy_property(dtype=float)
@@ -81,7 +81,7 @@ class ConstantInteraction(Interaction[ConstantInteractionData]):
         self._energy = energy
 
 
-InteractionData.register_interaction_type(
+InteractionParameters.register_interaction_type(
     CONSTANT_INTERACTION_TYPE, ConstantInteractionData
 )
 Interaction.register_interaction_type(CONSTANT_INTERACTION_TYPE, ConstantInteraction)

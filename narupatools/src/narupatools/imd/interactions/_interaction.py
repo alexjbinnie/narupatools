@@ -22,12 +22,12 @@ from typing import Any, Dict, Generic, Optional, Type, TypeVar
 import numpy as np
 
 from narupatools.core.dynamics import DynamicsProperties
-from narupatools.imd.interactions._interactiondata import InteractionFeedback
+from narupatools.imd.interactions._parameters import InteractionFeedback
 from narupatools.imd.interactions._feedback import InteractionFeedback
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.physics.typing import Vector3Array
 
-_TInteractionData = TypeVar("_TInteractionData", bound=InteractionData)
+_TInteractionData = TypeVar("_TInteractionData", bound=InteractionParameters)
 
 
 
@@ -89,7 +89,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         key: str,
         dynamics: DynamicsProperties,
         start_time: float,
-        interaction: InteractionData,
+        interaction: InteractionParameters,
     ) -> Interaction:
         """
         Create a new interaction instance.

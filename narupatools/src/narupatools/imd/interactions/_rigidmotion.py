@@ -42,11 +42,11 @@ from narupatools.physics.vector import (
 from ._feedback import InteractionFeedback
 
 from ._interaction import Interaction
-from ._interactiondata import InteractionData
+from ._parameters import InteractionParameters
 from ...override import override
 
 
-class RigidMotionInteractionData(InteractionData):
+class RigidMotionInteractionData(InteractionParameters):
     """Interaction data for a rigid motion interaction."""
 
     @numpy_property(dtype=float)
@@ -245,7 +245,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 RIGIDMOTION_INTERACTION_TYPE = "rigid_motion"
 """Interaction type constant for rigid motion interactions."""
 
-InteractionData.register_interaction_type(
+InteractionParameters.register_interaction_type(
     RIGIDMOTION_INTERACTION_TYPE, RigidMotionInteractionData
 )
 Interaction.register_interaction_type(

@@ -118,7 +118,7 @@ def openmm_simulation_to_ase_molecular_dynamics(
         * maxwell_boltzmann_velocities(
             masses=atoms.get_masses() * _ASEToNarupa.mass, temperature=temperature
         )
-        * _ASEToNarupa.velocity
+        * _NarupaToASE.velocity
     )
 
     # We do not remove the center of mass (fixcm=False). If the center of

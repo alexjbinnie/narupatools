@@ -23,11 +23,11 @@ from narupatools.override import override
 from narupatools.state import SharedStateObject
 from narupatools.state.typing import Serializable
 
-_InteractionData_Types: Dict[str, Type[InteractionData]] = {}
+_InteractionParameters_Types: Dict[str, Type[InteractionParameters]] = {}
 _InteractionFeedback_Types: Dict[str, Type[InteractionFeedback]] = {}
 
 
-class InteractionData(SharedStateObject):
+class InteractionParameters(SharedStateObject):
     """
     Interaction data that can be serialized to a shared state.
 
@@ -56,17 +56,17 @@ class InteractionData(SharedStateObject):
 
     @staticmethod
     def register_interaction_type(
-            interaction_type: str, python_type: Type[InteractionData], /
+            interaction_type: str, python_type: Type[InteractionParameters], /
     ) -> None:
         """Register a new subclass of InteractionData and the interaction_type it affects."""
-        _InteractionData_Types[interaction_type] = python_type
+        _InteractionParameters_Types[interaction_type] = python_type
 
     @classmethod
     @override
-    def deserialize(cls, value: Serializable) -> InteractionData:  # noqa: D102
-        if cls is InteractionData and isinstance(value, Mapping):
+    def deserialize(cls, value: Serializable) -> InteractionParameters:  # noqa: D102
+        if cls is InteractionParameters and isinstance(value, Mapping):
             interaction_type = value["interaction_type"]
-            return _InteractionData_Types[interaction_type].deserialize(value)
+            return _InteractionParameters_Types[interaction_type].deserialize(value)
         return super().deserialize(value)  # type: ignore[return-value]
 
 
@@ -103,7 +103,7 @@ class InteractionFeedback(SharedStateObject):
 
     @classmethod
     @override
-    def deserialize(cls, value: Serializable) -> InteractionData:  # noqa: D102
+    def deserialize(cls, value: Serializable) -> InteractionParameters:  # noqa: D102
         if cls is InteractionFeedback and isinstance(value, Mapping):
             interaction_type = value["interaction_type"]
             return _InteractionFeedback_Types[interaction_type].deserialize(value)

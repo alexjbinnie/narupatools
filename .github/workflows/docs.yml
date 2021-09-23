@@ -17,7 +17,7 @@ jobs:
       - name: Create environment file
         run: |
           pip install conda-merge
-          conda-merge environment.yml docs-environment.yml > gitlab-environment.yml
+          conda-merge .environments/base.yml .environments/docs.yml > gitlab-environment.yml
 
       - name: Cache conda
         uses: actions/cache@v2

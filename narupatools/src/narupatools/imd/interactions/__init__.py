@@ -22,7 +22,7 @@ from ._constant import (
     constant_interaction,
 )
 from ._interaction import Interaction
-from ._interactiondata import InteractionData
+from ._parameters import InteractionParameters
 from ._point import (
     GAUSSIAN_INTERACTION_TYPE,
     SPRING_INTERACTION_TYPE,
@@ -40,7 +40,7 @@ from ._rigidmotion import (
 
 __all__ = [
     "Interaction",
-    "InteractionData",
+    "InteractionParameters",
     "ConstantInteraction",
     "PointInteraction",
     "PointInteractionData",

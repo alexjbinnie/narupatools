@@ -22,7 +22,7 @@ import numpy as np
 
 from narupatools.core.partial import partialclass
 from narupatools.core.properties import float_property, numpy_property
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.physics.force import (
     gaussian_force_and_energy,
     mass_weighted_forces,
@@ -45,7 +45,7 @@ class OffsetForceFunction(Protocol):
         ...
 
 
-class PointInteractionData(InteractionData):
+class PointInteractionData(InteractionParameters):
     """Data for a point interaction."""
 
     @numpy_property(dtype=float)
@@ -90,10 +90,10 @@ class PointInteraction(Interaction[PointInteractionData]):
         self._energy = energy
 
 
-InteractionData.register_interaction_type(
+InteractionParameters.register_interaction_type(
     GAUSSIAN_INTERACTION_TYPE, PointInteractionData
 )
-InteractionData.register_interaction_type(SPRING_INTERACTION_TYPE, PointInteractionData)
+InteractionParameters.register_interaction_type(SPRING_INTERACTION_TYPE, PointInteractionData)
 
 Interaction.register_interaction_type(
     GAUSSIAN_INTERACTION_TYPE,

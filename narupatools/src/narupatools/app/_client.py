@@ -29,7 +29,7 @@ from narupa.imd.imd_state import dict_to_interaction
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.state.view._wrappers import SharedStateClientWrapper
 
 from ._session import Session
@@ -140,7 +140,7 @@ class Client(NarupaImdClient):
 
     @override
     def start_interaction(
-        self, interaction: Optional[Union[InteractionData, ParticleInteraction]] = None
+        self, interaction: Optional[Union[InteractionParameters, ParticleInteraction]] = None
     ) -> str:
         """
         Start an interaction with the IMD server.
@@ -152,6 +152,6 @@ class Client(NarupaImdClient):
         :param interaction: Initial interaction data.
         :return: Unique interaction ID generated for this interaction.
         """
-        if isinstance(interaction, InteractionData):
+        if isinstance(interaction, InteractionParameters):
             interaction = dict_to_interaction(interaction.serialize())
         return super().start_interaction(interaction)  # type: ignore[no-any-return]

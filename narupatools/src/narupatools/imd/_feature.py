@@ -28,7 +28,7 @@ from typing_extensions import Protocol
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.core.event import Event, EventListener
 from narupatools.imd.interactions._interaction import Interaction
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
 
 
@@ -63,7 +63,7 @@ TDynamics = TypeVar("TDynamics", bound=SimulationDynamics)
 
 
 InteractionSource = Union[
-    Mapping[str, InteractionData], Callable[..., Mapping[str, InteractionData]]
+    Mapping[str, InteractionParameters], Callable[..., Mapping[str, InteractionParameters]]
 ]
 
 
@@ -118,9 +118,9 @@ class InteractionFeature(Generic[TDynamics]):
         for _source in [s for s in self._sources if s is source]:
             self._sources.remove(_source)
 
-    def _source_interactions(self) -> Mapping[str, InteractionData]:
+    def _source_interactions(self) -> Mapping[str, InteractionParameters]:
         """Collate all interaction sources into one unified dictionary."""
-        dict_: Dict[str, InteractionData] = {}
+        dict_: Dict[str, InteractionParameters] = {}
         for source in self._sources:
             if callable(source):
                 dict_.update(source())
@@ -243,7 +243,7 @@ class InteractionFeature(Generic[TDynamics]):
     def add_interaction(
         self,
         /,
-        interaction_data: InteractionData,
+        interaction_data: InteractionParameters,
         *,
         key: Optional[str] = None,
     ) -> str:
@@ -264,7 +264,7 @@ class InteractionFeature(Generic[TDynamics]):
     def _add_interaction(
         self,
         key: str,
-        interaction_data: InteractionData,
+        interaction_data: InteractionParameters,
     ) -> None:
         """
         Add an interaction to the system.
@@ -281,7 +281,7 @@ class InteractionFeature(Generic[TDynamics]):
         self._current_interactions[key] = interaction
         self._on_start_interaction.invoke(key=key, interaction=interaction)
 
-    def update_interaction(self, *, key: str, interaction: InteractionData) -> None:
+    def update_interaction(self, *, key: str, interaction: InteractionParameters) -> None:
         """
         Update an interaction with the given key.
 
@@ -292,7 +292,7 @@ class InteractionFeature(Generic[TDynamics]):
         self._current_interactions[key].update(interaction)
 
     def create_interaction(
-        self, *, key: str, interaction: InteractionData, start_time: float
+        self, *, key: str, interaction: InteractionParameters, start_time: float
     ) -> Interaction:
         """
         Create a new interaction from interaction data.

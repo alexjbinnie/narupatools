@@ -22,7 +22,7 @@ from typing import Optional, Protocol, Set
 from narupa.utilities.change_buffers import DictionaryChange
 
 from narupatools.core.event import Event, EventListener
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.state import SharedStateCollectionView, SharedStateDictionaryView
 from narupatools.state.typing import SerializableDictionary
 
@@ -123,4 +123,4 @@ class SessionSharedState(SharedStateDictionaryView):
     @property
     def interactions(self) -> SharedStateCollectionView:
         """View of current interactions affecting the system."""
-        return self.collection("interaction.", InteractionData)
+        return self.collection("interaction.", InteractionParameters)

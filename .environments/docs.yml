@@ -1,0 +1,25 @@
+# Conda environment for documentation.
+name: narupatools-docs
+channels:
+  - conda-forge
+  - irl
+  - alexjbinnie
+dependencies:
+# Minimum Python. Required for assignment expressions, positional-only arguments
+  - python>=3.8
+# Minimum NumPy. Required for numpy.typing.NDArray
+  - numpy>=1.21.*
+# Packages required by narupatools directly
+  - lxml=4.*
+  - infinite-sets=1.*
+  - quaternion
+# Exact Narupa version. Required as breaking changes can occur
+  - narupa-server=0.1.2061
+# Documentation tools
+  - sphinx=3.5.*
+  - sphinx-autodoc-typehints=1.12.*
+  - nbsphinx=0.8.*
+  - ipykernel
+# Packages required to run jupyter notebooks
+  - plotly=4.14.*
+  - nglview=2.7.*

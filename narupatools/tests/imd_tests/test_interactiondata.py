@@ -4,7 +4,7 @@ from narupa.imd import ParticleInteraction
 from narupa.imd.imd_state import dict_to_interaction, interaction_to_dict
 
 from narupatools.imd.interactions import GAUSSIAN_INTERACTION_TYPE
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.imd.interactions._point import (
     SPRING_INTERACTION_TYPE,
     PointInteractionData,
@@ -21,7 +21,7 @@ def test_gaussian_particle_interaction_to_interactiondata():
 
     dict_ = interaction_to_dict(particle_interaction)
 
-    data = InteractionData.deserialize(dict_)
+    data = InteractionParameters.deserialize(dict_)
 
     assert data.interaction_type == GAUSSIAN_INTERACTION_TYPE
     assert isinstance(data, PointInteractionData)
@@ -46,7 +46,7 @@ def test_spring_particle_interaction_to_interactiondata():
 
     dict_ = interaction_to_dict(particle_interaction)
 
-    data = InteractionData.deserialize(dict_)
+    data = InteractionParameters.deserialize(dict_)
 
     assert data.interaction_type == SPRING_INTERACTION_TYPE
     assert isinstance(data, PointInteractionData)

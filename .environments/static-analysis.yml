@@ -4,24 +4,19 @@
 name: narupatools-lint
 channels:
   - conda-forge
-  - irl
-  - alexjbinnie
 dependencies:
-  - python=3.8
-  - numpy>=1.20.*
-  - black=21.4b2
-  - isort=5.9.3
+# Black formatter
+  - black=21.*
+# Import soring
+  - isort=5.*
+# Flake8 and extensions
   - flake8=3.9.*
-  - flake8-bugbear=21.4.*
-  - flake8-comprehensions=3.5.*
-  - flake8-docstrings=1.6.*
-  - flake8-pyi=20.10.*
+  - flake8-bugbear=21.*
+  - flake8-comprehensions=3.*
+  - flake8-docstrings=1.*
+  - flake8-pyi=20.*
   - flake8-rst-docstrings=0.2.*
   - flake8-simplify=0.14.*
+# Mypy and extensions
   - mypy=0.910
   - mypy_extensions=0.4.*
-  - narupa-server=0.1.2061
-  - pytest=6.2.*
-  - pytest-xdist=2.2.*
-  - hypothesis=6.8.*
-  - infinite-sets=1.0.*

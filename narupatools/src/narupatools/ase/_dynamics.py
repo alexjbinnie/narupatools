@@ -32,7 +32,7 @@ from narupa.trajectory import FrameData
 from narupatools.core.units import UnitsNarupa
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.imd._feature import InteractionFeature
-from narupatools.imd.interactions._interactiondata import InteractionData
+from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.physics._quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 
@@ -297,7 +297,7 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
 
     @override
     def create_interaction(  # noqa: D102
-        self, *, key: str, interaction: InteractionData, start_time: float
+        self, *, key: str, interaction: InteractionParameters, start_time: float
     ) -> Interaction:
         # The interaction does not store a reference to the dynamics itself.
         instance = Interaction.create(
