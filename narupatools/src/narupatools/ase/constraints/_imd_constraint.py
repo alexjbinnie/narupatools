@@ -25,9 +25,9 @@ from narupatools.ase._units import UnitsASE
 from narupatools.core import UnitsNarupa
 from narupatools.imd import Interaction
 
+from ...override import override
 from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
 from ._null_constraint import NullConstraint
-from ...override import override
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa

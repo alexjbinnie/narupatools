@@ -37,6 +37,7 @@ from narupatools.physics._quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 
 from ..core.dynamics import SimulationRotationProperties
+from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
     get_angular_momenta,
@@ -52,7 +53,6 @@ from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
 from .constraints import InteractionConstraint
-from ..override import override
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
 

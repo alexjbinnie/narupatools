@@ -13,33 +13,36 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Originally part of the narupa-ase package.
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Modified under the terms of the GPL.
 
-"""Implements a set of ASE atoms objects as a trajectory that can be played back."""
+"""Adapts a MDAnalysis trajectory for trajectory playback."""
 
-from typing import Sequence
+from typing import Any
 
-from ase.atoms import Atoms
 from infinite_sets import InfiniteSet
+from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
-from narupatools.ase import ase_atoms_to_frame
-from narupatools.frame._frame_source import TrajectorySource
+from narupatools.frame import TrajectorySource
+from narupatools.mdanalysis import mdanalysis_atomgroup_to_frame
 
 
-class ASETrajectory(TrajectorySource):
-    """Trajectory playback using one ore more  ASE `Atoms` objects."""
+class MDAnalysisTrajectory(TrajectorySource):
+    """Wrapper around an MDAnalysis universe to serve as a trajectory source."""
 
-    def __init__(self, trajectory: Sequence[Atoms]):
-        self._trajectory = trajectory
-
-    def __len__(self) -> int:
-        return len(self._trajectory)
+    def __init__(self, universe: Universe):
+        self.universe = universe
 
     def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
     ) -> FrameData:
-        return ase_atoms_to_frame(self._trajectory[index], fields=fields)
+        _ = self.universe.trajectory[index]
+        return mdanalysis_atomgroup_to_frame(self.universe.atoms, fields=fields)
+
+    def __len__(self) -> int:
+        return len(self.universe.trajectory)
+
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> TrajectorySource:
+        if isinstance(obj, Universe):
+            return MDAnalysisTrajectory(obj)
+        raise NotImplementedError

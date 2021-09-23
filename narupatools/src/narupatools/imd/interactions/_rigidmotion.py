@@ -37,13 +37,12 @@ from narupatools.physics.vector import (
     cross_product_matrix,
     left_vector_triple_product_matrix,
     vector,
-    zero_vector, magnitude,
 )
-from ._feedback import InteractionFeedback
 
+from ...override import override
+from ._feedback import InteractionFeedback
 from ._interaction import Interaction
 from ._parameters import InteractionParameters
-from ...override import override
 
 
 class RigidMotionInteractionData(InteractionParameters):
@@ -158,7 +157,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         try:
             return inv(inertia_tensor) @ angular_momentum  # type: ignore
         except LinAlgError:
-            return -2.0 * angular_momentum / np.trace(inertia_tensor)
+            return -2.0 * angular_momentum / np.trace(inertia_tensor)  # type: ignore
 
     @override
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
@@ -188,9 +187,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
             angular_acceleration = (k * theta - gamma * omega) / M
 
-            rotation_matrix += cross_product_matrix(
-                angular_acceleration
-            )
+            rotation_matrix += cross_product_matrix(angular_acceleration)
 
         if self.translation is not None:
             desired_translation = self.translation - self._accumulated_displacement
@@ -234,12 +231,11 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         self._accumulated_displacement += center_velocity * timestep
 
-    def create_feeback(self) -> InteractionFeedback:
-        feedback: RigidMotionInteractionFeedback = super().create_feeback()
-        feedback.accumulated_rotation = self._accumulated_rotation
+    def create_feeback(self) -> InteractionFeedback:  # noqa: D102
+        feedback: RigidMotionInteractionFeedback = super().create_feeback()  # type: ignore
+        feedback.accumulated_rotation = self._accumulated_rotation.versor
         feedback.accumulated_translation = self._accumulated_displacement
         return feedback
-
 
 
 RIGIDMOTION_INTERACTION_TYPE = "rigid_motion"

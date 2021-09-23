@@ -18,16 +18,16 @@
 
 from ._converter import ase_atoms_to_frame
 from ._dynamics import ASEDynamics
-from ._trajectory import ASETrajectoryPlayback
-from ._units import UnitsASE
 from ._system import create_ase_atoms
+from ._trajectory import ASETrajectory
+from ._units import UnitsASE
 from .calculators import ConstantCalculator, NullCalculator, OneBodyPotentialCalculator
 
 __all__ = [
     "create_ase_atoms",
     "ase_atoms_to_frame",
     "ASEDynamics",
-    "ASETrajectoryPlayback",
+    "ASETrajectory",
     "UnitsASE",
     "OneBodyPotentialCalculator",
     "ConstantCalculator",

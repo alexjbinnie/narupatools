@@ -32,9 +32,9 @@ from narupatools.core.event import Event, EventListener
 from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.state.view._wrappers import SharedStateClientWrapper
 
+from ..override import override
 from ._session import Session
 from ._shared_state import SessionSharedState
-from ..override import override
 
 
 class OnFrameReceivedCallback(Protocol):
@@ -140,7 +140,8 @@ class Client(NarupaImdClient):
 
     @override
     def start_interaction(
-        self, interaction: Optional[Union[InteractionParameters, ParticleInteraction]] = None
+        self,
+        interaction: Optional[Union[InteractionParameters, ParticleInteraction]] = None,
     ) -> str:
         """
         Start an interaction with the IMD server.

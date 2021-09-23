@@ -117,7 +117,10 @@ def normalized(
         return np.normalized(arr)  # type: ignore
     else:
         mag = np.sqrt((arr ** 2).sum(axis=-1))
-        return np.nan_to_num(arr / mag[:, np.newaxis])  # type: ignore
+        if isinstance(mag, float):
+            return np.nan_to_num(arr / mag)  # type: ignore
+        else:
+            return np.nan_to_num(arr / mag[:, np.newaxis])  # type: ignore
 
 
 def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:

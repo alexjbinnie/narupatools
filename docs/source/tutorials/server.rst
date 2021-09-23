@@ -14,14 +14,11 @@ The session represents the server you create and which people connect to. The se
 
    dynamics = OpenMMDynamics.from_xml_file("./nanotube.xml")
 
-   with Session.start() as session:
+   with Session(dynamics) as session:
        print(f"Session started on port {session.port}")
 
-       # Start showing the dynamics on the server. Note it still hasn't been started yet
-       session.show(dynamics)
-
-       # Start running the dynamics indefinitely
-       dynamics.run()
+       # Uncomment this to start an infinite loop while running the server
+       # session.start_loop()
 
 .. testoutput::
 

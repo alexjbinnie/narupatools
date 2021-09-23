@@ -19,10 +19,9 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any
 
-from narupatools.app._session import Session, Broadcastable
+from narupatools.app._session import Broadcastable, Session
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.imd._feature import InteractionFeature
-from narupatools.override import override
 
 
 class InteractiveSimulationDynamics(

@@ -39,13 +39,13 @@ from narupatools.physics.typing import (
     Vector3ArrayLike,
 )
 
+from ..override import override
 from ._converter import (
     get_openmm_masses,
     openmm_context_to_frame,
     openmm_topology_to_frame,
 )
 from ._serializer import deserialize_simulation
-from ..override import override
 
 
 class OpenMMDynamics(InteractiveSimulationDynamics):

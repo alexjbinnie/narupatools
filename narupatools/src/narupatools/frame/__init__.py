@@ -18,9 +18,21 @@
 
 from ._converter import convert
 from ._frame import NarupaFrame
+from ._frame_source import (
+    FrameSource,
+    FrameSourceWithNotify,
+    OnFieldsChangedCallback,
+    TrajectorySource,
+)
 from ._patch import *  # noqa: F401, F403
+from ._trajectory_playback import TrajectoryPlayback
 
 __all__ = [
     "convert",
     "NarupaFrame",
+    "TrajectoryPlayback",
+    "FrameSource",
+    "FrameSourceWithNotify",
+    "OnFieldsChangedCallback",
+    "TrajectorySource",
 ]

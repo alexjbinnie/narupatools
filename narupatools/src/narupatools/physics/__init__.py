@@ -18,6 +18,4 @@
 
 from ._quaternion import quaternion
 
-__all__ = [
-    "quaternion"
-]
+__all__ = ["quaternion"]

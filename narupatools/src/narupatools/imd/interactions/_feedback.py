@@ -1,8 +1,9 @@
-from narupatools.core.properties import str_property, float_property
+from narupatools.core.properties import float_property, str_property
 from narupatools.state import SharedStateObject
 
 
 class InteractionFeedback(SharedStateObject):
+    """Feedback for an interaction containing information on its state."""
 
     @str_property
     def interaction_type(self) -> str:

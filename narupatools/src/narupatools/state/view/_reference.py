@@ -22,9 +22,11 @@ import copy
 from contextlib import contextmanager
 from typing import Any, Generic, Iterator, Optional, Type, TypeVar
 
-from narupatools.state.typing import Serializable, SerializableDictionary
-
-from .._serializable_object import SerializableObject
+from narupatools.state.typing import (
+    Serializable,
+    SerializableDictionary,
+    SerializableObject,
+)
 
 _TValue = TypeVar("_TValue")
 

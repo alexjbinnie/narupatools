@@ -20,14 +20,14 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
-from typing import Optional, Protocol, Set, Union
+from typing import Optional, Protocol, Union
 
 import numpy.typing as npt
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from narupatools.frame._frame_source import FrameSource
+from narupatools.frame import FrameSourceWithNotify, OnFieldsChangedCallback
 from narupatools.frame.fields import (
     DYNAMIC_FIELDS,
     SimulationElapsedSteps,
@@ -35,11 +35,11 @@ from narupatools.frame.fields import (
     SimulationTotalSteps,
     SimulationTotalTime,
 )
-from narupatools.physics._quaternion import quaternion
+from narupatools.override import override
+from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array
 
-from ._playable import Playable
-from ..override import override
+from . import Playable
 
 
 class OnResetCallback(Protocol):
@@ -144,7 +144,7 @@ class SimulationRotationProperties:
         raise AttributeError
 
 
-class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=ABCMeta):
+class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
     """
     Base class for an implementation of dynamics driven by Narupa.
 
@@ -161,6 +161,10 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
     _on_reset: Event[OnResetCallback]
     _on_pre_step: Event[OnPreStepCallback]
     _on_post_step: Event[OnPostStepCallback]
+    _on_fields_changed: Event[OnFieldsChangedCallback]
+
+    dynamic_fields = DYNAMIC_FIELDS.copy()
+    """Set of fields which are marked as having changed after a dynamics step."""
 
     def __init__(self, *, playback_interval: float):
         """
@@ -174,12 +178,12 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         self._on_reset = Event(OnResetCallback)
         self._on_pre_step = Event(OnPreStepCallback)
         self._on_post_step = Event(OnPostStepCallback)
+        self._on_fields_changed = Event(OnFieldsChangedCallback)
         self._previous_total_time = 0.0
         self._previous_total_steps = 0
         self._elapsed_time = 0.0
         self._elapsed_steps = 0
         self._remaining_steps = None
-        self.dynamic_fields: Set[str] = set(DYNAMIC_FIELDS)
 
     @property
     def on_reset(self) -> EventListener[OnResetCallback]:
@@ -223,6 +227,7 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         self._elapsed_steps = 0
         self._reset_internal()
         self._on_reset.invoke()
+        self._on_fields_changed.invoke(fields=everything())
 
     @override
     def run(  # type: ignore
@@ -254,6 +259,7 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
         self._elapsed_steps += 1
         self._elapsed_time += self.timestep
         self._on_post_step.invoke(timestep=self.timestep)
+        self._on_fields_changed.invoke(fields=self.dynamic_fields)
         if self._remaining_steps is not None:
             self._remaining_steps -= 1
             return self._remaining_steps > 0
@@ -379,3 +385,7 @@ class SimulationDynamics(Playable, FrameSource, DynamicsProperties, metaclass=AB
     def potential_energy(self) -> float:
         """Potential energy in kilojoules per mole."""
         raise AttributeError
+
+    @property
+    def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
+        return self._on_fields_changed

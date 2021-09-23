@@ -24,9 +24,9 @@ from narupatools.core.properties import float_property, numpy_property
 from narupatools.physics.force import mass_weighted_forces
 from narupatools.physics.rigidbody import center_of_mass
 
+from ...override import override
 from ._interaction import Interaction
 from ._parameters import InteractionParameters
-from ...override import override
 
 CONSTANT_INTERACTION_TYPE = "constant"
 """Key identifying the constant interaction type."""

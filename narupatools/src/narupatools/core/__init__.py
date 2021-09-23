@@ -17,7 +17,7 @@
 """Core code that is useful across narupatools."""
 
 from ._patch import *  # noqa: F401, F403
-from .units import UnitsNarupa
 from ._playable import Playable, PlayableAlreadyRunningError
+from .units import UnitsNarupa
 
 __all__ = ["UnitsNarupa", "Playable", "PlayableAlreadyRunningError"]

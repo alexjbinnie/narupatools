@@ -24,8 +24,8 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Lock
 from typing import Generator, Literal, Optional, Union, overload
 
-from .health_check import HealthCheck
 from ..override import override
+from .health_check import HealthCheck
 
 
 class PlayableAlreadyRunningError(RuntimeError):

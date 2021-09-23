@@ -58,7 +58,7 @@ class CallbackMissingParametersError(SyntaxError):
 class EventListener(Protocol[_TCallback]):
     """Protocol describing an event as seen from an external class."""
 
-    def add_callback(self, callback: TCallback, priority: float = 0) -> None:
+    def add_callback(self, callback: _TCallback, priority: float = 0) -> None:
         """
         Add a callback.
 
@@ -79,10 +79,12 @@ TEventCallback = TypeVar("TEventCallback", bound=Callable[..., None])
 
 @dataclass
 class _Callback(Generic[TEventCallback]):
+    """Wrapper around a callback which has an attached priority."""
+
     callback: TEventCallback
     priority: float
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return other is self or self.callback == other
 
 
@@ -147,7 +149,9 @@ class Event(EventListener, Generic[TEventCallback]):
                 raise CallbackMissingParametersError(missing_params)
 
         self._callbacks.append(_Callback(callback, priority))
-        self._callbacks = list(reversed(sorted(self._callbacks, key=attrgetter("priority"))))
+        self._callbacks = sorted(
+            self._callbacks, key=attrgetter("priority"), reverse=True
+        )
 
     @override
     def remove_callback(self, callback: TEventCallback) -> None:
@@ -159,7 +163,7 @@ class Event(EventListener, Generic[TEventCallback]):
 
         :param callback: The callback to be removed from this event's callbacks
         """
-        self._callbacks.remove(callback)
+        self._callbacks.remove(callback)  # type: ignore
 
     @property
     def invoke(self) -> TEventCallback:

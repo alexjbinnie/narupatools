@@ -32,6 +32,7 @@ from narupatools.physics.vector import angle, magnitude
 from narupatools.state.typing import Serializable
 
 from ..core.collections import infinite_seq
+from ..override import override
 from ._frame import NarupaFrame
 from .fields import (
     BondPairs,
@@ -43,7 +44,6 @@ from .fields import (
     ParticleResidues,
     ResidueNames,
 )
-from ..override import override
 
 _T = TypeVar("_T")
 

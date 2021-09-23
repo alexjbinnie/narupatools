@@ -63,10 +63,8 @@ import contextlib
 from collections.abc import Mapping
 from typing import Any, ClassVar, Dict, Union
 
-from narupatools.state.typing import Serializable
-
-from ._serializable_object import SerializableObject
 from ..override import override
+from .typing import Serializable, SerializableObject
 
 
 class SharedStateObject(SerializableObject):

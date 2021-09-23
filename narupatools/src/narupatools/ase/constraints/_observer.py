@@ -20,12 +20,11 @@ from typing import Optional
 
 import numpy as np
 from ase.atoms import Atoms
-from narupa.utilities.event import Event
 
-from narupatools.core.event import EventListener
+from narupatools.core.event import Event, EventListener
 
-from ._constraint import ASECellConstraint, ASEMomentaConstraint
 from ...override import override
+from ._constraint import ASECellConstraint, ASEMomentaConstraint
 
 
 class ASEObserver(ASECellConstraint, ASEMomentaConstraint):
@@ -38,9 +37,9 @@ class ASEObserver(ASECellConstraint, ASEMomentaConstraint):
 
     def __init__(self) -> None:
         """Create a new `ASEObserver`."""
-        self._on_set_positions = Event()
-        self._on_set_cell = Event()
-        self._on_set_momenta = Event()
+        self._on_set_positions: Event = Event()
+        self._on_set_cell: Event = Event()
+        self._on_set_momenta: Event = Event()
 
     @property
     def on_set_positions(self) -> EventListener:

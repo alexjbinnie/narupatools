@@ -30,6 +30,7 @@ from narupatools.frame._frame_source import FrameSource
 from narupatools.physics._quaternion import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 
+from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
     get_angular_momenta,
@@ -42,13 +43,14 @@ from ._rotations import (
 )
 from ._units import UnitsASE
 from .calculators import NullCalculator
-from ..override import override
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
-def create_ase_atoms(*, positions: Vector3ArrayLike, velocities: Vector3ArrayLike, masses: ScalarArray):
+def create_ase_atoms(
+    *, positions: Vector3ArrayLike, velocities: Vector3ArrayLike, masses: ScalarArray
+) -> Atoms:
     """
     Create a new ASE atoms object in Narupa units.
 
@@ -68,7 +70,7 @@ def create_ase_atoms(*, positions: Vector3ArrayLike, velocities: Vector3ArrayLik
     if masses is not None:
         kwargs["masses"] = masses * _NarupaToASE.mass
 
-    atoms = Atoms(**kwargs)
+    atoms = Atoms(**kwargs)  # type: ignore
 
     atoms.calc = NullCalculator()
 

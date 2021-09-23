@@ -20,8 +20,8 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 
-from ._calculator import Calculator
 from ...override import override
+from ._calculator import Calculator
 
 
 class NullCalculator(Calculator):

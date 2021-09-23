@@ -54,9 +54,12 @@ from typing import (
     Union,
 )
 
-from narupatools.state.typing import Serializable, SerializableDictionary
+from narupatools.state.typing import (
+    Serializable,
+    SerializableDictionary,
+    SerializableObject,
+)
 
-from .._serializable_object import SerializableObject
 from ._reference import SharedStateReference
 
 TValue = TypeVar("TValue", bound=Union[SerializableObject, Serializable])
@@ -142,7 +145,7 @@ class SharedStateView(ABC, Generic[TValue], Mapping[str, SharedStateReference[TV
         if isinstance(value, SerializableObject):
             self._dictionary[key] = value.serialize()
         else:
-            self._dictionary[key] = value  # type: ignore
+            self._dictionary[key] = value
 
     def __delitem__(self, key: str) -> None:
         """

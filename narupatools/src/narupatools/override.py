@@ -16,7 +16,7 @@
 
 """Provides simple decorator for marking methods as overrides."""
 
-from typing import TypeVar, Any
+from typing import Any, TypeVar
 
 _T = TypeVar("_T")
 

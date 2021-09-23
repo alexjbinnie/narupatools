@@ -28,7 +28,6 @@ from typing import (
     Generic,
     Optional,
     Protocol,
-    Set,
     Type,
     TypeVar,
     runtime_checkable,
@@ -47,17 +46,15 @@ from narupa.trajectory.frame_server import (
     STEP_COMMAND_KEY,
 )
 
-from narupatools.core.dynamics import SimulationDynamics
+from narupatools.core._playable import Playable
 from narupatools.core.event import Event
 from narupatools.core.health_check import HealthCheck
-from narupatools.core._playable import Playable
 from narupatools.frame._frame_producer import FrameProducer
-from narupatools.frame._frame_source import FrameSource
-from narupatools.frame.fields import DYNAMIC_FIELDS
+from narupatools.frame._frame_source import FrameSource, FrameSourceWithNotify
 from narupatools.state.view._wrappers import SharedStateServerWrapper
 
-from ._shared_state import SessionSharedState
 from ..override import override
+from ._shared_state import SessionSharedState
 
 TTarget = TypeVar("TTarget")
 
@@ -93,7 +90,6 @@ class Broadcastable(Protocol):
 
         :param session: Broadcaster that is about to broadcast this object.
         """
-        pass
 
     def end_broadcast(self, session: Session) -> None:
         """
@@ -101,7 +97,6 @@ class Broadcastable(Protocol):
 
         :param session: Broadcaster that is about to stop broadcasting this object.
         """
-        pass
 
 
 class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
@@ -123,16 +118,13 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     completely detached from the MD loop, and hence can be specified in real time.
     """
 
-    def __init__(self, **kwargs: Any):
+    def __init__(
+        self, target: Optional[TTarget] = None, *, autoplay: bool = True, **kwargs: Any
+    ):
         """
         Create a session.
 
-        Note that the session will not broadcast anything unless you set it's target using
-        :obj:`Session.show()`. For example::
-
-            with Session(port=38801) as session:
-                session.show(dynamics)
-
+        :param autoplay: If the target is playable, should it be automatically started if its not running.
         :param kwargs: Parameters to initialise the server with.
         """
         self._target: Optional[TTarget] = None
@@ -158,6 +150,12 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         narupa_server.register_command(RESET_COMMAND_KEY, self.restart)  # type: ignore
         narupa_server.register_command(STEP_COMMAND_KEY, self.step)  # type: ignore
         narupa_server.register_command(PAUSE_COMMAND_KEY, self.pause)  # type: ignore
+
+        if target is not None:
+            self.show(target)
+
+        if isinstance(target, Playable) and autoplay:
+            target.play()
 
     @property
     def app(self) -> NarupaImdApplication:
@@ -231,18 +229,19 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     def target(self, value: TTarget) -> None:
         if isinstance(self._target, Playable):
             self._target.stop(wait=True)
-        if isinstance(self._target, SimulationDynamics):
-            self._target.on_reset.remove_callback(self._on_target_reset)
-            self._target.on_post_step.remove_callback(self._on_target_step)
+        if isinstance(self._target, FrameSourceWithNotify):
+            self._target.on_fields_changed.remove_callback(self._on_fields_changed)
         if isinstance(self._target, Broadcastable):
             self._target.end_broadcast(self)
 
         previous_target = self._target
         self._target = value
 
-        if isinstance(self._target, SimulationDynamics):
-            self._target.on_reset.add_callback(self._on_target_reset)
-            self._target.on_post_step.add_callback(self._on_target_step)
+        if isinstance(self._target, FrameSourceWithNotify):
+            self._target.on_fields_changed.add_callback(self._on_fields_changed)
+            self._frame_producer.always_dirty = False
+        else:
+            self._frame_producer.always_dirty = True
         if isinstance(self._target, Broadcastable):
             self._target.start_broadcast(self)
 
@@ -253,14 +252,8 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
             target=self._target, previous_target=previous_target  # type: ignore
         )
 
-    def _on_target_reset(self, **kwargs: Any) -> None:
-        self._frame_producer.mark_dirty()
-
-    def _on_target_step(self, **kwargs: Any) -> None:
-        dynamic_fields: Set[str] = set(DYNAMIC_FIELDS)
-        if isinstance(self.target, SimulationDynamics):
-            dynamic_fields |= self.target.dynamic_fields
-        self._frame_producer.mark_dirty(dynamic_fields)
+    def _on_fields_changed(self, *, fields: InfiniteSet, **kwargs: Any) -> None:
+        self._frame_producer.mark_dirty(fields)
 
     def _produce_frame(self, fields: InfiniteSet[str]) -> FrameData:
         """

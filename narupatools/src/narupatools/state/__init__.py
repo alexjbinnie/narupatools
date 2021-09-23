@@ -16,8 +16,8 @@
 
 """Classes and methods for dealing with Narupa shared state in a more intuitive way."""
 
-from ._serializable_object import SerializableObject
 from ._state_object import SharedStateObject
+from .typing import SerializableObject
 from .view import (
     SharedStateCollectionView,
     SharedStateDictionaryView,

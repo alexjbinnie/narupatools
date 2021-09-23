@@ -2,21 +2,21 @@ import pytest
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
-from narupatools.core.trajectory import TrajectoryPlayback
+from narupatools.frame import TrajectoryPlayback, TrajectorySource
 
 ALL_FIELDS = everything()
 
 
-class TestTrajectory(TrajectoryPlayback):
+class TestTrajectory(TrajectorySource):
     def __init__(self):
-        super().__init__(looping=True)
+        super().__init__()
 
-    def _trajectory_length(self) -> int:
+    def __len__(self) -> int:
         return 5
 
-    def get_frame(self, fields: InfiniteSet[str] = ALL_FIELDS) -> FrameData:
+    def get_frame(self, *, index: int, fields: InfiniteSet[str]) -> FrameData:
         data = FrameData()
-        data.values["index"] = self.index
+        data.values["index"] = index
         return data
 
 
@@ -25,58 +25,63 @@ def trajectory():
     return TestTrajectory()
 
 
-def test_initial_index(trajectory):
-    assert trajectory.index == 0
-    assert trajectory.get_frame().values["index"] == 0
+@pytest.fixture
+def playback(trajectory):
+    return TrajectoryPlayback(trajectory)
 
 
-def test_set_index(trajectory):
-    trajectory.index = 3
-    assert trajectory.index == 3
-    assert trajectory.get_frame().values["index"] == 3
+def test_initial_index(playback):
+    assert playback.index == 0
+    assert playback.get_frame().values["index"] == 0
 
 
-def test_set_index_out_of_range(trajectory):
+def test_set_index(playback):
+    playback.index = 3
+    assert playback.index == 3
+    assert playback.get_frame().values["index"] == 3
+
+
+def test_set_index_out_of_range(playback):
     with pytest.raises(IndexError):
-        trajectory.index = 14
+        playback.index = 14
 
 
-def test_set_index_negative(trajectory):
+def test_set_index_negative(playback):
     with pytest.raises(IndexError):
-        trajectory.index = -11
+        playback.index = -11
 
 
-def test_increment_step(trajectory):
-    trajectory.step()
-    assert trajectory.index == 1
-    assert trajectory.get_frame().values["index"] == 1
+def test_increment_step(playback):
+    playback.step()
+    assert playback.index == 1
+    assert playback.get_frame().values["index"] == 1
 
 
-def test_increment_step_multiple(trajectory):
+def test_increment_step_multiple(playback):
     for _ in range(4):
-        trajectory.step()
-    assert trajectory.index == 4
-    assert trajectory.get_frame().values["index"] == 4
+        playback.step()
+    assert playback.index == 4
+    assert playback.get_frame().values["index"] == 4
 
 
-def test_looping(trajectory):
+def test_looping(playback):
     for _ in range(7):
-        trajectory.step()
-    assert trajectory.index == 2
-    assert trajectory.get_frame().values["index"] == 2
+        playback.step()
+    assert playback.index == 2
+    assert playback.get_frame().values["index"] == 2
 
 
-def test_non_looping(trajectory):
-    trajectory.looping = False
+def test_non_looping(playback):
+    playback.looping = False
     for _ in range(7):
-        trajectory.step()
-    assert trajectory.index == 4
-    assert trajectory.get_frame().values["index"] == 4
+        playback.step()
+    assert playback.index == 4
+    assert playback.get_frame().values["index"] == 4
 
 
-def test_restart(trajectory):
+def test_restart(playback):
     for _ in range(4):
-        trajectory.step()
-    trajectory.restart()
-    assert trajectory.index == 0
-    assert trajectory.get_frame().values["index"] == 0
+        playback.step()
+    playback.restart()
+    assert playback.index == 0
+    assert playback.get_frame().values["index"] == 0

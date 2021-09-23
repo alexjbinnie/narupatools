@@ -63,7 +63,8 @@ TDynamics = TypeVar("TDynamics", bound=SimulationDynamics)
 
 
 InteractionSource = Union[
-    Mapping[str, InteractionParameters], Callable[..., Mapping[str, InteractionParameters]]
+    Mapping[str, InteractionParameters],
+    Callable[..., Mapping[str, InteractionParameters]],
 ]
 
 
@@ -281,7 +282,9 @@ class InteractionFeature(Generic[TDynamics]):
         self._current_interactions[key] = interaction
         self._on_start_interaction.invoke(key=key, interaction=interaction)
 
-    def update_interaction(self, *, key: str, interaction: InteractionParameters) -> None:
+    def update_interaction(
+        self, *, key: str, interaction: InteractionParameters
+    ) -> None:
         """
         Update an interaction with the given key.
 

@@ -31,8 +31,8 @@ from narupatools.physics.force import (
 from narupatools.physics.rigidbody import center_of_mass
 from narupatools.physics.typing import Vector3, Vector3Array
 
-from ._interaction import Interaction
 from ...override import override
+from ._interaction import Interaction
 
 SPRING_INTERACTION_TYPE = "spring"
 GAUSSIAN_INTERACTION_TYPE = "gaussian"
@@ -93,7 +93,9 @@ class PointInteraction(Interaction[PointInteractionData]):
 InteractionParameters.register_interaction_type(
     GAUSSIAN_INTERACTION_TYPE, PointInteractionData
 )
-InteractionParameters.register_interaction_type(SPRING_INTERACTION_TYPE, PointInteractionData)
+InteractionParameters.register_interaction_type(
+    SPRING_INTERACTION_TYPE, PointInteractionData
+)
 
 Interaction.register_interaction_type(
     GAUSSIAN_INTERACTION_TYPE,

@@ -17,7 +17,7 @@
 """Application-level code for clients and servers."""
 
 from ._client import Client
-from ._session import Session, Broadcastable
+from ._session import Broadcastable, Session
 from ._shared_state import SessionSharedState
 
 __all__ = ["Client", "Session", "SessionSharedState", "Broadcastable"]

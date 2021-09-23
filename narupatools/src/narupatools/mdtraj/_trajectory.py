@@ -16,19 +16,38 @@
 
 """Adapts a MDTraj trajectory for trajectory playback."""
 
+from __future__ import annotations
+
+from typing import Any
+
+from infinite_sets import InfiniteSet, everything
 from mdtraj import Trajectory
+from narupa.trajectory import FrameData
 
-from narupatools.core.trajectory import TrajectoryPlayback
-from narupatools.override import override
+from narupatools.frame import TrajectorySource
+
+from ._converter import mdtraj_trajectory_to_frame
 
 
-class MDTrajTrajectoryPlayback(TrajectoryPlayback):
+class MDTrajTrajectory(TrajectorySource):
     """MDTraj trajectory playback."""
 
     def __init__(self, trajectory: Trajectory, /):
         super().__init__()
         self._trajectory = trajectory
 
-    @override
-    def _trajectory_length(self) -> int:
+    def get_frame(  # noqa: D102
+        self, *, index: int, fields: InfiniteSet[str]
+    ) -> FrameData:
+        return mdtraj_trajectory_to_frame(
+            self._trajectory, frame_index=index, fields=everything()
+        )
+
+    def __len__(self) -> int:
         return len(self._trajectory)
+
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> MDTrajTrajectory:
+        if isinstance(obj, Trajectory):
+            return MDTrajTrajectory(obj)
+        raise NotImplementedError

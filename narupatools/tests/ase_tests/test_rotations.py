@@ -13,12 +13,9 @@ from narupatools.core import UnitsNarupa
 from narupatools.core.random import random_float, random_integer
 from narupatools.imd import rigidmotion_interaction
 from narupatools.physics._quaternion import from_rotation_vector, quaternion
-from narupatools.physics.random import (
-    random_unit_quaternion,
-    random_vector,
-)
+from narupatools.physics.random import random_unit_quaternion, random_vector
 from narupatools.physics.transformation import Rotation
-from narupatools.physics.vector import normalized, vector, distance
+from narupatools.physics.vector import distance, normalized, vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 
@@ -118,14 +115,14 @@ def approx(obj, rel=None, abs=None):  # noqa: A002
 
 
 def test_no_forces(
-        mass,
-        symmetric_inertia,
-        angular_velocities,
-        orientations,
-        velocity,
-        timestep,
-        nsteps,
-        single_carbon_atoms,
+    mass,
+    symmetric_inertia,
+    angular_velocities,
+    orientations,
+    velocity,
+    timestep,
+    nsteps,
+    single_carbon_atoms,
 ):
     atoms = single_carbon_atoms
     atoms.calc = NullCalculator()
@@ -150,7 +147,7 @@ def test_no_forces(
 
 
 def test_constant_torque(
-        mass, symmetric_inertia, angular_velocities, nsteps, timestep, single_carbon_atoms
+    mass, symmetric_inertia, angular_velocities, nsteps, timestep, single_carbon_atoms
 ):
     atoms = single_carbon_atoms
     torque = random_vector(max_magnitude=0.5)
@@ -204,6 +201,7 @@ def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
     print(rotation)
     print(end)
 
+
 X_AXIS = vector(1, 0, 0)
 
 Y_AXIS = vector(0, 1, 0)
@@ -221,13 +219,14 @@ def test_diatomic_rotation():
     system = create_ase_atoms(positions=positions, velocities=velocities, masses=masses)
     dynamics = ASEDynamics.create_velocity_verlet(system, timestep=0.01)
 
-    dynamics.imd.add_interaction(rigidmotion_interaction(
-        particles=[0, 1],
-        scale = 0.0
-    ))
+    dynamics.imd.add_interaction(rigidmotion_interaction(particles=[0, 1], scale=0.0))
 
-    assert distance(dynamics.positions[0], dynamics.positions[1]) == pytest.approx(separation)
+    assert distance(dynamics.positions[0], dynamics.positions[1]) == pytest.approx(
+        separation
+    )
 
     dynamics.run(100)
 
-    assert distance(dynamics.positions[0], dynamics.positions[1]) == pytest.approx(separation, rel=1e-3)
+    assert distance(dynamics.positions[0], dynamics.positions[1]) == pytest.approx(
+        separation, rel=1e-3
+    )

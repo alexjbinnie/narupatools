@@ -22,13 +22,12 @@ from typing import Any, Dict, Generic, Optional, Type, TypeVar
 import numpy as np
 
 from narupatools.core.dynamics import DynamicsProperties
-from narupatools.imd.interactions._parameters import InteractionFeedback
-from narupatools.imd.interactions._feedback import InteractionFeedback
-from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.physics.typing import Vector3Array
 
-_TInteractionData = TypeVar("_TInteractionData", bound=InteractionParameters)
+from ._feedback import InteractionFeedback
+from ._parameters import InteractionParameters
 
+_TInteractionData = TypeVar("_TInteractionData", bound=InteractionParameters)
 
 
 class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
@@ -204,15 +203,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         self._previous_positions = _current_positions
 
-    def _get_feedback(self) -> InteractionFeedback:
-        feedback = InteractionFeedback()
-        feedback.interaction_type = self.interaction_type
-        feedback.work = self._total_work
-        feedback.potential_energy = self.potential_energy
-        return feedback
-
-
     def create_feeback(self) -> InteractionFeedback:
+        """Create a feedback object describing the state of the interaction."""
         feedback = self._feedback_type()
         feedback.interaction_type = self.interaction_type
         feedback.total_work = self._total_work

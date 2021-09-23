@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from .quantity import Quantity as Quantity
-from .unit import Unit as Unit
+from .quantity import Quantity
+from .unit import Unit
 from .unit_definitions import (
     amu,
     amus,

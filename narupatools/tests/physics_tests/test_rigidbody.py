@@ -4,7 +4,11 @@ import pytest
 from narupatools.core.random import random_integer
 from narupatools.physics import rigidbody
 from narupatools.physics.matrix import identity_matrix, kronecker_delta, zero_matrix
-from narupatools.physics.random import random_float, random_quaternion, random_vector, random_unit_quaternion
+from narupatools.physics.random import (
+    random_float,
+    random_unit_quaternion,
+    random_vector,
+)
 from narupatools.physics.rigidbody import (
     center_of_mass,
     center_of_mass_acceleration,

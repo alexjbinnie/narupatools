@@ -15,8 +15,9 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Constants used by the LAMMPS API."""
-
+import ctypes
 from enum import IntEnum
+from typing import Any
 
 from lammps import (
     LAMMPS_DOUBLE,
@@ -55,6 +56,14 @@ class VariableType(IntEnum):
 
     STRING = LAMMPS_STRING
     """LAMMPS String."""
+
+    def get_ctype(self) -> Any:
+        """Get the C type corresponding to this variable."""
+        if self == VariableType.INTEGER:
+            return ctypes.c_int
+        if self == VariableType.DOUBLE:
+            return ctypes.c_double
+        raise ValueError(f"Can't get c type for variable type {self}")
 
 
 class VariableDimension(IntEnum):

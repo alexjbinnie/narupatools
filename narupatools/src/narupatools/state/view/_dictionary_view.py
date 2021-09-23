@@ -26,13 +26,12 @@ itself.
 
 from typing import Optional, Type, TypeVar, overload
 
-from narupatools.state.typing import Serializable
+from narupatools.state.typing import Serializable, SerializableObject
 
-from .._serializable_object import SerializableObject
+from ...override import override
 from ._collection_view import SharedStateCollectionView
 from ._reference import SharedStateReference
 from ._view import SharedStateView
-from ...override import override
 
 TSerializableObjectType = TypeVar("TSerializableObjectType", bound=SerializableObject)
 
@@ -74,9 +73,9 @@ class SharedStateDictionaryView(SharedStateView[Serializable]):
         return SharedStateReference.untyped_reference(self._dictionary, full_key)
 
     @overload  # type: ignore
-    def get(
+    def get(  # noqa: D102
         self, key: str, default: Optional[SharedStateReference[Serializable]] = None, /
-    ) -> SharedStateReference[Serializable]:  # noqa: D102
+    ) -> SharedStateReference[Serializable]:
         pass
 
     @overload
