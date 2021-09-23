@@ -21,7 +21,7 @@ from rdkit.Chem import AllChem
 from narupatools.frame import convert
 
 
-def atoms_from_smiles(smiles: str, *, add_hydrogens: bool = True) -> Atoms:
+def atoms_from_smiles(*smiles: str, add_hydrogens: bool = True) -> Atoms:
     """
     Generate an ASE Atoms object from a SMILES string.
 
@@ -32,8 +32,12 @@ def atoms_from_smiles(smiles: str, *, add_hydrogens: bool = True) -> Atoms:
     :param add_hydrogens: Should implicit hydrogens be added to the system.
     :return: Atoms object representing system.
     """
+    if not isinstance(smiles, str):
+        smiles = '.'.join(smiles)
     mol = Chem.MolFromSmiles(smiles)
     if add_hydrogens:
         mol = AllChem.AddHs(mol)
     AllChem.EmbedMolecule(mol)
+    # Minimize to avoid clashes
+    AllChem.MMFFOptimizeMolecule(mol, ignoreInterfragInteractions=False)
     return convert(mol, Atoms)

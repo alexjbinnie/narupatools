@@ -61,7 +61,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._previous_forces: Vector3Array = np.zeros(0)
         self._start_time: float = start_time
 
-        self.velocity_reset = False
+        self.velocity_reset = True
+        self.mass_weighted = True
 
         self._energy: Optional[float] = None
         self._forces: Optional[Vector3Array] = None
@@ -109,6 +110,11 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
             self.velocity_reset = interaction.reset_velocities
         except AttributeError:
             self.velocity_reset = False
+
+        try:
+            self.mass_weighted = interaction.mass_weighted
+        except AttributeError:
+            self.mass_weighted = True
 
     @property
     def particle_indices(self) -> np.ndarray:
