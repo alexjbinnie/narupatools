@@ -69,6 +69,20 @@ RDKIT_PROPERTIES = frozenset(
 
 _TType = TypeVar("_TType")
 
+_RDKIT_BOND_TYPES = {
+    "a": Chem.BondType.AROMATIC,
+    "s": Chem.BondType.SINGLE,
+    "d": Chem.BondType.DOUBLE,
+    "t": Chem.BondType.TRIPLE
+}
+
+_NT_BOND_TYPES = {
+    Chem.BondType.AROMATIC: "a",
+    Chem.BondType.SINGLE: "s",
+    Chem.BondType.DOUBLE: "d",
+    Chem.BondType.TRIPLE: "t"
+}
+
 
 class RDKitConverter(FrameConverter):
     """Frame converter for the RDKit package."""
@@ -147,7 +161,7 @@ def rdkit_mol_to_frame(
             id1 = bond.GetBeginAtomIdx()
             id2 = bond.GetEndAtomIdx()
             bonds.append([indices[id1], indices[id2]])
-            types.append("a" if bond.GetBondType() == Chem.BondType.AROMATIC else "s")
+            types.append(_NT_BOND_TYPES.get(bond.GetBondType(), Chem.BondType.SINGLE))
         if BondPairs.key in fields:
             BondPairs.set(frame, bonds)
         if BondTypes.key in fields:
@@ -187,7 +201,7 @@ def frame_to_rdkit_mol(frame: FrameData) -> Chem.rdchem.Mol:
             mol.AddBond(
                 ids[bond[0]],
                 ids[bond[1]],
-                Chem.BondType.AROMATIC if types[i] == "a" else Chem.BondType.SINGLE,
+                _RDKIT_BOND_TYPES.get(types[i], "s"),
             )
 
     conf = Chem.Conformer(count)
