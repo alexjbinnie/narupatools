@@ -17,7 +17,6 @@ dependencies:
   - narupa-server=0.1.2061
 # Compatible Packages. OpenMM cannot be 7.6.0 due to namespace changes that break Narupa
   - mdtraj=1.9.*
-  - lammps=2020.10.09
   - openmm<=7.5.*
   - rdkit=2021.*
 # Packages required to run jupyter notebooks

@@ -17,7 +17,7 @@ dependencies:
   - flake8-pyi=20.*
   - flake8-rst-docstrings=0.2.*
   - flake8-simplify=0.14.*
-  - flake8-builtins=0.5.*
+  - flake8-builtins=1.5.*
 # Mypy and extensions
   - mypy=0.910
   - mypy_extensions=0.4.*
