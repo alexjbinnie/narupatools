@@ -25,7 +25,7 @@ from mdtraj import Trajectory
 from narupa.trajectory import FrameData
 
 from narupatools.frame import TrajectorySource
-
+from narupatools.override import override
 from ._converter import mdtraj_trajectory_to_frame
 
 
@@ -36,6 +36,7 @@ class MDTrajTrajectory(TrajectorySource):
         super().__init__()
         self._trajectory = trajectory
 
+    @override
     def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
     ) -> FrameData:
@@ -47,6 +48,7 @@ class MDTrajTrajectory(TrajectorySource):
         return len(self._trajectory)
 
     @classmethod
+    @override
     def _create_from_object(cls, obj: Any) -> MDTrajTrajectory:
         if isinstance(obj, Trajectory):
             return MDTrajTrajectory(obj)

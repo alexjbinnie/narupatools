@@ -1,0 +1,60 @@
+digraph G {
+  graph [fontname = "Handlee"];
+  node [fontname = "Handlee"];
+  edge [fontname = "Handlee"];
+
+  bgcolor=transparent;
+
+  start -> isrunning;
+  isrunning -> alreadyrunningerror [taillabel="no"]
+  isrunning -> startrun [taillabel="yes"]
+  startrun -> isthrottled
+  isthrottled:e -> waitforinterval:n [taillabel="yes"]
+  isthrottled:s -> isstopped:n [taillabel="no", weight=100]
+  waitforinterval:s -> isstopped:n;
+  isstopped:s -> ispaused:n [taillabel="no", weight=100]
+  ispaused -> prestep [taillabel="no", weight=100]
+  ispaused:w -> isthrottled:w [taillabel="yes"]
+  prestep -> mdstep [weight=100]
+  mdstep -> poststep [weight=100]
+  poststep -> islimitedrun [weight=100]
+  islimitedrun:s -> reachedtotalsteps:n [taillabel="yes", weight=100]
+  islimitedrun:w -> isthrottled:w [taillabel="no"]
+  reachedtotalsteps:w -> isthrottled:w [taillabel="no"]
+  reachedtotalsteps:s -> endrun:n [taillabel="yes", weight=100]
+  isstopped:e -> endrun:n [taillabel="yes"]
+  endrun -> end
+
+  subgraph cluster_1 {
+    label = "Dynamics Step";
+    fontsize = 20;
+    color=blue
+
+
+  isthrottled [shape=diamond, group=g1, label="Is dynamics\nthrottled?"];
+  waitforinterval [shape=rec, label="Wait until interval\nhas passed"]
+  isstopped [shape=diamond, group=g1, label="Has dynamics.stop()\nbeen called?"]
+  ispaused [shape=diamond, group=g1, label="Is dynamics paused\nusing dynamics.pause()"]
+  prestep [shape=rect, group=g1, label="Call any listeners\nto on_pre_step"]
+  mdstep [shape=rect, group=g1, label="Run 1 MD Step"]
+  poststep [shape=rect, group=g1, label="Call any listeners\nto on_post_step"]
+  islimitedrun [shape=diamond, group=g1, label="Was a number of steps\npaseed to run()?"]
+  reachedtotalsteps [shape=diamond, group=g1, label="Have we reached\nthat number?"]
+
+  }
+
+  start [shape=ellipse, group=g1];
+  isrunning [shape=diamond, group=g1, label="Is dynamics\nalready running?"];
+  alreadyrunningerror [shape=ellipse, label="Raise\nError" color="red"]
+  startrun [shape=rect, group=g1, label="Initial setup by\ncalling _start_run()"];
+
+
+  endrun [shape=rect, group=g1, label="Cleanup by\ncalling _end_run()"]
+   end [shape=ellipse];
+
+  {
+    rank=same;
+    isrunning, alreadyrunningerror
+  }
+
+}

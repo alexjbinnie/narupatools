@@ -28,7 +28,7 @@ from narupa.trajectory import FrameData
 
 from narupatools.ase import ase_atoms_to_frame
 from narupatools.frame._frame_source import TrajectorySource
-
+from narupatools.override import override
 
 class ASETrajectory(TrajectorySource):
     """Trajectory playback using one ore more  ASE `Atoms` objects."""
@@ -39,6 +39,7 @@ class ASETrajectory(TrajectorySource):
     def __len__(self) -> int:
         return len(self._trajectory)
 
+    @override
     def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
     ) -> FrameData:

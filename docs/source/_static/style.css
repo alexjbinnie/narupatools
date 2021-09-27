@@ -43,3 +43,25 @@ em.property {
     padding-left: 4px;
     margin-right: 4px;
 }
+
+.sig-label {
+    font-family: 'Roboto Slab';
+    padding: 4px 12px 4px 12px;
+    border-radius: 12px 12px 0 0;
+    font-weight: bold;
+    background-color: #eeff;
+    font-size: 0.9rem;
+    position: relative;
+    top: 7px;
+    margin-right: -2px;
+    margin-left: 6px;
+    border-bottom: solid #ccdd 1px;
+}
+
+
+.class-usage {
+    background-color: #eeff33;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: monospace;
+}

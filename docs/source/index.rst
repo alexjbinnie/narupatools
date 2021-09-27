@@ -55,7 +55,7 @@ Some code is originally part of the narupa python libraries, and is modified und
    Concepts <concepts/concepts>
    Tutorials <tutorials/tutorials>
 
-   API Reference <_autosummary/narupatools>
+   API Reference <api/narupatools>
 
 
 Indices and tables

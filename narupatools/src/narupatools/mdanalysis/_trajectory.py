@@ -25,6 +25,8 @@ from narupa.trajectory import FrameData
 from narupatools.frame import TrajectorySource
 from narupatools.mdanalysis import mdanalysis_atomgroup_to_frame
 
+from narupatools.override import override
+
 
 class MDAnalysisTrajectory(TrajectorySource):
     """Wrapper around an MDAnalysis universe to serve as a trajectory source."""
@@ -32,6 +34,7 @@ class MDAnalysisTrajectory(TrajectorySource):
     def __init__(self, universe: Universe):
         self.universe = universe
 
+    @override
     def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str]
     ) -> FrameData:
@@ -42,6 +45,7 @@ class MDAnalysisTrajectory(TrajectorySource):
         return len(self.universe.trajectory)
 
     @classmethod
+    @override
     def _create_from_object(cls, obj: Any) -> TrajectorySource:
         if isinstance(obj, Universe):
             return MDAnalysisTrajectory(obj)

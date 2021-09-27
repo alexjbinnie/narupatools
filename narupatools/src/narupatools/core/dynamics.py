@@ -351,41 +351,36 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         return frame
 
     @property
-    @override
     def positions(self) -> Vector3Array:
         """Positions of particles in nanometers."""
         raise AttributeError
 
     @property
-    @override
     def velocities(self) -> Vector3Array:
         """Velocities of particles in nanometers per picosecond."""
         raise AttributeError
 
     @property
-    @override
     def forces(self) -> Vector3Array:
         """Forces on particles in kilojoules per mole per nanometer."""
         raise AttributeError
 
     @property
-    @override
     def masses(self) -> ScalarArray:
         """Masses of particles in daltons."""
         raise AttributeError
 
     @property
-    @override
     def kinetic_energy(self) -> float:
         """Kinetic energy in kilojoules per mole."""
         raise AttributeError
 
     @property
-    @override
     def potential_energy(self) -> float:
         """Potential energy in kilojoules per mole."""
         raise AttributeError
 
     @property
+    @override
     def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
         return self._on_fields_changed

@@ -213,8 +213,9 @@ fabric.properties
 
 log.lammps
 
-docs/source/_autosummary
+docs/source/api
 
 sandbox/
 
 .idea/
+

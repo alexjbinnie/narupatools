@@ -235,6 +235,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         self._accumulated_displacement += center_velocity * timestep
 
+    @override
     def create_feeback(self) -> InteractionFeedback:  # noqa: D102
         feedback: RigidMotionInteractionFeedback = super().create_feeback()  # type: ignore
         feedback.accumulated_rotation = self._accumulated_rotation.versor
