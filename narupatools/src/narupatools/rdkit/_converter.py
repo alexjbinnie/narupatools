@@ -23,10 +23,7 @@ from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB
 from narupa.trajectory import FrameData
 from rdkit import Chem
 
-from narupatools.core.collections import infinite_seq
-from narupatools.core.units import UnitsNarupa
-from narupatools.frame import NarupaFrame
-from narupatools.frame._converter import FrameConverter
+from narupatools.frame import FrameConverter, NarupaFrame
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -38,7 +35,9 @@ from narupatools.frame.fields import (
     ParticlePositions,
 )
 from narupatools.override import override
+from narupatools.physics.units import UnitsNarupa
 from narupatools.rdkit._units import UnitsRDKit
+from narupatools.util.collections import infinite_seq
 
 _RDKitToNarupa = UnitsRDKit >> UnitsNarupa
 _NarupaToRDKit = UnitsNarupa >> UnitsRDKit
@@ -73,14 +72,14 @@ _RDKIT_BOND_TYPES = {
     "a": Chem.BondType.AROMATIC,
     "s": Chem.BondType.SINGLE,
     "d": Chem.BondType.DOUBLE,
-    "t": Chem.BondType.TRIPLE
+    "t": Chem.BondType.TRIPLE,
 }
 
 _NT_BOND_TYPES = {
     Chem.BondType.AROMATIC: "a",
     Chem.BondType.SINGLE: "s",
     Chem.BondType.DOUBLE: "d",
-    Chem.BondType.TRIPLE: "t"
+    Chem.BondType.TRIPLE: "t",
 }
 
 

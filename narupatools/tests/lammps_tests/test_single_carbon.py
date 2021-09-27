@@ -22,13 +22,13 @@ lammps = pytest.importorskip("lammps")
 from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE
-from narupatools.core import UnitsNarupa
 from narupatools.lammps import (
     LAMMPSDynamics,
     LAMMPSSimulation,
     atoms_from_lammps_simulation,
 )
 from narupatools.lammps.regions import Box
+from narupatools.physics.units import UnitsNarupa
 from narupatools.physics.vector import vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE

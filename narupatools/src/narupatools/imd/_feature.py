@@ -27,8 +27,7 @@ from typing_extensions import Protocol
 
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.core.event import Event, EventListener
-from narupatools.imd.interactions._interaction import Interaction
-from narupatools.imd.interactions._parameters import InteractionParameters
+from narupatools.imd.interactions import Interaction, InteractionParameters
 from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
 
 

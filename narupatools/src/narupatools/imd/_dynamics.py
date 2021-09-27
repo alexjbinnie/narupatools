@@ -19,7 +19,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any
 
-from narupatools.app._session import Broadcastable, Session
+from narupatools.app import Broadcastable, Session
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.imd._feature import InteractionFeature
 

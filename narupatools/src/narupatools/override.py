@@ -21,12 +21,29 @@ from typing import Any, TypeVar
 _T = TypeVar("_T")
 
 
-def override(f: _T) -> _T:
+def override(f: _T, /) -> _T:
     """
     Mark a method or property as overriding a method in a base class.
 
+    This is a decorator that can be applied to methods and properties:
+
+    .. code-block:: python
+
+       class MyBaseClass:
+
+           def my_method():
+               ...
+
+       class MyClass(MyBaseClass):
+
+           @override
+           def my_method():
+               ...
+
     This does not perform any checks to ensure that there is actually a method to override. This
-    merely annotates the method or property such that a call to is_overriden returns True.
+    merely annotates the method or property.
+
+    To check if a method is overriden, use :obj:`marked_as_override`.
     """
     if isinstance(f, property):
         if f.fget is not None:
@@ -42,7 +59,7 @@ def override(f: _T) -> _T:
 
 def marked_as_override(f: Any) -> bool:
     """
-    Is the given method or property overriden?
+    Check if the given method or property is marked using the @override annotation.
 
     This merely checks if the argument has been annotated with @override. It does
     not actually check if the method or property overrides something in the base class.

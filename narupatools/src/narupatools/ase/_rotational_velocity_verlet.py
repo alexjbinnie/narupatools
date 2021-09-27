@@ -6,7 +6,7 @@ from ase import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 from ase.md.md import MolecularDynamics
 
-from narupatools.physics._quaternion import from_vector_part, quaternion
+from narupatools.physics import quaternion, quaternion_from_vector_part
 from narupatools.physics.typing import Vector3, Vector3Array
 from narupatools.physics.vector import normalized
 
@@ -25,7 +25,7 @@ def _right_multiply(
     v: Union[Vector3, Vector3Array], q: Union[npt.NDArray[quaternion], quaternion], /
 ) -> npt.NDArray[quaternion]:
     """Right multiply a vector by a quaternion."""
-    return from_vector_part(v) * q  # type: ignore
+    return quaternion_from_vector_part(v) * q  # type: ignore
 
 
 class RotationalVelocityVerletIntegrator(MolecularDynamics):

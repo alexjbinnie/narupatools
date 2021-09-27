@@ -18,7 +18,16 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
-from narupatools.core.units import (
+from narupatools.lammps._units import (
+    UnitsLAMMPSCGS,
+    UnitsLAMMPSElectron,
+    UnitsLAMMPSMetal,
+    UnitsLAMMPSMicro,
+    UnitsLAMMPSNano,
+    UnitsLAMMPSReal,
+    UnitsLAMMPSSI,
+)
+from narupatools.physics.units import (
     Unit,
     UnitsNarupa,
     amu,
@@ -55,15 +64,6 @@ from narupatools.core.units import (
     statcoulomb,
     statvolt,
     volt,
-)
-from narupatools.lammps._units import (
-    UnitsLAMMPSCGS,
-    UnitsLAMMPSElectron,
-    UnitsLAMMPSMetal,
-    UnitsLAMMPSMicro,
-    UnitsLAMMPSNano,
-    UnitsLAMMPSReal,
-    UnitsLAMMPSSI,
 )
 
 

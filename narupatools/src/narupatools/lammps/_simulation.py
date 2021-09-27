@@ -34,9 +34,7 @@ import narupatools.lammps.atom_properties as PROPERTIES
 import narupatools.lammps.computes as COMPUTES
 import narupatools.lammps.globals as GLOBALS
 import narupatools.lammps.settings as SETTINGS
-from narupatools.core.units import UnitsNarupa, UnitSystem, degree, radian
 from narupatools.frame import NarupaFrame
-from narupatools.frame._utils import mass_to_element
 from narupatools.frame.fields import (
     BondPairs,
     ParticleCharges,
@@ -51,6 +49,8 @@ from narupatools.frame.fields import (
 )
 from narupatools.lammps._units import get_unit_system
 from narupatools.physics.typing import Vector3
+from narupatools.physics.units import UnitsNarupa, UnitSystem, degree, radian
+from narupatools.util import mass_to_element
 
 from ..physics.transformation import Rotation
 from ..physics.vector import magnitude, normalized, vector
@@ -362,7 +362,8 @@ class LAMMPSSimulation:
             )
         return self._bond_energy_compute.extract() * self._lammps_to_narupa.energy
 
-    def _inject_python_function(self, func: Any) -> str:
+    @staticmethod
+    def _inject_python_function(func: Any) -> str:
         """
         Inject a given function into the __main__ module and generate a unique name.
 
@@ -571,7 +572,7 @@ class LAMMPSSimulation:
         Create a region in the simulation.
 
         :param region: Specification to the region.
-        :param id: Optional id for the region.
+        :param region_id: Optional id for the region.
         :return: Region object.
         """
         if region_id is None:

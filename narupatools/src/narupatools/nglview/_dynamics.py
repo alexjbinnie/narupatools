@@ -6,9 +6,9 @@ from infinite_sets import everything
 from nglview import NGLWidget
 
 from narupatools.core.dynamics import SimulationDynamics
-from narupatools.core.timing import throttle
 from narupatools.frame.fields import ParticlePositions
 from narupatools.nglview._structure import FrameDataStructure
+from narupatools.util.timing import throttle
 
 
 class _DynamicsWidget:

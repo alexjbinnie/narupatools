@@ -16,14 +16,15 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Dict, Protocol
 
 import numpy as np
 from ase.atoms import Atoms
 
 from narupatools.ase._units import UnitsASE
-from narupatools.core import UnitsNarupa
 from narupatools.imd import Interaction
+from narupatools.physics.units import UnitsNarupa
 
 from ...override import override
 from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
@@ -37,9 +38,9 @@ class ASEAtomsWrapper(Protocol):
     """Wrappar around an ASE atoms object."""
 
     @property
+    @abstractmethod
     def atoms(self) -> Atoms:
         """Wrapped ASE Atoms."""
-        ...
 
 
 class _ASEAtomsWrapper(ASEAtomsWrapper):

@@ -20,8 +20,8 @@ from ase.atoms import Atoms
 from ase.md import VelocityVerlet
 
 from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
-from narupatools.core import UnitsNarupa
 from narupatools.imd import gaussian_interaction
+from narupatools.physics.units import UnitsNarupa
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

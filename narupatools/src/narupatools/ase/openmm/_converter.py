@@ -26,10 +26,10 @@ from simtk.unit import picoseconds
 
 import narupatools.ase.openmm._calculator as omm_calculator
 from narupatools.ase import UnitsASE
-from narupatools.core.units import UnitsNarupa, pico, second
 from narupatools.frame import convert
-from narupatools.openmm._units import UnitsOpenMM
+from narupatools.openmm import UnitsOpenMM
 from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
+from narupatools.physics.units import UnitsNarupa, pico, second
 
 _OpenMMToASE = UnitsOpenMM >> UnitsASE
 _NarupaToASE = UnitsNarupa >> UnitsASE

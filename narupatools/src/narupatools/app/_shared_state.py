@@ -22,7 +22,7 @@ from typing import Optional, Protocol, Set
 from narupa.utilities.change_buffers import DictionaryChange
 
 from narupatools.core.event import Event, EventListener
-from narupatools.imd.interactions._parameters import InteractionParameters
+from narupatools.imd.interactions import InteractionParameters
 from narupatools.state import SharedStateCollectionView, SharedStateDictionaryView
 from narupatools.state.typing import SerializableDictionary
 

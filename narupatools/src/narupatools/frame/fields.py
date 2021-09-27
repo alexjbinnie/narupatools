@@ -43,8 +43,8 @@ from narupa.trajectory.frame_data import (
 )
 from typing_extensions import Final
 
-from narupatools.frame._utils import atomic_numbers_to_masses
 from narupatools.override import override
+from narupatools.util import atomic_numbers_to_masses
 
 PARTICLE_MASSES = "particle.masses"
 PARTICLE_VELOCITIES = "particle.velocities"

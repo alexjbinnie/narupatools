@@ -21,7 +21,7 @@ from typing import Any, Iterable, Mapping
 import six
 from google.protobuf.struct_pb2 import ListValue, Struct
 
-from narupatools.physics._quaternion import quaternion
+from narupatools.physics import quaternion
 from narupatools.state import SerializableObject
 from narupatools.state.typing import Serializable
 

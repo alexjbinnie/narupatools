@@ -32,8 +32,7 @@ def atoms_from_smiles(*smiles: str, add_hydrogens: bool = True) -> Atoms:
     :param add_hydrogens: Should implicit hydrogens be added to the system.
     :return: Atoms object representing system.
     """
-    if not isinstance(smiles, str):
-        smiles = '.'.join(smiles)
+    smiles = ".".join(smiles)
     mol = Chem.MolFromSmiles(smiles)
     if add_hydrogens:
         mol = AllChem.AddHs(mol)

@@ -16,12 +16,12 @@
 
 """Generate properties without having to write getter and setter."""
 
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Optional, Tuple, TypeVar
 
 import numpy as np
 import numpy.typing as npt
 
-from narupatools.physics._quaternion import quaternion
+from narupatools.physics import quaternion
 from narupatools.physics.transformation import Rotation
 
 _TValue = TypeVar("_TValue")
@@ -52,11 +52,19 @@ def to_property(converter: Callable[[Any], _TValue]) -> Callable[[Callable], _TV
     return _to_property
 
 
-def numpy_property(dtype: npt.DTypeLike) -> Callable[[Any], np.ndarray]:
+def numpy(
+    *, dtype: npt.DTypeLike, shape: Tuple[Optional[int]]
+) -> Callable[[Any], np.ndarray]:
     """Property internally stored as a NumPy array."""
 
     def to_array(value: Any) -> np.ndarray:
-        return np.asarray(value, dtype=dtype)
+        v = np.asarray(value, dtype=dtype)
+        if len(v.shape) != len(shape):
+            raise TypeError(f"Incompatible shapes {v.shape} and {shape}")
+        for dim, dim_expected in zip(v.shape, shape):
+            if dim_expected and dim != dim_expected:
+                raise TypeError(f"Incompatible shapes {v.shape} and {shape}")
+        return v
 
     return to_property(to_array)
 
@@ -71,9 +79,9 @@ def to_bool(value: Any) -> bool:
     return bool(value)
 
 
-str_property = to_property(to_str)
+string = to_property(to_str)
 
-bool_property = to_property(to_bool)
+boolean = to_property(to_bool)
 
 
 def to_float(value: Any) -> float:
@@ -81,7 +89,7 @@ def to_float(value: Any) -> float:
     return float(value)
 
 
-def to_quaternion(value: Any) -> quaternion:
+def to_unit_quaternion(value: Any) -> quaternion:
     if isinstance(value, quaternion):
         return value
     if isinstance(value, Rotation):
@@ -91,8 +99,8 @@ def to_quaternion(value: Any) -> quaternion:
     return quaternion(*value)
 
 
-float_property = to_property(to_float)
+number = to_property(to_float)
 
-quaternion_property = to_property(to_quaternion)
+unit_quaternion = to_property(to_unit_quaternion)
 
-__all__ = ["numpy_property", "str_property", "float_property", "quaternion_property"]
+__all__ = ["numpy", "string", "boolean", "number", "unit_quaternion"]

@@ -6,9 +6,9 @@ from nglview import NGLWidget
 from nglview.component import ComponentViewer
 
 from narupatools.app import Client
-from narupatools.core.timing import throttle
 from narupatools.frame.fields import ParticlePositions
 from narupatools.nglview._structure import FrameDataStructure
+from narupatools.util.timing import throttle
 
 
 class _ClientWidget:

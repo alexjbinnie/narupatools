@@ -19,7 +19,7 @@ from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 
 from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
-from narupatools.core import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 
 ASEToNarupa = UnitsASE >> UnitsNarupa
 

@@ -23,7 +23,7 @@ from narupatools.ase._units import UnitsASE
 from narupatools.ase.openmm._converter import (
     openmm_simulation_to_ase_molecular_dynamics,
 )
-from narupatools.core.units import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 
 
 @pytest.fixture(params=[0.01, 0.1, 1.0])

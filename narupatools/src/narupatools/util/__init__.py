@@ -14,23 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Wrapper around an MDAnalysis universe."""
+"""Utility methods."""
 
-from infinite_sets import InfiniteSet
-from MDAnalysis import Universe
-from narupa.trajectory import FrameData
+from ._conversions import (
+    atomic_numbers_to_masses,
+    atomic_numbers_to_symbols,
+    mass_to_element,
+)
 
-from narupatools.frame import FrameSource
-from narupatools.mdanalysis import mdanalysis_universe_to_frame
-from narupatools.override import override
-
-
-class MDAnalysisSystem(FrameSource):
-    """MDAnalysis universe that can be broadcast on a session."""
-
-    def __init__(self, universe: Universe):
-        self._universe = universe
-
-    @override
-    def get_frame(self, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
-        return mdanalysis_universe_to_frame(self._universe)
+__all__ = ["atomic_numbers_to_symbols", "atomic_numbers_to_masses", "mass_to_element"]

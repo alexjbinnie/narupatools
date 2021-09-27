@@ -20,9 +20,9 @@ from typing import Any
 
 import numpy as np
 
-from narupatools.core.properties import float_property, numpy_property
 from narupatools.physics.force import mass_weighted_forces
 from narupatools.physics.rigidbody import center_of_mass
+from narupatools.util import properties
 
 from ...override import override
 from ._interaction import Interaction
@@ -35,12 +35,12 @@ CONSTANT_INTERACTION_TYPE = "constant"
 class ConstantInteractionData(InteractionParameters):
     """Interaction data for a constant force interaction."""
 
-    @numpy_property(dtype=float)
+    @properties.numpy(dtype=float, shape=(3,))
     def force(self) -> None:
         """Constant force to apply, in kilojoules per mole per nanometer."""
         ...
 
-    @float_property
+    @properties.number
     def scale(self) -> None:
         """Scaling factor to apply to the force."""
         ...
@@ -55,12 +55,12 @@ class ConstantInteraction(Interaction[ConstantInteractionData]):
     particle located at the center of mass, with mass equal to the total mass.
     """
 
-    @numpy_property(dtype=float)
+    @properties.numpy(dtype=float, shape=(3,))
     def force(self) -> np.ndarray:
         """Constant force to apply, in kilojoules per mole per nanometer."""
         ...
 
-    @float_property
+    @properties.number
     def scale(self) -> None:
         """Scaling factor to apply to the force."""
 

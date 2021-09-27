@@ -24,8 +24,7 @@ import numpy as np
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
-from narupatools.imd import InteractiveSimulationDynamics
-from narupatools.imd._feature_setclear import SetAndClearInteractionFeature
+from narupatools.imd import InteractiveSimulationDynamics, SetAndClearInteractionFeature
 from narupatools.physics.typing import (
     ScalarArray,
     Vector3,

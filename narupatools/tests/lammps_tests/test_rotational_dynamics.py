@@ -20,10 +20,9 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
-from narupatools.core.random import random_integer
 from narupatools.lammps import LAMMPSSimulation
 from narupatools.lammps.regions import Box
-from narupatools.physics.random import random_float, random_vector
+from narupatools.physics.random import random_float, random_integer, random_vector
 from narupatools.physics.transformation import Rotation
 from narupatools.physics.vector import vector
 

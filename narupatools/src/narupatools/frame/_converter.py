@@ -27,11 +27,11 @@ from infinite_sets import InfiniteSet, everything
 from MDAnalysis.topology.tables import Z2SYMB
 from narupa.trajectory import FrameData
 
-from narupatools.core.units import angstrom, degree, meter, nano, radian
+from narupatools.physics.units import angstrom, degree, meter, nano, radian
 from narupatools.physics.vector import angle, magnitude
 from narupatools.state.typing import Serializable
+from narupatools.util.collections import infinite_seq
 
-from ..core.collections import infinite_seq
 from ..override import override
 from ._frame import NarupaFrame
 from .fields import (

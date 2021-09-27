@@ -21,8 +21,7 @@ from ase.atoms import Atoms
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.frame import convert
-from narupatools.frame._converter import FrameConverter
+from narupatools.frame import FrameConverter, convert
 
 from ._calculator import LAMMPSCalculator
 from ._simulation import LAMMPSSimulation

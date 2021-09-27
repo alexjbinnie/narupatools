@@ -21,7 +21,7 @@ from ase.md import VelocityVerlet
 from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
-from narupatools.core import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

@@ -18,10 +18,10 @@ from __future__ import annotations
 
 from typing import Dict, Mapping, Type
 
-from narupatools.core.properties import bool_property, numpy_property, str_property
 from narupatools.override import override
 from narupatools.state import SharedStateObject
 from narupatools.state.typing import Serializable
+from narupatools.util import properties
 
 _InteractionParameters_Types: Dict[str, Type[InteractionParameters]] = {}
 
@@ -33,22 +33,22 @@ class InteractionParameters(SharedStateObject):
     This class is dynamically subclassed based on the interaction_type field.
     """
 
-    @numpy_property(dtype=int)
+    @properties.numpy(dtype=int, shape=(None,))
     def particles(self) -> None:
         """Indices of the particles affected by this interaction."""
         ...
 
-    @str_property
+    @properties.string
     def interaction_type(self) -> str:
         """Internal type of the interaction."""
         ...
 
-    @bool_property
+    @properties.boolean
     def reset_velocities(self) -> bool:
         """Should this interaction perform velocity reset afterwards?"""
         ...
 
-    @bool_property
+    @properties.boolean
     def mass_weighted(self) -> bool:
         """Is this interaction mass-weighted?"""
         ...

@@ -27,7 +27,7 @@ from rdkit.Chem.rdForceFieldHelpers import (
     UFFHasAllMoleculeParams,
 )
 
-from narupatools.core import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 from narupatools.rdkit import UnitsRDKit
 
 _RDKitToNarupa = UnitsRDKit >> UnitsNarupa

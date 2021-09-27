@@ -30,8 +30,7 @@ from narupa.trajectory import FrameData
 from simtk.openmm import CustomExternalForce, System
 from simtk.openmm.app import Simulation
 
-from narupatools.imd import InteractiveSimulationDynamics
-from narupatools.imd._feature_setclear import SetAndClearInteractionFeature
+from narupatools.imd import InteractiveSimulationDynamics, SetAndClearInteractionFeature
 from narupatools.physics.typing import (
     ScalarArray,
     Vector3,

@@ -21,8 +21,8 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Any
 
-from narupatools.core.units import UnitConversion
 from narupatools.physics.typing import Vector3
+from narupatools.physics.units import UnitConversion
 from narupatools.physics.vector import vector
 
 

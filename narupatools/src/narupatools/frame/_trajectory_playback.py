@@ -15,7 +15,6 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Base class for trajectories that can be played back."""
-from abc import abstractmethod
 from typing import Any, Union
 
 from infinite_sets import InfiniteSet, everything

@@ -29,8 +29,8 @@ from narupa.imd.imd_state import dict_to_interaction
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from narupatools.imd.interactions._parameters import InteractionParameters
-from narupatools.state.view._wrappers import SharedStateClientWrapper
+from narupatools.imd.interactions import InteractionParameters
+from narupatools.state.view import SharedStateClientWrapper
 
 from ..override import override
 from ._session import Session

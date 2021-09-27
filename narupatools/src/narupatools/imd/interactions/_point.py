@@ -20,8 +20,6 @@ from typing import Any, Protocol, Tuple
 
 import numpy as np
 
-from narupatools.core.partial import partialclass
-from narupatools.core.properties import float_property, numpy_property
 from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.physics.force import (
     gaussian_force_and_energy,
@@ -30,6 +28,8 @@ from narupatools.physics.force import (
 )
 from narupatools.physics.rigidbody import center_of_mass
 from narupatools.physics.typing import Vector3, Vector3Array
+from narupatools.util import properties
+from narupatools.util.partial import partialclass
 
 from ...override import override
 from ._interaction import Interaction
@@ -48,12 +48,12 @@ class OffsetForceFunction(Protocol):
 class PointInteractionData(InteractionParameters):
     """Data for a point interaction."""
 
-    @numpy_property(dtype=float)
+    @properties.numpy(dtype=float, shape=(3,))
     def position(self) -> None:
         """Position at which the interaction is applied."""
         ...
 
-    @float_property
+    @properties.number
     def scale(self) -> None:
         """Scaling factor applied to the force of this interaction."""
         ...

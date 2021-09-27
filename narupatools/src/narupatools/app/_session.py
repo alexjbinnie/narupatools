@@ -46,12 +46,11 @@ from narupa.trajectory.frame_server import (
     STEP_COMMAND_KEY,
 )
 
-from narupatools.core._playable import Playable
+from narupatools.core import Playable
 from narupatools.core.event import Event
 from narupatools.core.health_check import HealthCheck
-from narupatools.frame._frame_producer import FrameProducer
-from narupatools.frame._frame_source import FrameSource, FrameSourceWithNotify
-from narupatools.state.view._wrappers import SharedStateServerWrapper
+from narupatools.frame import FrameProducer, FrameSource, FrameSourceWithNotify
+from narupatools.state.view import SharedStateServerWrapper
 
 from ..override import override
 from ._shared_state import SessionSharedState
@@ -269,8 +268,8 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
             return self._target.get_frame(fields=fields)
         return FrameData()
 
+    @staticmethod
     def _initialise_server(
-        self,
         *,
         name: Optional[str] = None,
         address: Optional[str] = None,

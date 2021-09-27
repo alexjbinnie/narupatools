@@ -31,7 +31,6 @@ from lammps import OutputCapture, PyLammps
 from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
-from narupatools.core.units import UnitsNarupa
 from narupatools.frame.fields import (
     ParticleCharges,
     ParticleCount,
@@ -43,6 +42,7 @@ from narupatools.frame.fields import (
 )
 from narupatools.mdanalysis import mdanalysis_universe_to_frame
 from narupatools.physics.typing import Vector3
+from narupatools.physics.units import UnitsNarupa
 
 from ._constants import VariableDimension, VariableStyle, VariableType
 from ._units import get_unit_system
@@ -207,7 +207,7 @@ class LAMMPSSimulation:
 
         :param key: ID of the compute.
         :param style: Style of the variable.
-        :param type: Type of the variable.
+        :param dimension: Type of the variable.
         :raises ComputeNotFoundError: Key does not match any known computes.
         :raises InvalidComputeSpecificationError: Compute exists but doesn't match style
                                                   and type provided.

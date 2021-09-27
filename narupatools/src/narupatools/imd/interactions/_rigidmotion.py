@@ -20,11 +20,6 @@ from typing import Any, Optional, Union
 import numpy as np
 from numpy.linalg import LinAlgError, inv
 
-from narupatools.core.properties import (
-    float_property,
-    numpy_property,
-    quaternion_property,
-)
 from narupatools.physics.rigidbody import (
     center_of_mass,
     center_of_mass_velocity,
@@ -38,6 +33,7 @@ from narupatools.physics.vector import (
     left_vector_triple_product_matrix,
     vector,
 )
+from narupatools.util import properties
 
 from ...override import override
 from ._feedback import InteractionFeedback
@@ -48,17 +44,17 @@ from ._parameters import InteractionParameters
 class RigidMotionInteractionData(InteractionParameters):
     """Interaction data for a rigid motion interaction."""
 
-    @numpy_property(dtype=float)
+    @properties.numpy(dtype=float, shape=(3,))
     def translation(self) -> None:
         """Translation to apply, in nanometers."""
         ...
 
-    @quaternion_property
+    @properties.unit_quaternion
     def rotation(self) -> None:
         """Rotation to apply, as a unit quaternion."""
         ...
 
-    @float_property
+    @properties.number
     def scale(self) -> None:
         """Scale of the interaction."""
         ...
@@ -67,12 +63,12 @@ class RigidMotionInteractionData(InteractionParameters):
 class RigidMotionInteractionFeedback(InteractionFeedback):
     """Interaction feedback for a rigid motion interaction."""
 
-    @numpy_property(dtype=float)
+    @properties.numpy(dtype=float, shape=(3,))
     def accumulated_translation(self) -> None:
         """Total translation target has moved, in nanometers."""
         ...
 
-    @quaternion_property
+    @properties.unit_quaternion
     def accumulated_rotation(self) -> None:
         """Total rotation target has rotated, as a unit quaternion."""
         ...

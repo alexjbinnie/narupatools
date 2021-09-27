@@ -22,8 +22,7 @@ from infinite_sets import InfiniteSet
 from mdtraj import Topology, Trajectory
 from narupa.trajectory.frame_data import FrameData
 
-from narupatools.core.units import UnitsNarupa
-from narupatools.frame._converter import FrameConverter
+from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -40,6 +39,7 @@ from narupatools.frame.fields import (
 )
 from narupatools.mdtraj._units import UnitsMDTraj
 from narupatools.override import override
+from narupatools.physics.units import UnitsNarupa
 
 MDTRAJ_PROPERTIES = frozenset(
     (

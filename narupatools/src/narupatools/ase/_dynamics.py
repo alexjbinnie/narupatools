@@ -29,12 +29,15 @@ from ase.md.md import MolecularDynamics
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.core.units import UnitsNarupa
-from narupatools.imd import Interaction, InteractiveSimulationDynamics
-from narupatools.imd._feature import InteractionFeature
-from narupatools.imd.interactions._parameters import InteractionParameters
-from narupatools.physics._quaternion import quaternion
+from narupatools.imd import (
+    Interaction,
+    InteractionFeature,
+    InteractiveSimulationDynamics,
+)
+from narupatools.imd.interactions import InteractionParameters
+from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+from narupatools.physics.units import UnitsNarupa
 
 from ..core.dynamics import SimulationRotationProperties
 from ..override import override

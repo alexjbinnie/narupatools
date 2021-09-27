@@ -19,8 +19,8 @@ import time
 import pytest
 
 from narupatools.app import Client, Session
-from narupatools.core.timing import wait_for
 from narupatools.frame.fields import ParticlePositions
+from narupatools.util.timing import wait_for
 
 
 @pytest.fixture

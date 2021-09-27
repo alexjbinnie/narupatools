@@ -16,6 +16,6 @@
 
 """Methods relating to calculating physical quantities."""
 
-from ._quaternion import quaternion
+from ._quaternion import as_quaternion_array, quaternion, quaternion_from_vector_part
 
-__all__ = ["quaternion"]
+__all__ = ["quaternion", "quaternion_from_vector_part", "as_quaternion_array"]

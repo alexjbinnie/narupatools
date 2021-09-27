@@ -17,13 +17,13 @@ from narupatools.physics.typing import (
 )
 from narupatools.physics.vector import magnitude, normalized, vector
 
-from ..core.units import degree, radian
 from ._quaternion import (
     as_rotation_matrix,
     as_rotation_vector,
     from_rotation_vector,
     quaternion,
 )
+from .units import degree, radian
 
 
 class Translation:

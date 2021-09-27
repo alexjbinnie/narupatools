@@ -36,9 +36,7 @@ from MDAnalysis.core.topologyattrs import (
 )
 from narupa.trajectory import FrameData
 
-from narupatools.core.units import UnitsNarupa
-from narupatools.frame._converter import FrameConverter
-from narupatools.frame._utils import atomic_numbers_to_symbols
+from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -63,6 +61,8 @@ from narupatools.frame.fields import (
 from narupatools.mdanalysis._units import UnitsMDAnalysis
 from narupatools.mdanalysis._utils import guess_atomic_number
 from narupatools.override import override
+from narupatools.physics.units import UnitsNarupa
+from narupatools.util import atomic_numbers_to_symbols
 
 MDAnalysisToNarupa = UnitsMDAnalysis >> UnitsNarupa
 NarupaToMDAnalysis = UnitsNarupa >> UnitsMDAnalysis

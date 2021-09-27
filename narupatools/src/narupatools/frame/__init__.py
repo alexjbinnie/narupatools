@@ -16,8 +16,9 @@
 
 """Code for handling FrameData and other related objects."""
 
-from ._converter import convert
+from ._converter import FrameConverter, convert, frame_to_pdb_string
 from ._frame import NarupaFrame
+from ._frame_producer import FrameProducer
 from ._frame_source import (
     FrameSource,
     FrameSourceWithNotify,
@@ -35,4 +36,7 @@ __all__ = [
     "FrameSourceWithNotify",
     "OnFieldsChangedCallback",
     "TrajectorySource",
+    "FrameConverter",
+    "FrameProducer",
+    "frame_to_pdb_string",
 ]

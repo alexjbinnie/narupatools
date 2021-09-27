@@ -19,8 +19,8 @@
 import numpy as np
 from numpy.random import standard_normal
 
-from narupatools.core.constants import boltzmann_constant
-from narupatools.physics.typing import ScalarArray, Vector3Array
+from .constants import boltzmann_constant
+from .typing import ScalarArray, Vector3Array
 
 
 def maxwell_boltzmann_velocities(

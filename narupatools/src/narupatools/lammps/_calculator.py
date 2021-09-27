@@ -23,10 +23,10 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 
-from narupatools.ase._units import UnitsASE
-from narupatools.ase.constraints._observer import ASEObserver
-from narupatools.core.units import UnitsNarupa
+from narupatools.ase import UnitsASE
+from narupatools.ase.constraints import ASEObserver
 from narupatools.physics.typing import Vector3Array
+from narupatools.physics.units import UnitsNarupa
 
 from ._simulation import LAMMPSSimulation
 

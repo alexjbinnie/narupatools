@@ -22,8 +22,8 @@ from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.ase.openmm import openmm_simulation_to_ase_atoms
-from narupatools.core import UnitsNarupa
 from narupatools.openmm._dynamics import OpenMMDynamics
+from narupatools.physics.units import UnitsNarupa
 from narupatools.physics.vector import vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE

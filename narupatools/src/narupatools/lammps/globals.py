@@ -37,18 +37,18 @@ class Global(Extractable[_TReturnType]):
         """Extract the current value from a LAMMPS instance."""
         return lammps.extract_global(self.key)  # type: ignore[return-value]
 
-    @overload
     @classmethod
+    @overload
     def define(cls, key: str, datatype: Literal[VariableType.INTEGER]) -> Global[int]:
         ...
 
-    @overload
     @classmethod
+    @overload
     def define(cls, key: str, datatype: Literal[VariableType.DOUBLE]) -> Global[float]:
         ...
 
-    @overload
     @classmethod
+    @overload
     def define(cls, key: str, datatype: Literal[VariableType.STRING]) -> Global[str]:
         ...
 

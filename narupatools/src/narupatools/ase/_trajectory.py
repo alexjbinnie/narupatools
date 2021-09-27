@@ -27,7 +27,7 @@ from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
 from narupatools.ase import ase_atoms_to_frame
-from narupatools.frame._frame_source import TrajectorySource
+from narupatools.frame import TrajectorySource
 
 
 class ASETrajectory(TrajectorySource):

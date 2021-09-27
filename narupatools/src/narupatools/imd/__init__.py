@@ -17,6 +17,8 @@
 """Module for code relating to interactive molecular dynamics."""
 
 from ._dynamics import InteractiveSimulationDynamics
+from ._feature import InteractionFeature
+from ._feature_setclear import SetAndClearInteractionFeature
 from .interactions import (
     Interaction,
     constant_interaction,
@@ -32,4 +34,6 @@ __all__ = [
     "spring_interaction",
     "constant_interaction",
     "rigidmotion_interaction",
+    "InteractionFeature",
+    "SetAndClearInteractionFeature",
 ]

@@ -28,8 +28,8 @@ from simtk.openmm.app import Simulation
 from simtk.unit import angstrom
 
 from narupatools.ase._units import UnitsASE
-from narupatools.ase.calculators._calculator import Calculator
-from narupatools.openmm._units import UnitsOpenMM
+from narupatools.ase.calculators import Calculator
+from narupatools.openmm import UnitsOpenMM
 
 _OpenMMToASE = UnitsOpenMM >> UnitsASE
 

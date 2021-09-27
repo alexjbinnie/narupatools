@@ -21,7 +21,7 @@ from typing import Collection, Protocol
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
-from narupatools.core._playable import Playable
+from narupatools.core import Playable
 from narupatools.core.event import Event, EventListener
 from narupatools.frame.fields import (
     BondCount,

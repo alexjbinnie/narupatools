@@ -5,7 +5,6 @@ import pytest
 from ase.geometry import cellpar_to_cell
 from infinite_sets import InfiniteSet, everything
 
-from narupatools.core.random import random_integer, random_word
 from narupatools.frame import NarupaFrame
 from narupatools.frame.fields import (
     BondCount,
@@ -31,6 +30,7 @@ from narupatools.frame.fields import (
     ResidueNames,
 )
 from narupatools.physics.random import random_float, random_vector
+from narupatools.util.random import random_integer, random_word
 
 
 @pytest.fixture(params=range(20))

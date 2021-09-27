@@ -32,9 +32,8 @@ from infinite_sets import InfiniteSet, everything
 from narupa.trajectory.frame_data import FrameData
 
 from narupatools.ase._units import UnitsASE
-from narupatools.ase.calculators._constant_calculator import ConstantCalculator
-from narupatools.core.units import UnitsNarupa
-from narupatools.frame._converter import FrameConverter
+from narupatools.ase.calculators import ConstantCalculator
+from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondPairs,
     BondTypes,
@@ -53,8 +52,9 @@ from narupatools.frame.fields import (
     ResidueCount,
     ResidueNames,
 )
-from narupatools.mdanalysis._units import UnitsMDAnalysis
+from narupatools.mdanalysis import UnitsMDAnalysis
 from narupatools.override import override
+from narupatools.physics.units import UnitsNarupa
 
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 _NarupaToASE = UnitsNarupa >> UnitsASE

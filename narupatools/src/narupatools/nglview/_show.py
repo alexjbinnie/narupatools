@@ -22,7 +22,7 @@ from ase.atoms import Atoms
 from narupa.trajectory import FrameData
 from nglview import NGLWidget
 
-from narupatools.frame._frame_source import TrajectorySource
+from narupatools.frame import TrajectorySource
 
 from ._structure import ASEStructure, FrameDataStructure, NarupaToolsTrajectory
 

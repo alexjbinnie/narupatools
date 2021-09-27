@@ -3,7 +3,6 @@ import math
 import numpy as np
 import pytest
 
-from narupatools.core.random import random_integer
 from narupatools.physics.force import (
     centripetal_force,
     critically_damped_spring_force,
@@ -14,7 +13,7 @@ from narupatools.physics.force import (
     spring_force,
     spring_force_and_energy,
 )
-from narupatools.physics.random import random_float, random_vector
+from narupatools.physics.random import random_float, random_integer, random_vector
 from narupatools.physics.vector import (
     dot_product,
     magnitude,

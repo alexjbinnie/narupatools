@@ -16,7 +16,7 @@
 
 """Unit conversions for MDTraj."""
 
-from narupatools.core.units import (
+from narupatools.physics.units import (
     UnitSystem,
     dalton,
     degree,

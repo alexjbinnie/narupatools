@@ -3,7 +3,7 @@ import numpy.typing as npt
 from ase.atoms import Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 
-from narupatools.physics._quaternion import as_quat_array, quaternion
+from narupatools.physics import as_quaternion_array, quaternion
 from narupatools.physics.typing import Vector3Array, Vector3Like
 
 ANGMOM_ARRAY = "angmom"
@@ -74,7 +74,7 @@ def get_rotations(atoms: Atoms, /) -> npt.NDArray[quaternion]:
         array = atoms.arrays[ORIENTATION_ARRAY].copy()
         if array.dtype == quaternion:
             return array  # type: ignore
-        return as_quat_array(array)
+        return as_quaternion_array(array)
     else:
         return np.repeat(quaternion(1, 0, 0, 0), len(atoms))
 

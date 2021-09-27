@@ -37,15 +37,15 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
         self.__style_id = style_id
         self.__dimension = dimension
 
-    @overload
     @classmethod
+    @overload
     def define(
         cls, compute_style: str, dimension: Literal[VariableDimension.SCALAR]
     ) -> ComputeGlobalStyle[float]:
         ...
 
-    @overload
     @classmethod
+    @overload
     def define(
         cls,
         compute_style: str,
@@ -53,8 +53,8 @@ class ComputeGlobalStyle(Generic[_TReturnType]):
     ) -> ComputeGlobalStyle[npt.NDArray[np.float64]]:
         ...
 
-    @overload
     @classmethod
+    @overload
     def define(
         cls, compute_style: str, dimension: VariableDimension
     ) -> Union[ComputeGlobalStyle[npt.NDArray[np.float64]], ComputeGlobalStyle[float]]:
@@ -169,8 +169,8 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
         self._id = compute_id
         self._dimension = dimension
 
-    @overload
     @classmethod
+    @overload
     def create(
         cls,
         lammps: LAMMPSWrapper,
@@ -180,8 +180,8 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
     ) -> ComputeGlobalReference[float]:
         ...
 
-    @overload
     @classmethod
+    @overload
     def create(
         cls,
         lammps: LAMMPSWrapper,
@@ -191,8 +191,8 @@ class ComputeGlobalReference(ComputeReference[_TReturnType]):
     ) -> ComputeGlobalReference[npt.NDArray[np.float64]]:
         ...
 
-    @overload
     @classmethod
+    @overload
     def create(
         cls,
         lammps: LAMMPSWrapper,

@@ -16,12 +16,15 @@
 
 """Code for dealing with views of shared states."""
 
+from ._collection_view import SharedStateCollectionView
+from ._dictionary_view import SharedStateDictionaryView
+from ._reference import SharedStateReference
+from ._wrappers import SharedStateClientWrapper, SharedStateServerWrapper
+
 __all__ = [
     "SharedStateCollectionView",
     "SharedStateDictionaryView",
     "SharedStateReference",
+    "SharedStateClientWrapper",
+    "SharedStateServerWrapper",
 ]
-
-from ._collection_view import SharedStateCollectionView
-from ._dictionary_view import SharedStateDictionaryView
-from ._reference import SharedStateReference

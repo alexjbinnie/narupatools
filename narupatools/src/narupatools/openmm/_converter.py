@@ -29,9 +29,7 @@ from narupa.trajectory.frame_data import FrameData
 from simtk.openmm import Context, State, System
 from simtk.openmm.app import Element, Simulation, Topology
 
-from narupatools.core.units import UnitsNarupa
-from narupatools.frame._converter import FrameConverter
-from narupatools.frame._utils import atomic_numbers_to_symbols
+from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -55,6 +53,8 @@ from narupatools.frame.fields import (
 from narupatools.openmm._units import UnitsOpenMM
 from narupatools.override import override
 from narupatools.physics.typing import ScalarArray
+from narupatools.physics.units import UnitsNarupa
+from narupatools.util import atomic_numbers_to_symbols
 
 DEFAULT_OPENMM_STATE_PROPERTIES = frozenset((ParticlePositions.key, BoxVectors.key))
 
@@ -237,16 +237,16 @@ def openmm_context_to_frame(
     else:
         frame = existing
 
-    needPositions = ParticlePositions.key in fields
-    needForces = ParticleForces.key in fields
-    needVelocities = ParticleVelocities.key in fields
-    needEnergy = PotentialEnergy.key in fields
+    need_positions = ParticlePositions.key in fields
+    need_forces = ParticleForces.key in fields
+    need_velocities = ParticleVelocities.key in fields
+    need_energy = PotentialEnergy.key in fields
 
     state = context.getState(
-        getPositions=needPositions,
-        getForces=needForces,
-        getEnergy=needEnergy,
-        getVelocities=needVelocities,
+        getPositions=need_positions,
+        getForces=need_forces,
+        getEnergy=need_energy,
+        getVelocities=need_velocities,
     )
 
     return openmm_state_to_frame(state, fields=fields, existing=frame)

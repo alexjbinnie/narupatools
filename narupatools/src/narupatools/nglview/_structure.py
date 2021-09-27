@@ -24,8 +24,7 @@ from ase.io import write
 from infinite_sets import everything
 from narupa.trajectory.frame_data import FrameData
 
-from narupatools.frame._converter import frame_to_pdb_string
-from narupatools.frame._frame_source import FrameSource, TrajectorySource
+from narupatools.frame import FrameSource, TrajectorySource, frame_to_pdb_string
 from narupatools.frame.fields import ParticlePositions
 from narupatools.override import override
 from narupatools.physics.typing import Vector3Array
