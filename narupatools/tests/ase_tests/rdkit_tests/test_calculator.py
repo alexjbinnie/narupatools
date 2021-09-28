@@ -44,8 +44,6 @@ def test_dynamics_call_count(calculator):
     atoms = atoms_from_smiles("C")
     atoms.calc = calculator()
     atoms.calc._calculate_forcefield = call_count(atoms.calc._calculate_forcefield)
-    dynamics = ASEDynamics.create_langevin(
-        atoms, friction=1e-6, timestep=0.1, temperature=100
-    )
+    dynamics = ASEDynamics.create_velocity_verlet(atoms, timestep=0.001)
     dynamics.run(100)
     assert atoms.calc._calculate_forcefield.call_count == 101
