@@ -28,7 +28,7 @@ _InteractionParameters_Types: Dict[str, Type[InteractionParameters]] = {}
 
 class InteractionParameters(SharedStateObject):
     """
-    Interaction data that can be serialized to a shared state.
+    Interaction parameters sent by a user to cause an interaction.
 
     This class is dynamically subclassed based on the interaction_type field.
     """

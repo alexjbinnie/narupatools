@@ -147,7 +147,7 @@ class Client(NarupaImdClient):
         Start an interaction with the IMD server.
 
         This method can take either a :obj:`ParticleInteraction` (narupa representation of an interaction)
-        or :obj:`InteractionData` (narupatools representation), with :obj:`InteractionData` being designed
+        or :obj:`InteractionParameters` (narupatools representation), with :obj:`InteractionData` being designed
         to support a wider range of interaction types.
 
         :param interaction: Initial interaction data.
