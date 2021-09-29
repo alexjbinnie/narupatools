@@ -18,6 +18,8 @@
 
 from __future__ import annotations
 
+from typing import Any, Dict
+
 import numpy as np
 import numpy.typing as npt
 from ase import Atoms
@@ -59,18 +61,18 @@ def create_ase_atoms(
     :param masses: Mass of each atom in daltons.
     :return: ASE atoms object.
     """
-    kwargs = {}
+    kwargs: Dict[str, Any] = {}
 
     if positions is not None:
-        kwargs["positions"] = positions * _NarupaToASE.length
+        kwargs["positions"] = np.asfarray(positions) * _NarupaToASE.length
 
     if velocities is not None:
-        kwargs["velocities"] = velocities * _NarupaToASE.velocity
+        kwargs["velocities"] = np.asfarray(velocities) * _NarupaToASE.velocity
 
     if masses is not None:
-        kwargs["masses"] = masses * _NarupaToASE.mass
+        kwargs["masses"] = np.asfarray(masses) * _NarupaToASE.mass
 
-    atoms = Atoms(**kwargs)  # type: ignore
+    atoms = Atoms(**kwargs)
 
     atoms.calc = NullCalculator()
 

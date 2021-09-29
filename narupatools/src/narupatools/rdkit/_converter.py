@@ -32,7 +32,7 @@ from narupatools.frame.fields import (
     ParticleElements,
     ParticleMasses,
     ParticleNames,
-    ParticlePositions,
+    ParticlePositions, ParticleResidues, ResidueNames,
 )
 from narupatools.override import override
 from narupatools.physics.units import UnitsNarupa
@@ -60,6 +60,8 @@ RDKIT_PROPERTIES = frozenset(
         ParticlePositions.key,
         ParticleMasses.key,
         ParticleNames.key,
+        ParticleResidues.key,
+        ResidueNames.key,
         ParticleElements.key,
         BondPairs.key,
         BondTypes.key,
@@ -150,8 +152,27 @@ def rdkit_mol_to_frame(
 
     atom_extra = [atom.GetMonomerInfo() for atom in mol.GetAtoms()]
 
+    rdkit_res_number_to_index = {}
+
     if atom_extra[0] is not None and ParticleNames.key in fields:
         ParticleNames.set(frame, [atom.GetName() for atom in atom_extra])
+
+    if atom_extra[0] is not None and (ParticleResidues.key in fields or ResidueNames.key in fields):
+        res_indices = []
+        res_names = []
+        for atom in atom_extra:
+            resnum = atom.GetResidueNumber()
+            if resnum in rdkit_res_number_to_index:
+                res_indices.append(rdkit_res_number_to_index[resnum])
+            else:
+                res_index = len(res_names)
+                rdkit_res_number_to_index[resnum] = res_index
+                res_indices.append(res_index)
+                res_names.append(atom.GetResidueName())
+        if ParticleResidues.key in fields:
+            ParticleResidues.set(frame, res_indices)
+        if ResidueNames.key in fields:
+            ResidueNames.set(frame, res_names)
 
     if BondPairs.key in fields or BondTypes.key in fields:
         bonds = []
