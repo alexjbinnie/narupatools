@@ -10,7 +10,7 @@ from narupatools.physics.vector import vector
 
 @pytest.fixture
 def rotation_vector(seed):
-    return random_vector(max_magnitude=2 * 3.14)
+    return random_vector(max_magnitude=3.14)
 
 
 @pytest.fixture

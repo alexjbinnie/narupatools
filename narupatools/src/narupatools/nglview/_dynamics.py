@@ -18,9 +18,9 @@ class _DynamicsWidget:
         frame = dynamics.get_frame(fields=everything())
         structure = FrameDataStructure(frame)
         self.frame_component = self.widget.add_structure(structure)
-        dynamics.on_post_step.add_callback(self._on_dynamics_step)
+        dynamics.on_fields_changed.add_callback(self._on_fields_changed)
 
-    def _on_dynamics_step(self, **kwargs: Any) -> None:
+    def _on_fields_changed(self, **kwargs: Any) -> None:
         self.refresh()
 
     @throttle(0.05)

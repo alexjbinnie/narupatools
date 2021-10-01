@@ -16,7 +16,7 @@
 
 """Conversion methods between RDKit and Narupa."""
 
-from typing import Any, Optional, Type, TypeVar, Union
+from typing import Any, Optional, Type, TypeVar, Union, List, Dict
 
 from infinite_sets import InfiniteSet
 from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB
@@ -32,7 +32,9 @@ from narupatools.frame.fields import (
     ParticleElements,
     ParticleMasses,
     ParticleNames,
-    ParticlePositions, ParticleResidues, ResidueNames,
+    ParticlePositions,
+    ParticleResidues,
+    ResidueNames,
 )
 from narupatools.override import override
 from narupatools.physics.units import UnitsNarupa
@@ -152,14 +154,16 @@ def rdkit_mol_to_frame(
 
     atom_extra = [atom.GetMonomerInfo() for atom in mol.GetAtoms()]
 
-    rdkit_res_number_to_index = {}
+    rdkit_res_number_to_index: Dict[int, int] = {}
 
     if atom_extra[0] is not None and ParticleNames.key in fields:
         ParticleNames.set(frame, [atom.GetName() for atom in atom_extra])
 
-    if atom_extra[0] is not None and (ParticleResidues.key in fields or ResidueNames.key in fields):
-        res_indices = []
-        res_names = []
+    if atom_extra[0] is not None and (
+        ParticleResidues.key in fields or ResidueNames.key in fields
+    ):
+        res_indices: List[int] = []
+        res_names: List[str] = []
         for atom in atom_extra:
             resnum = atom.GetResidueNumber()
             if resnum in rdkit_res_number_to_index:

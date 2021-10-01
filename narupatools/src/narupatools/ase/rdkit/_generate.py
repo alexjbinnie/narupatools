@@ -99,7 +99,7 @@ def atoms_from_smiles(*smiles: str, add_hydrogens: bool = True) -> Atoms:
         )
 
         monomer_info = Chem.AtomPDBResidueInfo()
-        monomer_info.SetResidueName('UNL')
+        monomer_info.SetResidueName("UNL")
         monomer_info.SetResidueNumber(index + 1)
         for atom in mol.GetAtoms():
             atom.SetMonomerInfo(monomer_info)

@@ -71,6 +71,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._particles = interaction.particles
         self.update(interaction)
 
+        self._dirty = True
+
     @classmethod
     def register_interaction_type(
         cls, interaction_type: str, python_type: Type[Interaction], /
@@ -150,7 +152,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     @property
     def potential_energy(self) -> float:
         """Potential energy of the interaction, in kilojoules per mole."""
-        self.calculate_forces_and_energy()
+        if self._dirty:
+            self.calculate_forces_and_energy()
+            self._dirty = False
         if self._energy is None:
             raise AttributeError
         return self._energy
@@ -165,7 +169,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         This is a (N, 3) NumPy array, where N is the number of particles affected by
         this interaction.
         """
-        self.calculate_forces_and_energy()
+        if self._dirty:
+            self.calculate_forces_and_energy()
+            self._dirty = False
         if self._forces is None:
             raise AttributeError
         return self._forces
@@ -180,7 +186,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         This is a (N, 3) NumPy array, where N is the number of particles affected by
         this interaction.
         """
-        self.calculate_forces_and_energy()
+        if self._dirty:
+            self.calculate_forces_and_energy()
+            self._dirty = False
         if self._torques is None:
             raise AttributeError
         return self._torques
@@ -224,3 +232,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         Overriding this allows a subclass to implement features such as caching.
         """
+
+
+    def mark_dirty(self):
+        self._dirty = True

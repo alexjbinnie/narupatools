@@ -167,7 +167,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         if not self.mass_weighted:
             k *= M
 
-        gamma = 2 * math.sqrt(self.scale * M)
+        gamma = 2 * math.sqrt(k * M)
         com = center_of_mass(masses=masses, positions=positions)
         com_vel = center_of_mass_velocity(masses=masses, velocities=velocities)
 

@@ -1,8 +1,25 @@
+# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
+# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+#
+# narupatools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# narupatools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
+
 """Spatial transformations."""
 
 from __future__ import annotations
 
-from typing import ClassVar, Union, overload
+import math
+from typing import ClassVar, Union, overload, final
 
 import numpy as np
 
@@ -19,7 +36,6 @@ from narupatools.physics.vector import magnitude, normalized, vector
 
 from ._quaternion import (
     as_rotation_matrix,
-    as_rotation_vector,
     from_rotation_vector,
     quaternion,
 )
@@ -80,6 +96,7 @@ class Translation:
 Translation.identity = Translation(vector(0, 0, 0))
 
 
+@final
 class Rotation:
     """
     Represents a rotation in 3-dimensional space.
@@ -88,12 +105,36 @@ class Rotation:
     rotation matrices, rotation vectors and euler angles.
     """
 
+    __slots__ = ["__quat"]
+
     identity: ClassVar[Rotation]
     """Identity transformation."""
 
     def __init__(self, quat: quaternion):
         self.__quat = quat
-        """Quaternion stored in the form (qx i + qy j + qz k + qw), with the scalar part last."""
+
+    @classmethod
+    def around_x_axis(cls, angle: float) -> Rotation:
+        """Create a counterclockwise rotation around the x axis."""
+        return cls.from_rotation_vector([angle, 0, 0])
+
+    @classmethod
+    def around_y_axis(cls, angle: float) -> Rotation:
+        """Create a counterclockwise rotation around the y axis."""
+        return cls.from_rotation_vector([0, angle, 0])
+
+    @classmethod
+    def around_z_axis(cls, angle: float) -> Rotation:
+        """Create a counterclockwise rotation around the z axis."""
+        return cls.from_rotation_vector([0, 0, angle])
+
+    @classmethod
+    def from_rotation_vector(cls, rot: Vector3Like) -> Rotation:
+        """Create a rotation from a rotation vector."""
+        rot = np.asfarray(rot)
+        if rot.shape != (3,):
+            raise ValueError(f"Rotation vector has invalid shape {rot.shape}")
+        return Rotation(from_rotation_vector(rot))
 
     @property
     def versor(self) -> quaternion:
@@ -107,8 +148,22 @@ class Rotation:
 
     @property
     def rotation_vector(self) -> Vector3:
-        """Rotation vector representing this rotation."""
-        return as_rotation_vector(self.__quat)
+        r"""
+        Rotation vector representing this rotation.
+
+        This gives a vector who's direction is the axis of rotation and magnitude is
+        the rotation in radians. It is guaranteed to be the minimum rotation, so the angle
+        will be in the range :math:`[0, \pi)`
+        """
+        mag = math.sqrt(
+            self.__quat.x * self.__quat.x
+            + self.__quat.y * self.__quat.y
+            + self.__quat.z * self.__quat.z
+        )
+        ang = 2 * math.atan2(mag, self.__quat.w)
+        if ang > math.pi:
+            ang = -(2 * math.pi - ang)
+        return self.__quat.vec * ang * mag
 
     @property
     def rotation_matrix(self) -> Matrix3x3:
@@ -136,14 +191,6 @@ class Rotation:
         elif len(other.shape) == 2 and other.shape[1] == 3:
             return np.dot(self.rotation_matrix, other.T).T  # type: ignore[no-any-return]
         return NotImplemented
-
-    @classmethod
-    def from_rotation_vector(cls, rot: Vector3) -> Rotation:
-        """Create a rotation from a rotation vector."""
-        rot = np.array(rot, dtype=float)
-        if rot.shape != (3,):
-            raise ValueError(f"Rotation vector has invalid shape {rot.shape}")
-        return Rotation(from_rotation_vector(rot))
 
     def __array__(self) -> np.ndarray:
         return self.__quat.components

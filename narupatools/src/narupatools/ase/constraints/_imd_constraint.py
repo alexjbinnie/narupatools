@@ -81,7 +81,7 @@ class InteractionConstraint(
         self, atoms: Atoms, positions: np.ndarray, /
     ) -> None:
         # Assume all interactions depend on positions
-        self.interaction.calculate_forces_and_energy()
+        self.interaction.mark_dirty()
 
     @override
     def adjust_momenta(  # noqa: D102
@@ -89,7 +89,7 @@ class InteractionConstraint(
     ) -> None:
         # Assume no interactions depend on velocities
         # When they do, this should conditionally invalidate the cache
-        self.interaction.calculate_forces_and_energy()
+        self.interaction.mark_dirty()
 
     @override
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102

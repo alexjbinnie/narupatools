@@ -40,6 +40,7 @@ from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLi
 from narupatools.physics.units import UnitsNarupa
 
 from ..core.dynamics import SimulationRotationProperties
+from ..frame.fields import ParticlePositions
 from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
@@ -73,6 +74,10 @@ class ASEDynamics(
     standard properties such as time step and elapsed steps.
     """
 
+    _initial_positions: np.ndarray
+    _initial_momenta: np.ndarray
+    _initial_box: np.ndarray
+
     def __init__(
         self,
         dynamics: TIntegrator,
@@ -88,9 +93,7 @@ class ASEDynamics(
         """
         super().__init__(playback_interval=playback_interval)
         self._dynamics = dynamics
-        self._initial_positions = self.atoms.get_positions()
-        self._initial_momenta = self.atoms.get_momenta()
-        self._initial_box = self.atoms.get_cell()
+        self.set_reset_state()
         self._imd = ASEIMDFeature(self)
         self._atom_lock = Lock()
 
@@ -188,6 +191,11 @@ class ASEDynamics(
             self.atoms.set_positions(self._initial_positions)
             self.atoms.set_momenta(self._initial_momenta)
             self.atoms.set_cell(self._initial_box)
+
+    def set_reset_state(self):
+        self._initial_positions = self.atoms.get_positions()
+        self._initial_momenta = self.atoms.get_momenta()
+        self._initial_box = self.atoms.get_cell()
 
     @property
     @override
