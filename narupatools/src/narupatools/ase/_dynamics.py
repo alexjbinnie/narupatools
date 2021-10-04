@@ -97,8 +97,8 @@ class ASEDynamics(
         self._imd = ASEIMDFeature(self)
         self._atom_lock = Lock()
         self._observer = ASEObserver.get_or_create(self.atoms)
-        #self._observer.on_set_positions.add_callback(self.imd.mark_positions_dirty)
-        #self._observer.on_set_momenta.add_callback(self.imd.mark_velocities_dirty)
+        # self._observer.on_set_positions.add_callback(self.imd.mark_positions_dirty)
+        # self._observer.on_set_momenta.add_callback(self.imd.mark_velocities_dirty)
 
     @staticmethod
     def from_ase_dynamics(dynamics: TIntegrator) -> ASEDynamics[TIntegrator]:

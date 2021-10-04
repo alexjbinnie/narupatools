@@ -209,7 +209,13 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         new_forces = self.forces
 
-        work_this_step = 0.5 * ((self._previous_forces + new_forces) * (_current_positions - self._previous_positions)).sum()
+        work_this_step = (
+            0.5
+            * (
+                (self._previous_forces + new_forces)
+                * (_current_positions - self._previous_positions)
+            ).sum()
+        )
 
         self._last_step_work = work_this_step
         self._total_work += work_this_step

@@ -17,13 +17,24 @@
 """Shared state view for clients and servers."""
 
 import time
-from typing import Optional, Protocol, Set
+from abc import ABC
+from typing import Optional, Protocol, Set, Union
 
+import numpy as np
+from MDAnalysis import Universe
+from infinite_sets import everything
 from narupa.utilities.change_buffers import DictionaryChange
 
+from narupatools.app.visuals._particle_selection import ParticleSelection
+from narupatools.app.visuals._particle_visualiser import ParticleVisualiser
 from narupatools.core.event import Event, EventListener
+from narupatools.frame import FrameSource, convert
 from narupatools.imd.interactions import InteractionParameters
-from narupatools.state import SharedStateCollectionView, SharedStateDictionaryView
+from narupatools.state import (
+    SharedStateCollectionView,
+    SharedStateDictionaryView,
+    SharedStateReference,
+)
 from narupatools.state.typing import SerializableDictionary
 
 
@@ -120,7 +131,45 @@ class SessionSharedState(SharedStateDictionaryView):
                     key=key, token=access_token, time_deleted=current_time
                 )
 
+
+import numpy.typing as npt
+
+
+class NarupatoolsViewMixin(FrameSource, ABC):
     @property
-    def interactions(self) -> SharedStateCollectionView:
+    def shared_state(self) -> SessionSharedState:
+        pass
+
+    def create_selection(
+        self,
+        particles: Union[str, npt.ArrayLike],
+        /,
+        *,
+        display_name: str = "selection",
+        key: Optional[str] = None,
+    ) -> SharedStateReference[ParticleSelection]:
+        if isinstance(particles, str):
+            frame = self.get_frame(fields=everything())
+            universe = convert(frame, Universe)
+            selection = universe.select_atoms(particles)
+            particles = selection.indices
+        particles = np.asarray(particles, dtype=int)
+        selection = ParticleSelection(particles=particles, display_name=display_name)
+        if key is None:
+            return self.selections.add(selection)
+        else:
+            return self.selections.set(key, selection)
+
+    @property
+    def interactions(self) -> SharedStateCollectionView[InteractionParameters]:
         """View of current interactions affecting the system."""
-        return self.collection("interaction.", InteractionParameters)
+        return self.shared_state.collection("interaction.", InteractionParameters)
+
+    @property
+    def selections(self) -> SharedStateCollectionView[ParticleSelection]:
+        """View of current selections defined for the system."""
+        return self.shared_state.collection("selection.")
+
+    @property
+    def visualisers(self) -> SharedStateCollectionView[ParticleVisualiser]:
+        return self.shared_state.collection("visualisers.", ParticleVisualiser)
