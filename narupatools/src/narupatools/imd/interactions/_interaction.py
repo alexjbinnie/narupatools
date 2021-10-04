@@ -71,7 +71,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._particles = interaction.particles
         self.update(interaction)
 
-        self._dirty = True
+        self._forces_energy_dirty = True
 
     @classmethod
     def register_interaction_type(
@@ -121,7 +121,12 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     @property
     def particle_indices(self) -> np.ndarray:
         """List of indices affected by this interaction."""
+        if len(self._particles) == self._particles[-1] - self._particles[0] + 1:
+            return slice(self._particles[0], self._particles[-1] + 1)
         return self._particles
+
+    def __len__(self):
+        return len(self._particles)
 
     @particle_indices.setter
     def particle_indices(self, value: np.ndarray) -> None:
@@ -152,9 +157,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     @property
     def potential_energy(self) -> float:
         """Potential energy of the interaction, in kilojoules per mole."""
-        if self._dirty:
+        if self._forces_energy_dirty:
             self.calculate_forces_and_energy()
-            self._dirty = False
+            self._forces_energy_dirty = False
         if self._energy is None:
             raise AttributeError
         return self._energy
@@ -169,9 +174,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         This is a (N, 3) NumPy array, where N is the number of particles affected by
         this interaction.
         """
-        if self._dirty:
+        if self._forces_energy_dirty:
             self.calculate_forces_and_energy()
-            self._dirty = False
+            self._forces_energy_dirty = False
         if self._forces is None:
             raise AttributeError
         return self._forces
@@ -186,9 +191,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         This is a (N, 3) NumPy array, where N is the number of particles affected by
         this interaction.
         """
-        if self._dirty:
+        if self._forces_energy_dirty:
             self.calculate_forces_and_energy()
-            self._dirty = False
+            self._forces_energy_dirty = False
         if self._torques is None:
             raise AttributeError
         return self._torques
@@ -204,13 +209,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         new_forces = self.forces
 
-        work_this_step = 0.0
-
-        for i in range(len(self._particles)):
-            # Use trapezoidal rule to calculate single step of integral F.dS
-            F = 0.5 * (self._previous_forces[i] + new_forces[i])
-            dS = _current_positions[i] - self._previous_positions[i]
-            work_this_step += np.dot(F, dS)
+        work_this_step = 0.5 * ((self._previous_forces + new_forces) * (_current_positions - self._previous_positions)).sum()
 
         self._last_step_work = work_this_step
         self._total_work += work_this_step
@@ -233,6 +232,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         Overriding this allows a subclass to implement features such as caching.
         """
 
+    def mark_positions_dirty(self):
+        self._forces_energy_dirty = True
 
-    def mark_dirty(self):
-        self._dirty = True
+    def mark_velocities_dirty(self):
+        self._forces_energy_dirty = True

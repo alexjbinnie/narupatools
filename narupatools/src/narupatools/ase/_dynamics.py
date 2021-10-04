@@ -56,7 +56,7 @@ from ._rotations import (
 from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
-from .constraints import InteractionConstraint
+from .constraints import InteractionConstraint, ASEObserver
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
 
@@ -96,6 +96,9 @@ class ASEDynamics(
         self.set_reset_state()
         self._imd = ASEIMDFeature(self)
         self._atom_lock = Lock()
+        self._observer = ASEObserver.get_or_create(self.atoms)
+        #self._observer.on_set_positions.add_callback(self.imd.mark_positions_dirty)
+        #self._observer.on_set_momenta.add_callback(self.imd.mark_velocities_dirty)
 
     @staticmethod
     def from_ase_dynamics(dynamics: TIntegrator) -> ASEDynamics[TIntegrator]:
@@ -328,3 +331,11 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         constraint = self.constraints[key]
         self.dynamics.atoms.constraints.remove(constraint)
         return instance
+
+    def mark_positions_dirty(self):
+        for constraint in self.constraints.values():
+            constraint.interaction.mark_positions_dirty()
+
+    def mark_velocities_dirty(self):
+        for constraint in self.constraints.values():
+            constraint.interaction.mark_velocities_dirty()

@@ -37,7 +37,6 @@ from .typing import (
     Vector3Like,
 )
 from .vector import (
-    cross_product,
     left_vector_triple_product_matrix,
     sqr_magnitude,
     zero_vector,
@@ -58,24 +57,13 @@ def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> V
     :return: Center of mass of the particles, in the same units as positions was
              provided in.
     """
-    positions: Vector3Array = np.asfarray(positions)
-    masses: ScalarArray = np.asfarray(masses)
-
-    count = len(positions)
-    if len(masses) != count:
-        raise ValueError(
-            f"Mismatch between number of positions ({len(positions)}) "
-            f"and number of masses ({len(masses)})"
-        )
-
-    total_center = zero_vector()
-    for i in range(count):
-        total_center += masses[i] * positions[i]
-    return total_center / sum(masses)
+    masses = np.asfarray(masses)
+    positions = np.asfarray(positions)
+    return (positions * masses[..., np.newaxis]).sum(axis=-2) / masses.sum()
 
 
 def center_of_mass_velocity(
-    *, masses: ScalarArrayLike, velocities: Vector3ArrayLike
+        *, masses: ScalarArrayLike, velocities: Vector3ArrayLike
 ) -> Vector3:
     r"""
     Calculate the velocity of the center of mass of a collection of particles.
@@ -95,7 +83,7 @@ def center_of_mass_velocity(
 
 
 def center_of_mass_acceleration(
-    *, masses: ScalarArrayLike, accelerations: Vector3ArrayLike
+        *, masses: ScalarArrayLike, accelerations: Vector3ArrayLike
 ) -> Vector3:
     r"""
     Calculate the acceleration of the center of mass of a collection of particles.
@@ -114,8 +102,15 @@ def center_of_mass_acceleration(
     return center_of_mass(masses=masses, positions=accelerations)
 
 
+_center_of_mass = center_of_mass
+
+_center_of_mass_velocity = center_of_mass_velocity
+
+
 def spin_angular_momentum(
-    *, masses: ScalarArray, positions: Vector3Array, velocities: Vector3Array
+        *, masses: ScalarArray, positions: Vector3Array, velocities: Vector3Array,
+        center_of_mass: Optional[Vector3] = None,
+        center_of_mass_velocity: Optional[Vector3] = None
 ) -> Vector3:
     r"""
     Calculate the spin angular momentum of a set of particles.
@@ -133,22 +128,21 @@ def spin_angular_momentum(
     :return: Spin angular momentum :math:`L` in units of [mass] * [distance] squared /
              [time].
     """
-    com = center_of_mass(masses=masses, positions=positions)
-    com_velocity = center_of_mass_velocity(masses=masses, velocities=velocities)
-    angular_momentum = np.array([0.0, 0.0, 0.0], dtype=float)
-    for i in range(len(masses)):
-        angular_momentum += masses[i] * cross_product(
-            positions[i] - com, velocities[i] - com_velocity
-        )
-    return angular_momentum
+    if center_of_mass is None:
+        center_of_mass = _center_of_mass(masses=masses, positions=positions)
+    if center_of_mass_velocity is None:
+        center_of_mass_velocity = _center_of_mass_velocity(masses=masses, velocities=velocities)
+    return (np.cross(positions - center_of_mass[..., np.newaxis, :],
+                     velocities - center_of_mass_velocity[..., np.newaxis, :])
+            * masses[..., np.newaxis]).sum(axis=-2)
 
 
 def orbital_angular_momentum(
-    *,
-    masses: ScalarArray,
-    positions: Vector3Array,
-    velocities: Vector3Array,
-    origin: Optional[Vector3Like] = None,
+        *,
+        masses: ScalarArray,
+        positions: Vector3Array,
+        velocities: Vector3Array,
+        origin: Optional[Vector3Like] = None,
 ) -> Vector3:
     r"""
     Calculate the orbital angular momentum of a set of particles about an origin.
@@ -180,11 +174,11 @@ def orbital_angular_momentum(
 
 
 def radius_of_gyration(
-    *,
-    masses: ScalarArray,
-    positions: Vector3Array,
-    axis: Vector3,
-    origin: Optional[Vector3Like] = None,
+        *,
+        masses: ScalarArray,
+        positions: Vector3Array,
+        axis: Vector3,
+        origin: Optional[Vector3Like] = None,
 ) -> float:
     r"""
     Calculate the radius of gyration about an axis.
@@ -216,11 +210,11 @@ def radius_of_gyration(
 
 
 def moment_of_inertia(
-    *,
-    masses: ScalarArray,
-    positions: Vector3Array,
-    axis: Vector3,
-    origin: Optional[Vector3Like] = None,
+        *,
+        masses: ScalarArray,
+        positions: Vector3Array,
+        axis: Vector3,
+        origin: Optional[Vector3Like] = None,
 ) -> float:
     r"""
     Calculate the moment of inertia of a set of particles about an axis.
@@ -247,10 +241,10 @@ def moment_of_inertia(
 
 
 def moment_of_inertia_tensor(
-    *,
-    masses: ScalarArray,
-    positions: Vector3Array,
-    origin: Optional[Vector3Like] = None,
+        *,
+        masses: ScalarArray,
+        positions: Vector3Array,
+        origin: Optional[Vector3Like] = None,
 ) -> Matrix3x3:
     r"""
     Calculate the moment of inertia tensor of a set of particles.
@@ -275,19 +269,17 @@ def moment_of_inertia_tensor(
         origin = center_of_mass(masses=masses, positions=positions)
     else:
         origin = np.asfarray(origin)
-    tensor = zero_matrix()
-    for i in range(len(masses)):
-        tensor -= masses[i] * left_vector_triple_product_matrix(
-            positions[i] - origin, positions[i] - origin
-        )
-    return tensor
+    positions = positions - origin[..., np.newaxis, :]
+    I = (masses * (positions ** 2).sum(-1)).sum(-1)[...,np.newaxis, np.newaxis] * np.eye(3) - (
+                masses[..., np.newaxis, np.newaxis] * np.einsum("...i,...j->...ij", positions, positions)).sum(-3)
+    return I
 
 
 def angular_velocity(
-    *,
-    masses: ScalarArray,
-    positions: Vector3Array,
-    velocities: Vector3Array,
+        *,
+        masses: ScalarArray,
+        positions: Vector3Array,
+        velocities: Vector3Array,
 ) -> Vector3:
     r"""
     Calculate the angular velocity of a set of particles.
@@ -308,11 +300,11 @@ def angular_velocity(
 
 
 def distribute_angular_velocity(
-    *,
-    masses: Optional[ScalarArrayLike] = None,
-    positions: Vector3ArrayLike,
-    angular_velocity: Vector3Like,
-    origin: Optional[Vector3Like] = None,
+        *,
+        masses: Optional[ScalarArrayLike] = None,
+        positions: Vector3ArrayLike,
+        angular_velocity: Vector3Like,
+        origin: Optional[Vector3Like] = None,
 ) -> Vector3Array:
     r"""
     Calculate the velocities that correspond to an angular velocity about an origin.
