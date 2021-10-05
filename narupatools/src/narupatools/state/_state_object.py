@@ -61,10 +61,12 @@ of object that's storable in the shared state dictionary.
 """
 import contextlib
 from collections.abc import Mapping
-from typing import Any, ClassVar, Dict, Union
+from typing import Any, ClassVar, Dict, Type, TypeVar, Union
 
 from ..override import override
 from .typing import Serializable, SerializableObject
+
+_TClass = TypeVar("_TClass")
 
 
 class SharedStateObject(SerializableObject):
@@ -82,6 +84,8 @@ class SharedStateObject(SerializableObject):
     def __init__(self, **kwargs: Serializable):
         self._arbitrary_data = {}
         for key, value in kwargs.items():
+            if value is None:
+                continue
             if key in self._serializable_properties:
                 self._serializable_properties[key].fset(self, value)  # type: ignore[misc]
             else:
@@ -99,9 +103,9 @@ class SharedStateObject(SerializableObject):
 
     @classmethod
     @override
-    def deserialize(cls, value: Serializable) -> "SharedStateObject":  # noqa: D102
+    def deserialize(cls: Type[_TClass], value: Serializable) -> _TClass:  # noqa: D102
         if isinstance(value, Mapping):
-            return cls(**value)
+            return cls(**value)  # type: ignore
         raise ValueError
 
     @override
@@ -111,7 +115,10 @@ class SharedStateObject(SerializableObject):
             with contextlib.suppress(AttributeError):
                 value = python_property.fget(self)  # type: ignore
                 if value is not None:  # Only save non None values
-                    dictionary[key] = value
+                    if isinstance(value, SerializableObject):
+                        dictionary[key] = value.serialize()
+                    else:
+                        dictionary[key] = value
 
         return dictionary
 

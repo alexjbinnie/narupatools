@@ -16,7 +16,7 @@
 
 """Conversion methods between RDKit and Narupa."""
 
-from typing import Any, Optional, Type, TypeVar, Union, List, Dict
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 from infinite_sets import InfiniteSet
 from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB

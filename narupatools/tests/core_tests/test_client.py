@@ -17,10 +17,10 @@
 import time
 
 import pytest
+from testing import assert_event_called
 
 from narupatools.app import Client, Session
 from narupatools.frame.fields import ParticlePositions
-from testing import assert_event_called
 from narupatools.util.timing import wait_for
 
 

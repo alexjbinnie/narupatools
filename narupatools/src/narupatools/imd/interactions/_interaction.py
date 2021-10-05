@@ -121,16 +121,14 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     @property
     def particle_indices(self) -> np.ndarray:
         """List of indices affected by this interaction."""
-        if len(self._particles) == self._particles[-1] - self._particles[0] + 1:
-            return slice(self._particles[0], self._particles[-1] + 1)
         return self._particles
-
-    def __len__(self):
-        return len(self._particles)
 
     @particle_indices.setter
     def particle_indices(self, value: np.ndarray) -> None:
         self._particles = value
+
+    def __len__(self) -> int:
+        return len(self._particles)
 
     @property
     def dynamics(self) -> DynamicsProperties:
@@ -238,8 +236,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         Overriding this allows a subclass to implement features such as caching.
         """
 
-    def mark_positions_dirty(self):
+    def mark_positions_dirty(self) -> None:
         self._forces_energy_dirty = True
 
-    def mark_velocities_dirty(self):
+    def mark_velocities_dirty(self) -> None:
         self._forces_energy_dirty = True

@@ -18,6 +18,8 @@ import math
 from typing import Any, Optional, Union
 
 import numpy as np
+from numpy.linalg import LinAlgError, inv
+
 from narupatools.physics.rigidbody import (
     center_of_mass,
     center_of_mass_velocity,
@@ -32,12 +34,11 @@ from narupatools.physics.vector import (
     vector,
 )
 from narupatools.util import properties
-from numpy.linalg import LinAlgError, inv
 
+from ...override import override
 from ._feedback import InteractionFeedback
 from ._interaction import Interaction
 from ._parameters import InteractionParameters
-from ...override import override
 
 
 class RigidMotionInteractionData(InteractionParameters):
@@ -148,7 +149,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             return -2.0 * angular_momentum / np.trace(inertia_tensor)  # type: ignore
 
     @property
-    def angular_velocity(self):
+    def angular_velocity(self) -> np.ndarray:
         if self._angular_velocity_dirty:
             self._angular_velocity = self._calculate_angular_velocity(
                 positions=self.dynamics.positions[self.particle_indices],
@@ -159,7 +160,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         return self._angular_velocity
 
     @property
-    def center_of_mass(self):
+    def center_of_mass(self) -> np.ndarray:
         if self._center_of_mass_dirty:
             self._center_of_mass = center_of_mass(
                 positions=self.dynamics.positions[self.particle_indices],
@@ -169,7 +170,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         return self._center_of_mass
 
     @property
-    def center_of_mass_velocity(self):
+    def center_of_mass_velocity(self) -> np.ndarray:
         if self._center_of_mass_velocity_dirty:
             self._center_of_mass_velocity = center_of_mass_velocity(
                 velocities=self.dynamics.velocities[self.particle_indices],
@@ -259,13 +260,13 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         feedback.accumulated_translation = self._accumulated_displacement
         return feedback
 
-    def mark_positions_dirty(self):
+    def mark_positions_dirty(self) -> None:
         super().mark_positions_dirty()
         self._center_of_mass_dirty = True
         self._center_of_mass_velocity_dirty = True
         self._angular_velocity_dirty = True
 
-    def mark_velocities_dirty(self):
+    def mark_velocities_dirty(self) -> None:
         super().mark_velocities_dirty()
         self._center_of_mass_dirty = True
         self._center_of_mass_velocity_dirty = True

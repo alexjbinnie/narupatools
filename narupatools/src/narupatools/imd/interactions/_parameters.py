@@ -66,4 +66,4 @@ class InteractionParameters(SharedStateObject):
         if cls is InteractionParameters and isinstance(value, Mapping):
             interaction_type = value["interaction_type"]
             return _InteractionParameters_Types[interaction_type].deserialize(value)
-        return super().deserialize(value)  # type: ignore[return-value]
+        return super().deserialize(value)

@@ -36,11 +36,7 @@ from .typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from .vector import (
-    left_vector_triple_product_matrix,
-    sqr_magnitude,
-    zero_vector,
-)
+from .vector import left_vector_triple_product_matrix, sqr_magnitude, zero_vector
 
 
 def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> Vector3:
@@ -59,7 +55,7 @@ def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> V
     """
     masses = np.asfarray(masses)
     positions = np.asfarray(positions)
-    return (positions * masses[..., np.newaxis]).sum(axis=-2) / masses.sum()
+    return (positions * masses[..., np.newaxis]).sum(axis=-2) / masses.sum()  # type: ignore
 
 
 def center_of_mass_velocity(
@@ -137,7 +133,7 @@ def spin_angular_momentum(
         center_of_mass_velocity = _center_of_mass_velocity(
             masses=masses, velocities=velocities
         )
-    return (
+    return (  # type: ignore
         np.cross(
             positions - center_of_mass[..., np.newaxis, :],
             velocities - center_of_mass_velocity[..., np.newaxis, :],
@@ -278,7 +274,7 @@ def moment_of_inertia_tensor(
         origin = center_of_mass(masses=masses, positions=positions)
     else:
         origin = np.asfarray(origin)
-    positions = positions - origin[..., np.newaxis, :]
+    positions = positions - origin[..., np.newaxis, :]  # type: ignore
     I = (masses * (positions ** 2).sum(-1)).sum(-1)[
         ..., np.newaxis, np.newaxis
     ] * np.eye(3) - (
@@ -287,7 +283,7 @@ def moment_of_inertia_tensor(
     ).sum(
         -3
     )
-    return I
+    return I  # type: ignore
 
 
 def angular_velocity(

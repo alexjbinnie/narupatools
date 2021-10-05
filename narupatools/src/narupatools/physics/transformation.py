@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 import math
-from typing import ClassVar, Union, overload, final
+from typing import ClassVar, Union, final, overload
 
 import numpy as np
 
@@ -34,11 +34,7 @@ from narupatools.physics.typing import (
 )
 from narupatools.physics.vector import magnitude, normalized, vector
 
-from ._quaternion import (
-    as_rotation_matrix,
-    from_rotation_vector,
-    quaternion,
-)
+from ._quaternion import as_rotation_matrix, from_rotation_vector, quaternion
 from .units import degree, radian
 
 

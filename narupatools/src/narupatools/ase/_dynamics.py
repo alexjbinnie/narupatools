@@ -56,7 +56,7 @@ from ._rotations import (
 from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
-from .constraints import InteractionConstraint, ASEObserver
+from .constraints import ASEObserver, InteractionConstraint
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
 
@@ -195,7 +195,8 @@ class ASEDynamics(
             self.atoms.set_momenta(self._initial_momenta)
             self.atoms.set_cell(self._initial_box)
 
-    def set_reset_state(self):
+    def set_reset_state(self) -> None:
+        """Set the current state as the state that will be returned to on reset."""
         self._initial_positions = self.atoms.get_positions()
         self._initial_momenta = self.atoms.get_momenta()
         self._initial_box = self.atoms.get_cell()
@@ -332,10 +333,10 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         self.dynamics.atoms.constraints.remove(constraint)
         return instance
 
-    def mark_positions_dirty(self):
+    def mark_positions_dirty(self) -> None:
         for constraint in self.constraints.values():
             constraint.interaction.mark_positions_dirty()
 
-    def mark_velocities_dirty(self):
+    def mark_velocities_dirty(self) -> None:
         for constraint in self.constraints.values():
             constraint.interaction.mark_velocities_dirty()

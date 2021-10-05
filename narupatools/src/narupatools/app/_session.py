@@ -53,7 +53,7 @@ from narupatools.frame import FrameProducer, FrameSource, FrameSourceWithNotify
 from narupatools.state.view import SharedStateServerWrapper
 
 from ..override import override
-from ._shared_state import SessionSharedState
+from ._shared_state import SessionSharedState, SharedStateMixin
 
 TTarget = TypeVar("TTarget")
 
@@ -98,7 +98,7 @@ class Broadcastable(Protocol):
         """
 
 
-class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
+class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
     """
     Generic Narupa server that can broadcast various objects.
 
@@ -116,6 +116,13 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     which have been marked as dirty. Unlike Narupa, this means the sending of frames is
     completely detached from the MD loop, and hence can be specified in real time.
     """
+
+    def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:
+        if isinstance(self.target, FrameSource):
+            return self.target.get_frame(fields=fields)
+        raise ValueError(
+            "Session does not currently have a target that provides frame data."
+        )
 
     def __init__(
         self, target: Optional[TTarget] = None, *, autoplay: bool = True, **kwargs: Any

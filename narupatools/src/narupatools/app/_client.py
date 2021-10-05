@@ -21,6 +21,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import AbstractSet, Any, Generator, Optional, Protocol, Union
 
+from infinite_sets import InfiniteSet
 from narupa.app import NarupaImdClient
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.core import DEFAULT_CONNECT_ADDRESS
@@ -34,7 +35,7 @@ from narupatools.state.view import SharedStateClientWrapper
 
 from ..override import override
 from ._session import Session
-from ._shared_state import SessionSharedState
+from ._shared_state import SessionSharedState, SharedStateMixin
 
 
 class OnFrameReceivedCallback(Protocol):
@@ -44,7 +45,7 @@ class OnFrameReceivedCallback(Protocol):
         ...
 
 
-class Client(NarupaImdClient):
+class Client(NarupaImdClient, SharedStateMixin):
     """
     An extension of the standard Narupa python client with more features.
 
@@ -57,6 +58,9 @@ class Client(NarupaImdClient):
     * Fixes a bug where the client starts receiving frames before it has finished setting up the necessary
       variables to store them.
     """
+
+    def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:
+        return self.current_frame  # type: ignore
 
     _on_frame_received_event: Event[OnFrameReceivedCallback]
 
