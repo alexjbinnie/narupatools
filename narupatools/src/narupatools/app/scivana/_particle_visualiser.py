@@ -29,7 +29,7 @@ class ParticleVisualiser(SharedStateObject):
     def display_name(self) -> str:
         pass
 
-    @properties.string
+    @properties.auto
     def selection(self) -> Union[str, np.ndarray]:
         pass
 

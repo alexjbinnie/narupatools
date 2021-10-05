@@ -1,24 +1,9 @@
-# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
-# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
-#
-# narupatools is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# narupatools is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import annotations
 
 from typing import ClassVar, List, Mapping, Optional, Union
 
 import narupatools.util.properties as properties
+from narupatools.state import serialize_as
 from narupatools.state.typing import Serializable
 
 from ._subgraph import SubgraphObject
@@ -158,6 +143,7 @@ class ColorByElement(Color):
         if scheme is not None:
             self.scheme = scheme
 
+    @serialize_as("scheme")
     @properties.auto
     def scheme(self) -> Union[str, Mapping[Element, SingleColor]]:
         """Color scheme mapping elements to colors."""
@@ -183,6 +169,7 @@ class ColorByParticleType(Color):
         if scheme is not None:
             self.scheme = scheme
 
+    @serialize_as("scheme")
     @properties.auto
     def scheme(self) -> Union[str, Mapping[str, SingleColor]]:
         """Color scheme mapping particle types to colors."""
@@ -208,6 +195,7 @@ class ColorByResidueName(Color):
         if scheme is not None:
             self.scheme = scheme
 
+    @serialize_as("scheme")
     @properties.auto
     def scheme(self) -> Union[str, Mapping[str, SingleColor]]:
         """Color scheme mapping residue names to colors."""
@@ -233,6 +221,7 @@ class ColorBySecondaryStructure(Color):
         if scheme is not None:
             self.scheme = scheme
 
+    @serialize_as("scheme")
     @properties.auto
     def scheme(self) -> Union[str, Mapping[str, SingleColor]]:
         """Color scheme mapping secondary structure assignments to colors."""
@@ -270,18 +259,22 @@ class ColorByFloatGradient(Color):
         if gradient is not None:
             self.gradient = gradient
 
+    @serialize_as("input")
     @properties.auto
     def input(self) -> List[float]:
         """Key of the property which should provide the data, preceded by '$'."""
 
+    @serialize_as("minimum")
     @properties.auto
     def minimum(self) -> float:
         """Value which should be mapped to the start of the gradient."""
 
+    @serialize_as("maximum")
     @properties.auto
     def maximum(self) -> float:
         """Value which should be mapped to the end of the gradient"""
 
+    @serialize_as("gradient")
     @properties.auto
     def gradient(self) -> Gradient:
         """Gradient of colors to use."""
@@ -302,6 +295,7 @@ class ColorByParticleIndex(Color):
         if gradient is not None:
             self.gradient = gradient
 
+    @serialize_as("gradient")
     @properties.auto
     def gradient(self) -> Gradient:
         """Gradient of colors to use."""
@@ -322,6 +316,7 @@ class ColorByResidueIndex(Color):
         if gradient is not None:
             self.gradient = gradient
 
+    @serialize_as("gradient")
     @properties.auto
     def gradient(self) -> Gradient:
         """Gradient of colors to use."""
@@ -344,6 +339,7 @@ class Goodsell(Color):
         if scheme is not None:
             self.scheme = scheme
 
+    @serialize_as("scheme")
     @properties.auto
     def scheme(self) -> List[SingleColor]:
         """List of colors to apply sequentially to entities."""

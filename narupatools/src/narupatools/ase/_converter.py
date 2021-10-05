@@ -159,8 +159,13 @@ def frame_to_ase_atoms(
     _add_bonds_to_ase_atoms(frame, fields, atoms)
 
     if ParticleResidues.key in fields:
+        particle_residues = ParticleResidues.get(frame)
         with contextlib.suppress(KeyError):
             atoms.set_array("residuenumbers", ParticleResidues.get(frame))
+
+        if ResidueNames.key in fields:
+            residue_names = ResidueNames.get(frame)
+            atoms.set_array("residuenames", np.array([residue_names[i] for i in particle_residues]))
 
     atoms.set_calculator(calculator)
     return atoms

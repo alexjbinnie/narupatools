@@ -1,30 +1,13 @@
-# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
-# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
-#
-# narupatools is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# narupatools is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import annotations
 
-from typing import ClassVar, List, Mapping, Optional, Union
+from typing import ClassVar, List, Optional
 
 import narupatools.util.properties as properties
+from narupatools.state import serialize_as
 from narupatools.state.typing import Serializable
 
-from ._color import Color
-from ._scale import Scale
 from ._subgraph import SubgraphObject
-from ._typing import Element, Gradient, SingleColor
+from ._typing import SingleColor
 
 
 class Render(SubgraphObject):
@@ -433,29 +416,35 @@ class RenderBallAndStick(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("particle.scale")
     @properties.auto
     def particle_scale(self) -> float:
         """Scaling factor to apply to the balls."""
 
+    @serialize_as("bond.scale")
     @properties.auto
     def bond_scale(self) -> float:
         """Scaling factor to apply to the bonds."""
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderCycles(Render):
@@ -498,33 +487,39 @@ class RenderCycles(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("cycle.scale")
     @properties.auto
     def cycle_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("bond.scale")
     @properties.auto
     def bond_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderRibbon(Render):
-    """ """
+    """"""
 
     _subgraph_ids: ClassVar[List[str]] = ["elliptic spline", "ribbon", "ribbon spline"]
 
@@ -571,41 +566,49 @@ class RenderRibbon(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("particle.widths")
     @properties.auto
     def particle_widths(self) -> List[float]:
-        """ """
+        """"""
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("width")
     @properties.auto
     def width(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("speed")
     @properties.auto
     def speed(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("input")
     @properties.auto
     def input(self) -> List[SingleColor]:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderGeometricRibbon(Render):
-    """ """
+    """"""
 
     _subgraph_ids: ClassVar[List[str]] = [
         "tetrahedral spline",
@@ -652,33 +655,40 @@ class RenderGeometricRibbon(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("particle.widths")
     @properties.auto
     def particle_widths(self) -> List[float]:
-        """ """
+        """"""
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("width")
     @properties.auto
     def width(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("bond.scale")
     @properties.auto
     def bond_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderGoodsell(Render):
@@ -709,17 +719,20 @@ class RenderGoodsell(Render):
         if opacity is not None:
             self.opacity = opacity
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
 
 class RenderHydrogenBondCaps(Render):
@@ -766,33 +779,40 @@ class RenderHydrogenBondCaps(Render):
         if opacity is not None:
             self.opacity = opacity
 
+    @serialize_as("acceptor.scale")
     @properties.auto
     def acceptor_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("donor.scale")
     @properties.auto
     def donor_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("acceptor.color")
     @properties.auto
     def acceptor_color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("donor.color")
     @properties.auto
     def donor_color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
 
 class RenderHyperballs(Render):
@@ -835,29 +855,35 @@ class RenderHyperballs(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("tension")
     @properties.auto
     def tension(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("bond.scale")
     @properties.auto
     def bond_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderLiquorice(Render):
@@ -896,25 +922,30 @@ class RenderLiquorice(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("bond.scale")
     @properties.auto
     def bond_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderNoodles(Render):
@@ -949,21 +980,25 @@ class RenderNoodles(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderPeptidePlanes(Render):
@@ -1002,25 +1037,30 @@ class RenderPeptidePlanes(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("bond.scale")
     @properties.auto
     def bond_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""
 
 
 class RenderSpheres(Render):
@@ -1069,29 +1109,35 @@ class RenderSpheres(Render):
         if opacity is not None:
             self.opacity = opacity
 
+    @serialize_as("particle.scale")
     @properties.auto
     def particle_scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("outline.depth")
     @properties.auto
     def outline_depth(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("outline.width")
     @properties.auto
     def outline_width(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
 
 class RenderTube(Render):
@@ -1130,18 +1176,22 @@ class RenderTube(Render):
         if edge_sharpness is not None:
             self.edge_sharpness = edge_sharpness
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("color")
     @properties.auto
     def color(self) -> SingleColor:
-        """ """
+        """"""
 
+    @serialize_as("opacity")
     @properties.auto
     def opacity(self) -> float:
-        """ """
+        """"""
 
+    @serialize_as("edge.sharpness")
     @properties.auto
     def edge_sharpness(self) -> float:
-        """ """
+        """"""

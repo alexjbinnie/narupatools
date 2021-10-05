@@ -171,10 +171,12 @@ class SharedStateMixin(FrameSource, Protocol):
     def create_visualisation(
         self,
         *,
-        selection: Union[str, npt.ArrayLike, SharedStateReference[ParticleSelection]],
+        selection: Optional[
+            Union[str, npt.ArrayLike, SharedStateReference[ParticleSelection]]
+        ] = None,
         renderer: Renderer,
-            layer: Optional[int] = None,
-            priority: Optional[int] = None,
+        layer: Optional[int] = None,
+        priority: Optional[int] = None,
     ) -> SharedStateReference[ParticleVisualiser]:
         """
         Create a new visualisation to draw atoms.
@@ -192,9 +194,13 @@ class SharedStateMixin(FrameSource, Protocol):
             selection = np.asarray(atom_group.indices, dtype=int)
         elif isinstance(selection, SharedStateReference):
             selection = selection.key
+        elif selection is None:
+            selection = None
         else:
             selection = np.asarray(selection, dtype=int)
-        vis = ParticleVisualiser(selection=selection, renderer=renderer, layer=layer, priority=priority)
+        vis = ParticleVisualiser(
+            selection=selection, renderer=renderer, layer=layer, priority=priority
+        )
         return self.visualisers.add(vis)
 
     @property
@@ -209,4 +215,4 @@ class SharedStateMixin(FrameSource, Protocol):
 
     @property
     def visualisers(self) -> SharedStateCollectionView[ParticleVisualiser]:
-        return self.shared_state.collection("visualisers.", ParticleVisualiser)
+        return self.shared_state.collection("visualisation.", ParticleVisualiser)

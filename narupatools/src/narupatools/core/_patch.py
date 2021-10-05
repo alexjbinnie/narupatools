@@ -49,7 +49,7 @@ def _validate_dict_is_serializable(dictionary: Mapping[str, Serializable]) -> No
     try:
         dictionary_to_protobuf(dictionary)
     except ValueError as e:
-        raise TypeError("Data is not serializable with protobuf.") from e
+        raise TypeError(f"Data is not serializable with protobuf: {dictionary}.") from e
 
 
 state_service.dictionary_change_to_state_update = _dictionary_change_to_state_update

@@ -1,24 +1,9 @@
-# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
-# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
-#
-# narupatools is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# narupatools is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import annotations
 
 from typing import ClassVar, List, Mapping, Optional, Union
 
 import narupatools.util.properties as properties
+from narupatools.state import serialize_as
 from narupatools.state.typing import Serializable
 
 from ._subgraph import SubgraphObject
@@ -77,6 +62,7 @@ class ScaleByCovalent(Scale):
         if scale is not None:
             self.scale = scale
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
         """Scaling factor to apply to each covalent radius."""
@@ -102,6 +88,7 @@ class ScaleBySecondaryStructure(Scale):
         if scheme is not None:
             self.scheme = scheme
 
+    @serialize_as("scheme")
     @properties.auto
     def scheme(self) -> Union[str, Mapping[str, float]]:
         """Scheme mapping secondary structure assignments to scales."""
@@ -122,6 +109,7 @@ class ScaleByVanDerWaals(Scale):
         if scale is not None:
             self.scale = scale
 
+    @serialize_as("scale")
     @properties.auto
     def scale(self) -> float:
         """Scaling factor to apply to each Van der Waals radius."""

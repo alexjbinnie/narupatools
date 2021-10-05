@@ -69,6 +69,15 @@ from .typing import Serializable, SerializableObject
 _TClass = TypeVar("_TClass")
 
 
+def serialize_as(name):
+    def wrap(prop):
+        prop.fset.__serialize_name__ = name
+
+        return prop
+
+    return wrap
+
+
 class SharedStateObject(SerializableObject):
     """
     Base class for an object which is stored in the shared state dictionary.
@@ -79,13 +88,19 @@ class SharedStateObject(SerializableObject):
     """
 
     _arbitrary_data: Dict[str, Serializable]
+    # Map of python name of property to the actual property
     _serializable_properties: ClassVar[Dict[str, property]] = {}
+    # Map of serialized name of property to python property name
+    _serializable_property_names: ClassVar[Dict[str, str]] = {}
+    # Map of python property names to serialized property names
+    _serializable_python_names: ClassVar[Dict[str, str]] = {}
 
     def __init__(self, **kwargs: Serializable):
         self._arbitrary_data = {}
         for key, value in kwargs.items():
             if value is None:
                 continue
+            key = self._serializable_property_names.get(key, key)
             if key in self._serializable_properties:
                 self._serializable_properties[key].fset(self, value)  # type: ignore[misc]
             else:
@@ -100,6 +115,9 @@ class SharedStateObject(SerializableObject):
             value = getattr(cls, key)
             if isinstance(value, property):
                 cls._serializable_properties[key] = value
+                if hasattr(value.fset, "__serialize_name__"):
+                    cls._serializable_property_names[value.fset.__serialize_name__] = key
+                    cls._serializable_python_names[key] = value.fset.__serialize_name__
 
     @classmethod
     @override
@@ -112,6 +130,7 @@ class SharedStateObject(SerializableObject):
     def serialize(self) -> Dict[str, Serializable]:  # noqa: D102
         dictionary = {k: v for k, v in self._arbitrary_data.items()}
         for key, python_property in self.__class__._serializable_properties.items():
+            key = self._serializable_python_names.get(key, key)
             with contextlib.suppress(AttributeError):
                 value = python_property.fget(self)  # type: ignore
                 if value is not None:  # Only save non None values
@@ -136,6 +155,7 @@ class SharedStateObject(SerializableObject):
                       property, then the properties setter must be able to handle
                       converting the value to something serializable
         """
+        key = self._serializable_property_names.get(key, key)
         if key in self.__class__._serializable_properties:
             self.__class__._serializable_properties[key].fset(
                 self, value
@@ -155,6 +175,7 @@ class SharedStateObject(SerializableObject):
 
         :raises KeyError: If the given key is not present
         """
+        key = self._serializable_property_names.get(key, key)
         if key in self.__class__._serializable_properties:
             return self.__class__._serializable_properties[key].fget(  # type: ignore
                 self
