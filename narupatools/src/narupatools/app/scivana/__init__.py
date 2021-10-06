@@ -49,3 +49,4 @@ from ._autogen._scale import (
 from ._autogen._sequence import Sequence, SequenceByPolypeptideAlphaCarbons
 from ._particle_selection import ParticleSelection
 from ._particle_visualiser import ParticleVisualiser
+from ._camera import CameraView

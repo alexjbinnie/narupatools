@@ -61,7 +61,7 @@ class ProduceFrameCallback(Protocol):
 class OnFrameProducedCallback(Protocol):
     """Callback for when a new frame is produced."""
 
-    def __call__(self, *, frame: FrameData) -> None:
+    def __call__(self, *, frame: FrameData, fields: InfiniteSet[str]) -> None:
         """
         Called when a new frame is produced.
 
@@ -174,7 +174,7 @@ class FrameProducer(Playable):
     def _advance(self) -> bool:
         if self._is_dirty or self._always_dirty:
             frame = self._produce(fields=self._dirty_fields)
-            self._on_frame_produced.invoke(frame=frame)
+            self._on_frame_produced.invoke(frame=frame, fields=self._dirty_fields)
             self._is_dirty = False
             self._dirty_fields = set()
         return True

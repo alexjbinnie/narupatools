@@ -33,7 +33,7 @@ from typing import (
     runtime_checkable,
 )
 
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.app import NarupaImdApplication
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.core import DEFAULT_SERVE_ADDRESS, NarupaServer
@@ -47,9 +47,9 @@ from narupa.trajectory.frame_server import (
 )
 
 from narupatools.core import Playable
-from narupatools.core.event import Event
+from narupatools.core.event import Event, EventListener
 from narupatools.core.health_check import HealthCheck
-from narupatools.frame import FrameProducer, FrameSource, FrameSourceWithNotify
+from narupatools.frame import FrameProducer, FrameSource, FrameSourceWithNotify, OnFieldsChangedCallback
 from narupatools.state.view import SharedStateServerWrapper
 
 from ..override import override
@@ -98,7 +98,7 @@ class Broadcastable(Protocol):
         """
 
 
-class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
+class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTarget]):
     """
     Generic Narupa server that can broadcast various objects.
 
@@ -117,12 +117,12 @@ class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
     completely detached from the MD loop, and hence can be specified in real time.
     """
 
-    def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:
-        if isinstance(self.target, FrameSource):
-            return self.target.get_frame(fields=fields)
-        raise ValueError(
-            "Session does not currently have a target that provides frame data."
-        )
+    @property
+    def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:
+        return self._on_fields_changed
+
+    def get_frame(self, *, fields: InfiniteSet[str] = everything()) -> FrameData:
+        return FrameData(self._server.frame_publisher.last_frame)
 
     def __init__(
         self, target: Optional[TTarget] = None, *, autoplay: bool = True, **kwargs: Any
@@ -137,6 +137,8 @@ class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
 
         self.frame_index = 0
         self._server = self._initialise_server(**kwargs)
+
+        self._on_fields_changed = Event(OnFieldsChangedCallback)
 
         self._frame_producer = FrameProducer(self._produce_frame)
         self._frame_producer.on_frame_produced.add_callback(self._on_frame_produced)
@@ -178,9 +180,10 @@ class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
         """The last frame sent by the server."""
         return self._server.frame_publisher.last_frame  # type: ignore[no-any-return]
 
-    def _on_frame_produced(self, *, frame: FrameData, **kwargs: Any) -> None:
+    def _on_frame_produced(self, *, frame: FrameData, fields: InfiniteSet[str], **kwargs: Any) -> None:
         self._server.frame_publisher.send_frame(self.frame_index, frame)
         self.frame_index += 1
+        self._on_fields_changed.invoke(fields=fields)
 
     def run(self, *, block: bool = False) -> None:
         """
@@ -236,7 +239,7 @@ class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
         if isinstance(self._target, Playable):
             self._target.stop(wait=True)
         if isinstance(self._target, FrameSourceWithNotify):
-            self._target.on_fields_changed.remove_callback(self._on_fields_changed)
+            self._target.on_fields_changed.remove_callback(self._on_target_fields_changed)
         if isinstance(self._target, Broadcastable):
             self._target.end_broadcast(self)
 
@@ -244,7 +247,7 @@ class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
         self._target = value
 
         if isinstance(self._target, FrameSourceWithNotify):
-            self._target.on_fields_changed.add_callback(self._on_fields_changed)
+            self._target.on_fields_changed.add_callback(self._on_target_fields_changed)
             self._frame_producer.always_dirty = False
         else:
             self._frame_producer.always_dirty = True
@@ -258,7 +261,7 @@ class Session(SharedStateMixin, HealthCheck, Generic[TTarget]):
             target=self._target, previous_target=previous_target  # type: ignore
         )
 
-    def _on_fields_changed(self, *, fields: InfiniteSet, **kwargs: Any) -> None:
+    def _on_target_fields_changed(self, *, fields: InfiniteSet, **kwargs: Any) -> None:
         self._frame_producer.mark_dirty(fields)
 
     def _produce_frame(self, fields: InfiniteSet[str]) -> FrameData:

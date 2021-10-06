@@ -25,7 +25,7 @@ from infinite_sets import everything
 from MDAnalysis import Universe
 from narupa.utilities.change_buffers import DictionaryChange
 
-from narupatools.app.scivana import ParticleSelection, ParticleVisualiser, Renderer
+from narupatools.app.scivana import ParticleSelection, ParticleVisualiser, Renderer, CameraView
 from narupatools.core.event import Event, EventListener
 from narupatools.frame import FrameSource, convert
 from narupatools.imd.interactions import InteractionParameters
@@ -216,3 +216,7 @@ class SharedStateMixin(FrameSource, Protocol):
     @property
     def visualisers(self) -> SharedStateCollectionView[ParticleVisualiser]:
         return self.shared_state.collection("visualisation.", ParticleVisualiser)
+
+    @property
+    def camera_views(self) -> SharedStateCollectionView[CameraView]:
+        return self.shared_state.collection("camera.", CameraView)
