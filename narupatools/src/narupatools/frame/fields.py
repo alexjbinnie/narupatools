@@ -169,6 +169,16 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         except KeyError:
             return default
 
+    def __hash__(self):
+        return hash(self.key)
+
+    def __eq__(self, other):
+        if isinstance(other, FrameKey):
+            return other.key == self.key
+        if isinstance(other, str):
+            return other == self.key
+        return False
+
 
 class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
     @override

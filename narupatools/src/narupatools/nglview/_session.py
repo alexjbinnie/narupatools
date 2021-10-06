@@ -26,16 +26,17 @@ _PDB_FIELDS = {
 }
 
 class _SessionWidget:
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, sync_camera=False):
         self.widget = NGLWidget()
         self.session = session
         frame = session.get_frame(fields=everything())
         structure = FrameDataStructure(frame)
         self.frame_component = self.widget.add_structure(structure)
         session.on_fields_changed.add_callback(self._on_fields_changed)
-        self.widget.observe(self._on_camera_orientation_changed, names=["_camera_orientation"])
-        self._camera_view = self.session.camera_views.add(CameraView(display_name="nglview"))
-        self.update_camera(self.widget._camera_orientation)
+        if sync_camera:
+            self.widget.observe(self._on_camera_orientation_changed, names=["_camera_orientation"])
+            self._camera_view = self.session.camera_views.add(CameraView(display_name="nglview"))
+            self.update_camera(self.widget._camera_orientation)
 
     def _on_camera_orientation_changed(self, changes):
         self.update_camera(changes["new"])
@@ -67,10 +68,13 @@ class _SessionWidget:
         return self.widget
 
 
-def show_session(session: Session, /) -> NGLWidget:
+def show_session(session: Session, /, *, sync_camera: bool = False) -> NGLWidget:
     """
     Create an NGLWidget that dynamically shows a narupatools :class:`Session`.
 
     The widget automatically listens to changes in the underlying session and updates accordingly.
+
+    :param sync_camera: Should the NGL camera view be synced through the session. This can be used to use the NGL
+                        widget to align screenshots to be taken from the VR client.
     """
-    return _SessionWidget(session).show()
+    return _SessionWidget(session, sync_camera=sync_camera).show()
