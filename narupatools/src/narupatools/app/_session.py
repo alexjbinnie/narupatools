@@ -276,6 +276,8 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         """
         if isinstance(self._target, FrameSource):
             return self._target.get_frame(fields=fields)
+        if isinstance(self._target, FrameData):
+            return self._target.copy()
         return FrameData()
 
     @staticmethod

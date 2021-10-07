@@ -23,7 +23,7 @@ from typing import Any, Dict
 import numpy as np
 import numpy.typing as npt
 from ase import Atoms
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.dynamics import DynamicsProperties, SimulationRotationProperties
@@ -91,7 +91,7 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         self._atoms = atoms
 
     @override
-    def get_frame(self, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
+    def get_frame(self, fields: InfiniteSet[str] = everything()) -> FrameData:  # noqa: D102
         frame = FrameData()
         ase_atoms_to_frame(self._atoms, fields=fields, frame=frame)
         return frame
