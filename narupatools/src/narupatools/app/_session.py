@@ -228,6 +228,11 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         :param target: Object to start broadcasting.
         """
         self.target = target
+        # Reset the frame publisher
+        self.frame_index = 0
+        self._server.frame_publisher.last_frame = None
+        frame = self._produce_frame(fields=everything())
+        self._on_frame_produced(frame=frame, fields=everything())
 
     @property
     def target(self) -> Optional[TTarget]:

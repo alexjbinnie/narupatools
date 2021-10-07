@@ -16,8 +16,8 @@
 
 """Code for handling FrameData and other related objects."""
 
-from ._converter import FrameConverter, convert, frame_to_pdb_string
-from ._frame import NarupaFrame
+from ._converter import FrameConverter, convert
+from ._pdb import frame_to_pdb_string
 from ._frame_producer import FrameProducer
 from ._frame_source import (
     FrameSource,
@@ -30,7 +30,6 @@ from ._trajectory_playback import TrajectoryPlayback
 
 __all__ = [
     "convert",
-    "NarupaFrame",
     "TrajectoryPlayback",
     "FrameSource",
     "FrameSourceWithNotify",

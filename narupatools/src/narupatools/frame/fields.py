@@ -45,6 +45,7 @@ from typing_extensions import Final
 
 from narupatools.override import override
 from narupatools.util import atomic_numbers_to_masses
+from ._converter import convert
 
 PARTICLE_MASSES = "particle.masses"
 PARTICLE_VELOCITIES = "particle.velocities"
@@ -147,6 +148,8 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         :param calculate: Calculate the value based on other keys available.
         :raises KeyError: Given key is not available.
         """
+        if not isinstance(frame_data, FrameData):
+            frame_data = convert(frame_data, FrameData, fields={self.key})
         try:
             return self._get(frame_data)
         except KeyError:
@@ -155,7 +158,7 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         raise KeyError(f"Frame does not contain key {self.key}")
 
     def get_with_default(
-        self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
+            self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
     ) -> Union[_TTo, _TDefault]:
         """
         Get the value for this key, returning a default value if the key is absent.

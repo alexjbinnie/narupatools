@@ -23,7 +23,7 @@ from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB
 from narupa.trajectory import FrameData
 from rdkit import Chem
 
-from narupatools.frame import FrameConverter, NarupaFrame
+from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -132,7 +132,7 @@ def rdkit_mol_to_frame(
     :return: FrameData containing data from RDKit mol.
     """
     if frame is None:
-        frame = NarupaFrame()
+        frame = FrameData()
 
     indices = {}
 
