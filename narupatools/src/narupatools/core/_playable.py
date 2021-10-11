@@ -253,6 +253,6 @@ class Playable(HealthCheck, metaclass=ABCMeta):
     def _restart(self) -> None:
         ...
 
-    @override
+    @override(HealthCheck.health_check)
     def health_check(self) -> None:  # noqa: D102
         HealthCheck.check_task(self._run_task)

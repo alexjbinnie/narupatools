@@ -120,10 +120,9 @@ def convert(
     if target_type is FrameData:
         for converter in _FrameConverters:
             with contextlib.suppress(NotImplementedError):
-                frame_data = converter.convert_to_frame(
+                return converter.convert_to_frame(
                     source, fields=fields, existing=target_existing  # type: ignore
                 )
-                return frame_data  # type: ignore
         raise NoConversionDefinedError(source, target)
     # Convert in two steps, via Narupa FrameData
     frame: FrameData = convert(source, FrameData)
@@ -141,14 +140,14 @@ class DictConverter(FrameConverter):
     """Converter between a Narupa FrameData and a python dictionary."""
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls, object_: _T, /, *, fields: InfiniteSet[str], existing: Optional[FrameData]
     ) -> FrameData:
         raise NotImplementedError
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,

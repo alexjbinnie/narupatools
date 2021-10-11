@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Code relating to using Scivana."""
+
 from ._autogen._color import (
     Color,
     ColorByElement,
@@ -47,6 +49,40 @@ from ._autogen._scale import (
     ScaleByVanDerWaals,
 )
 from ._autogen._sequence import Sequence, SequenceByPolypeptideAlphaCarbons
-from ._particle_selection import ParticleSelection
-from ._particle_visualiser import ParticleVisualiser
 from ._camera import CameraView
+from ._particle_selection import ParticleSelection
+from ._particle_visualiser import ParticleVisualisation
+
+__all__ = [
+    "Color",
+    "ColorByElement",
+    "ColorByFloatGradient",
+    "ColorByParticleIndex",
+    "ColorByParticleType",
+    "ColorByResidueName",
+    "ColorByResidueIndex",
+    "ColorBySecondaryStructure",
+    "Render",
+    "RenderBallAndStick",
+    "RenderHyperballs",
+    "Renderer",
+    "RenderTube",
+    "RenderRibbon",
+    "RenderLiquorice",
+    "RenderCycles",
+    "RenderGoodsell",
+    "RenderNoodles",
+    "RenderSpheres",
+    "RenderPeptidePlanes",
+    "RenderHydrogenBondCaps",
+    "RenderGeometricRibbon",
+    "Scale",
+    "Sequence",
+    "SequenceByPolypeptideAlphaCarbons",
+    "ScaleByCovalent",
+    "ScaleByVanDerWaals",
+    "ScaleBySecondaryStructure",
+    "ParticleVisualisation",
+    "ParticleSelection",
+    "CameraView",
+]

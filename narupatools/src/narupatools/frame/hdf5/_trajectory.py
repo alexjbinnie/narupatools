@@ -392,29 +392,29 @@ class HDF5Topology(FrameSource):
     def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
         frame = FrameData()
         if ParticleNames.key in fields:
-            ParticleNames.set(frame, [atom.name or "" for atom in self.atoms])
+            frame[ParticleNames] = [atom.name or "" for atom in self.atoms]
         if ParticleElements.key in fields:
             ParticleElements.set(
                 frame, [atom.atomic_number or 0 for atom in self.atoms]
             )
         if ParticleResidues.key in fields:
-            ParticleResidues.set(frame, [atom.residue.index for atom in self.atoms])
+            frame[ParticleResidues] = [atom.residue.index for atom in self.atoms]
         if ParticleCount.key in fields:
-            ParticleCount.set(frame, len(self.residues))
+            frame[ParticleCount] = len(self.residues)
         if ResidueNames.key in fields:
-            ResidueNames.set(frame, [residue.name or "" for residue in self.residues])
+            frame[ResidueNames] = [residue.name or "" for residue in self.residues]
         if ResidueChains.key in fields:
-            ResidueChains.set(frame, [residue.chain.index for residue in self.residues])
+            frame[ResidueChains] = [residue.chain.index for residue in self.residues]
         if ResidueCount.key in fields:
-            ResidueCount.set(frame, len(self.residues))
+            frame[ResidueCount] = len(self.residues)
         if ChainNames.key in fields:
-            ChainNames.set(frame, [chain.name or "" for chain in self.chains])
+            frame[ChainNames] = [chain.name or "" for chain in self.chains]
         if ChainCount.key in fields:
-            ChainCount.set(frame, len(self.chains))
+            frame[ChainCount] = len(self.chains)
         if BondCount.key in fields:
-            BondCount.set(frame, len(self.bonds))
+            frame[BondCount] = len(self.bonds)
         if BondPairs.key in fields:
-            BondPairs.set(frame, self.bonds)
+            frame[BondPairs] = self.bonds
         return frame
 
     def __repr__(self) -> str:
@@ -545,21 +545,21 @@ class HDF5Trajectory(TrajectorySource):
         with contextlib.suppress(AttributeError):
             frame = self._topology.get_frame(fields=fields)
         if ParticleCount.key in fields:
-            ParticleCount.set(frame, len(self._positions[0]))
+            frame[ParticleCount] = len(self._positions[0])
         if ParticlePositions.key in fields:
-            ParticlePositions.set(frame, self._positions[index])
+            frame[ParticlePositions] = self._positions[index]
         if ParticleVelocities.key in fields:
             with contextlib.suppress(AttributeError):
-                ParticleVelocities.set(frame, self._velocities[index])
+                frame[ParticleVelocities] = self._velocities[index]
         if ParticleForces.key in fields:
             with contextlib.suppress(AttributeError):
-                ParticleForces.set(frame, self._forces[index])
+                frame[ParticleForces] = self._forces[index]
         if PotentialEnergy.key in fields:
             with contextlib.suppress(AttributeError):
-                PotentialEnergy.set(frame, self._potential_energies[index])
+                frame[PotentialEnergy] = self._potential_energies[index]
         if KineticEnergy.key in fields:
             with contextlib.suppress(AttributeError):
-                KineticEnergy.set(frame, self._kinetic_energies[index])
+                frame[KineticEnergy] = self._kinetic_energies[index]
         return frame
 
     def __repr__(self) -> str:

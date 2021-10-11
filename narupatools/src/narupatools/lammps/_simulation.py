@@ -34,7 +34,6 @@ import narupatools.lammps.atom_properties as PROPERTIES
 import narupatools.lammps.computes as COMPUTES
 import narupatools.lammps.globals as GLOBALS
 import narupatools.lammps.settings as SETTINGS
-from narupatools.frame import NarupaFrame
 from narupatools.frame.fields import (
     BondPairs,
     ParticleCharges,
@@ -472,33 +471,31 @@ class LAMMPSSimulation:
         :return: FrameData with the appropriate fields.
         """
         if existing is None:
-            frame: FrameData = NarupaFrame()
+            frame: FrameData = FrameData()
         else:
             frame = existing
 
-        if ParticleCount.key in fields:
-            ParticleCount.set(frame, len(self))
-        if ParticlePositions.key in fields:
-            ParticlePositions.set(frame, self.positions)
-        if ParticleVelocities.key in fields:
-            ParticleVelocities.set(frame, self.velocities)
-        if ParticleMasses.key in fields:
-            ParticleMasses.set(frame, self.masses)
-        if ParticleElements.key in fields:
+        if ParticleCount in fields:
+            frame[ParticleCount] = len(self)
+        if ParticlePositions in fields:
+            frame[ParticlePositions] = self.positions
+        if ParticleVelocities in fields:
+            frame[ParticleVelocities] = self.velocities
+        if ParticleMasses in fields:
+            frame[ParticleMasses] = self.masses
+        if ParticleElements in fields:
             elements = np.vectorize(mass_to_element)(self.masses)
             if not np.any(np.equal(elements, None)):  # type: ignore[call-overload]
-                ParticleElements.set(frame, elements)
-        if ParticleCharges.key in fields:
+                frame[ParticleElements] = elements
+        if ParticleCharges in fields:
             with contextlib.suppress(AttributeError):
-                ParticleCharges.set(frame, self.charges)
-        if ParticleForces.key in fields:
-            ParticleForces.set(frame, self.forces)
-        if PotentialEnergy.key in fields:
-            PotentialEnergy.set(frame, self.potential_energy)
+                frame[ParticleCharges] = self.charges
+        if ParticleForces in fields:
+            frame[ParticleForces] = self.forces
+        if PotentialEnergy in fields:
+            frame[PotentialEnergy] = self.potential_energy
 
-        if BondPairs.key in fields and self.extract(
-            SETTINGS.AtomStylesIncludesMolecularTopology
-        ):
+        if BondPairs in fields and self[SETTINGS.AtomStylesIncludesMolecularTopology]:
             self.indexing.recompute()
             if self.bond_compute is None:
                 self.bond_compute = COMPUTES.LocalProperty(
@@ -507,10 +504,11 @@ class LAMMPSSimulation:
                     properties=["btype", "batom1", "batom2"],
                 )
             bonds = self.bond_compute.extract()
-            BondPairs.set(frame, self.indexing.atom_id_to_ordered(bonds[:, 1:]))
+            frame[BondPairs] = self.indexing.atom_id_to_ordered(bonds[:, 1:])
 
-        if ParticleResidues.key in fields and self.extract(
-            SETTINGS.AtomStylesIncludesMolecularTopology
+        if (
+            ParticleResidues in fields
+            and self[SETTINGS.AtomStylesIncludesMolecularTopology]
         ):
             self.indexing.recompute()
             mol_ids = self.gather_atoms(PROPERTIES.MoleculeID)
@@ -520,9 +518,12 @@ class LAMMPSSimulation:
                 mol_id: mol_index
                 for mol_index, mol_id in zip(np.argsort(unique_mol_ids), unique_mol_ids)
             }
-            ParticleResidues.set(frame, np.vectorize(mol_id_to_index.get)(mol_ids))
+            frame[ParticleResidues] = np.vectorize(mol_id_to_index.get)(mol_ids)
 
         return frame
+
+    def __getitem__(self, item: Extractable[_TReturnType]) -> _TReturnType:
+        return item.extract(self.__lammps)
 
     @property
     def timestep(self) -> float:

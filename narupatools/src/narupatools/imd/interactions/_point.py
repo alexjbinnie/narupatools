@@ -72,13 +72,13 @@ class PointInteraction(Interaction[PointInteractionData]):
         super().__init__(**kwargs)
         self._force_func = force_func
 
-    @override
+    @override(Interaction.update)
     def update(self, interaction: PointInteractionData) -> None:  # noqa: D102
         super().update(interaction)
         self.position = interaction.position
         self.interaction_scale = interaction.scale
 
-    @override
+    @override(Interaction.calculate_forces_and_energy)
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]

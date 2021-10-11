@@ -1,14 +1,22 @@
 from io import StringIO
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from MDAnalysis.topology.tables import Z2SYMB
 from narupa.trajectory import FrameData
 
-from narupatools.frame.fields import BondPairs, BoxVectors, ParticleCharges, ResidueNames, ParticleResidues, \
-    ParticlePositions, ParticleNames, ParticleElements
-from narupatools.physics.units import nano, meter, angstrom, radian, degree
-from narupatools.physics.vector import magnitude, angle
+from narupatools.frame.fields import (
+    BondPairs,
+    BoxVectors,
+    ParticleCharges,
+    ParticleElements,
+    ParticleNames,
+    ParticlePositions,
+    ParticleResidues,
+    ResidueNames,
+)
+from narupatools.physics.units import angstrom, degree, meter, nano, radian
+from narupatools.physics.vector import angle, magnitude
 from narupatools.util.collections import infinite_seq
 
 PDB_STD_RESIDUES = frozenset(

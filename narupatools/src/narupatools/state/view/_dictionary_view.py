@@ -68,7 +68,7 @@ class SharedStateDictionaryView(SharedStateView[Serializable]):
                 self._dictionary, prefix
             )
 
-    @override
+    @override(SharedStateView._make_reference)
     def _make_reference(self, full_key: str, /) -> SharedStateReference[Serializable]:
         return SharedStateReference.untyped_reference(self._dictionary, full_key)
 
@@ -89,7 +89,7 @@ class SharedStateDictionaryView(SharedStateView[Serializable]):
     ) -> SharedStateReference[TSerializableObjectType]:
         pass
 
-    @override
+    @override(SharedStateView.get)
     def get(  # type: ignore[override]
         self,
         key: str,

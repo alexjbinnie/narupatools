@@ -69,8 +69,10 @@ from .typing import Serializable, SerializableObject
 _TClass = TypeVar("_TClass")
 
 
-def serialize_as(name):
-    def wrap(prop):
+def serialize_as(name: str) -> Any:
+    """Mark a property to be serialized with a different name to its python name."""
+
+    def wrap(prop: Any) -> Any:
         prop.fset.__serialize_name__ = name
 
         return prop
@@ -116,17 +118,19 @@ class SharedStateObject(SerializableObject):
             if isinstance(value, property):
                 cls._serializable_properties[key] = value
                 if hasattr(value.fset, "__serialize_name__"):
-                    cls._serializable_property_names[value.fset.__serialize_name__] = key
-                    cls._serializable_python_names[key] = value.fset.__serialize_name__
+                    cls._serializable_property_names[
+                        value.fset.__serialize_name__  # type: ignore
+                    ] = key
+                    cls._serializable_python_names[key] = value.fset.__serialize_name__  # type: ignore
 
     @classmethod
-    @override
+    @override(SerializableObject.deserialize)
     def deserialize(cls: Type[_TClass], value: Serializable) -> _TClass:  # noqa: D102
         if isinstance(value, Mapping):
             return cls(**value)  # type: ignore
         raise ValueError
 
-    @override
+    @override(SerializableObject.serialize)
     def serialize(self) -> Dict[str, Serializable]:  # noqa: D102
         dictionary = {k: v for k, v in self._arbitrary_data.items()}
         for key, python_property in self.__class__._serializable_properties.items():

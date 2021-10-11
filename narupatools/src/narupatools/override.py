@@ -21,7 +21,7 @@ from typing import Any, TypeVar
 _T = TypeVar("_T")
 
 
-def override(f: _T, /) -> _T:
+def override(source_method: Any, /) -> Any:
     """
     Mark a method or property as overriding a method in a base class.
 
@@ -36,7 +36,7 @@ def override(f: _T, /) -> _T:
 
        class MyClass(MyBaseClass):
 
-           @override
+           @override(MyBaseClass.my_method)
            def my_method():
                ...
 
@@ -45,16 +45,20 @@ def override(f: _T, /) -> _T:
 
     To check if a method is overriden, use :obj:`marked_as_override`.
     """
-    if isinstance(f, property):
-        if f.fget is not None:
-            f.fget.__override__ = True  # type: ignore[attr-defined]
-        if f.fset is not None:
-            f.fset.__override__ = True  # type: ignore[attr-defined]
-        if f.fdel is not None:
-            f.fdel.__override__ = True  # type: ignore[attr-defined]
-    else:
-        f.__override__ = True  # type: ignore[attr-defined]
-    return f
+
+    def wrap(f: Any) -> Any:
+        if isinstance(f, property):
+            if f.fget is not None:
+                f.fget.__override__ = True  # type: ignore[attr-defined]
+            if f.fset is not None:
+                f.fset.__override__ = True  # type: ignore[attr-defined]
+            if f.fdel is not None:
+                f.fdel.__override__ = True  # type: ignore[attr-defined]
+        else:
+            f.__override__ = True
+        return f
+
+    return wrap
 
 
 def marked_as_override(f: Any) -> bool:

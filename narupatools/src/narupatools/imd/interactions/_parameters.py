@@ -61,7 +61,7 @@ class InteractionParameters(SharedStateObject):
         _InteractionParameters_Types[interaction_type] = python_type
 
     @classmethod
-    @override
+    @override(SharedStateObject.deserialize)
     def deserialize(cls, value: Serializable) -> InteractionParameters:  # noqa: D102
         if cls is InteractionParameters and isinstance(value, Mapping):
             interaction_type = value["interaction_type"]

@@ -21,10 +21,14 @@ from narupatools.state import SharedStateObject
 
 
 class ParticleSelection(SharedStateObject):
+    """Representation of a named predefined selection."""
+
     @properties.numpy(dtype=int, shape=(None,))
     def particle_ids(self) -> np.ndarray:
+        """List of particle ids included in the selection."""
         ...
 
     @properties.string
     def display_name(self) -> str:
+        """User-facing display name of the selection."""
         ...

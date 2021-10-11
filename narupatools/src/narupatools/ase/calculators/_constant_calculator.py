@@ -71,7 +71,7 @@ class ConstantCalculator(Calculator):
             self._charges = np.asfarray(charges)
             self.implemented_properties.append("charges")
 
-    @override
+    @override(Calculator._calculate)
     def _calculate(self, atoms: Atoms, **kwargs: Any) -> None:  # noqa: D102
         if "forces" in self.implemented_properties:
             self.results["forces"] = self._forces
@@ -82,7 +82,7 @@ class ConstantCalculator(Calculator):
         if "torques" in self.implemented_properties:
             self.results["torques"] = self._torques
 
-    @override
+    @override(Calculator.assign_atoms)
     def assign_atoms(self, atoms: Optional[Atoms]) -> None:  # noqa: D102
         if atoms is not None:
             if "forces" in self.implemented_properties and len(self._forces) != len(

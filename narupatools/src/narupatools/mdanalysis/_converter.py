@@ -120,7 +120,7 @@ class MDAnalysisConverter(FrameConverter):
     """Frame converter for the MDAnalysis package."""
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
@@ -135,7 +135,7 @@ class MDAnalysisConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls,
         object_: _TType,
@@ -320,19 +320,19 @@ def _add_mda_atoms_core_attrs(
     group: AtomGroup, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
     if ParticleCount.key in fields:
-        ParticleCount.set(frame, group.n_atoms)
+        frame[ParticleCount] = group.n_atoms
     if ParticlePositions.key in fields:
         with contextlib.suppress(NoDataError):
-            ParticlePositions.set(frame, group.positions * MDAnalysisToNarupa.length)
+            frame[ParticlePositions] = group.positions * MDAnalysisToNarupa.length
     if ParticleNames.key in fields:
         with contextlib.suppress(NoDataError):
-            ParticleNames.set(frame, group.names)
+            frame[ParticleNames] = group.names
     if ParticleElements.key in fields:
         with contextlib.suppress(NoDataError):
-            ParticleElements.set(frame, guess_atomic_number(group))
+            frame[ParticleElements] = guess_atomic_number(group)
     if ParticleTypes.key in fields:
         with contextlib.suppress(NoDataError):
-            ParticleTypes.set(frame, group.types)
+            frame[ParticleTypes] = group.types
     if ParticleResidues.key in fields:
         with contextlib.suppress(NoDataError):
             if _is_atom_group_selection(group):
@@ -344,7 +344,7 @@ def _add_mda_atoms_core_attrs(
                     frame, [residue_ix_to_index[ix] for ix in group.resindices]
                 )
             else:
-                ParticleResidues.set(frame, group.resindices)
+                frame[ParticleResidues] = group.resindices
 
 
 def _add_mda_atoms_extra_attrs(
@@ -357,26 +357,26 @@ def _add_mda_atoms_extra_attrs(
             )
     if ParticleForces.key in fields:
         with contextlib.suppress(NoDataError):
-            ParticleForces.set(frame, group.forces * MDAnalysisToNarupa.force)
+            frame[ParticleForces] = group.forces * MDAnalysisToNarupa.force
     if ParticleCharges.key in fields:
         with contextlib.suppress(NoDataError):
-            ParticleCharges.set(frame, group.charges * MDAnalysisToNarupa.charge)
+            frame[ParticleCharges] = group.charges * MDAnalysisToNarupa.charge
     if ParticleMasses.key in fields:
         with contextlib.suppress(NoDataError):
-            ParticleMasses.set(frame, group.masses * MDAnalysisToNarupa.mass)
+            frame[ParticleMasses] = group.masses * MDAnalysisToNarupa.mass
 
 
 def _add_mda_residue_attrs(
     group: AtomGroup, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
     if ResidueCount.key in fields:
-        ResidueCount.set(frame, group.n_residues)
+        frame[ResidueCount] = group.n_residues
     if ResidueNames.key in fields:
         with contextlib.suppress(NoDataError):
-            ResidueNames.set(frame, group.residues.resnames)
+            frame[ResidueNames] = group.residues.resnames
     if ResidueIds.key in fields:
         with contextlib.suppress(NoDataError):
-            ResidueIds.set(frame, [str(i) for i in group.residues.resids])
+            frame[ResidueIds] = [str(i) for i in group.residues.resids]
     if ResidueChains.key in fields:
         with contextlib.suppress(NoDataError):
             if _is_atom_group_selection(group):
@@ -388,17 +388,17 @@ def _add_mda_residue_attrs(
                     frame, [segment_ix_to_index[ix] for ix in group.residues.segindices]
                 )
             else:
-                ResidueChains.set(frame, group.residues.segindices)
+                frame[ResidueChains] = group.residues.segindices
 
 
 def _add_mda_segments_attrs(
     group: AtomGroup, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
     if ChainCount.key in fields:
-        ChainCount.set(frame, group.n_segments)
+        frame[ChainCount] = group.n_segments
     if ChainNames.key in fields:
         with contextlib.suppress(NoDataError):
-            ChainNames.set(frame, group.segments.segids)
+            frame[ChainNames] = group.segments.segids
 
 
 def _add_mda_bonds_attrs(
@@ -417,16 +417,16 @@ def _add_mda_bonds_attrs(
                     [particle_ix_to_index[bond[0]], particle_ix_to_index[bond[1]]]
                 )
         if BondPairs.key in fields:
-            BondPairs.set(frame, bond_pairs)
+            frame[BondPairs] = bond_pairs
         if BondCount.key in fields:
-            BondCount.set(frame, len(bond_pairs))
+            frame[BondCount] = len(bond_pairs)
     else:
         if BondCount.key in fields:
             with contextlib.suppress(NoDataError):
-                BondCount.set(frame, len(group.bonds))
+                frame[BondCount] = len(group.bonds)
         if BondPairs.key in fields:
             with contextlib.suppress(NoDataError):
-                BondPairs.set(frame, group.bonds.indices)
+                frame[BondPairs] = group.bonds.indices
 
 
 def _add_mda_box(group: AtomGroup, fields: InfiniteSet[str], frame: FrameData) -> None:

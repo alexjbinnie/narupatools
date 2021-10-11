@@ -76,7 +76,7 @@ class TrajectoryPlayback(Playable, FrameSourceWithNotify):
     def looping(self, looping: bool) -> None:
         self._looping = looping
 
-    @override
+    @override(FrameSourceWithNotify.get_frame)
     def get_frame(self, fields: InfiniteSet[str] = everything()) -> FrameData:
         """
         Get the `FrameData` representing the current frame of the trajectory.
@@ -98,7 +98,7 @@ class TrajectoryPlayback(Playable, FrameSourceWithNotify):
         self._index = value
         self._on_fields_changed.invoke(fields=everything())
 
-    @override
+    @override(Playable._advance)
     def _advance(self) -> bool:
         self._index += 1
         if self._index >= len(self.trajectory):
@@ -113,7 +113,7 @@ class TrajectoryPlayback(Playable, FrameSourceWithNotify):
             self._on_fields_changed.invoke(fields=everything())
         return True
 
-    @override
+    @override(Playable._restart)
     def _restart(self) -> None:
         self._index = 0
         self._on_fields_changed.invoke(fields=everything())

@@ -237,7 +237,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         """
 
     def mark_positions_dirty(self) -> None:
+        """Mark positions as having changed."""
         self._forces_energy_dirty = True
 
     def mark_velocities_dirty(self) -> None:
+        """Mark velocities as having changed."""
         self._forces_energy_dirty = True

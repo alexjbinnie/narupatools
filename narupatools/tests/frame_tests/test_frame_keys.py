@@ -22,7 +22,5 @@ def test_key_str_set_membership():
 
 
 def test_key_dict_key():
-    dict = {
-        "bond.pairs": 2
-    }
-    assert dict[BondPairs] == 2
+    dictionary = {"bond.pairs": 2}
+    assert dictionary[BondPairs] == 2

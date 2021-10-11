@@ -26,7 +26,6 @@ from typing import Optional
 import numpy as np
 from numpy.linalg import inv
 
-from .matrix import zero_matrix
 from .typing import (
     Matrix3x3,
     ScalarArray,
@@ -36,7 +35,7 @@ from .typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from .vector import left_vector_triple_product_matrix, sqr_magnitude, zero_vector
+from .vector import sqr_magnitude, zero_vector
 
 
 def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> Vector3:
@@ -275,7 +274,7 @@ def moment_of_inertia_tensor(
     else:
         origin = np.asfarray(origin)
     positions = positions - origin[..., np.newaxis, :]  # type: ignore
-    I = (masses * (positions ** 2).sum(-1)).sum(-1)[
+    return (masses * (positions ** 2).sum(-1)).sum(-1)[  # type: ignore
         ..., np.newaxis, np.newaxis
     ] * np.eye(3) - (
         masses[..., np.newaxis, np.newaxis]
@@ -283,7 +282,6 @@ def moment_of_inertia_tensor(
     ).sum(
         -3
     )
-    return I  # type: ignore
 
 
 def angular_velocity(

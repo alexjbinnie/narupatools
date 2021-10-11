@@ -47,7 +47,7 @@ class _ASEAtomsWrapper(ASEAtomsWrapper):
     def __init__(self, atoms: Atoms):
         self._atoms = atoms
 
-    @override
+    @override(ASEAtomsWrapper.atoms)
     @property
     def atoms(self) -> Atoms:
         return self._atoms
@@ -76,14 +76,14 @@ class InteractionConstraint(
         """
         self.interaction = interaction
 
-    @override
+    @override(ASEMomentaConstraint.adjust_positions)
     def adjust_positions(  # noqa: D102
         self, atoms: Atoms, positions: np.ndarray, /
     ) -> None:
         # Assume all interactions depend on positions
         self.interaction.mark_positions_dirty()
 
-    @override
+    @override(ASEMomentaConstraint.adjust_momenta)
     def adjust_momenta(  # noqa: D102
         self, atoms: Atoms, momenta: np.ndarray, /
     ) -> None:
@@ -91,17 +91,17 @@ class InteractionConstraint(
         # When they do, this should conditionally invalidate the cache
         self.interaction.mark_velocities_dirty()
 
-    @override
+    @override(ASEMomentaConstraint.adjust_forces)
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102
         forces[self.interaction.particle_indices] += (
             self.interaction.forces * _NarupaToASE.force
         )
 
-    @override
+    @override(ASEEnergyConstraint.adjust_potential_energy)
     def adjust_potential_energy(self, /, atoms: Atoms) -> float:  # noqa: D102
         return self.interaction.potential_energy * _NarupaToASE.energy
 
-    @override
+    @override(ASETorqueConstraint.adjust_torques)
     def adjust_torques(  # noqa: D102
         self, atoms: Atoms, torques: np.ndarray, /
     ) -> None:  # noqa: D102

@@ -10,6 +10,9 @@ from ._subgraph import SubgraphObject
 from ._typing import Element, Gradient, SingleColor
 
 
+# flake8: noqa
+
+
 class Color(SubgraphObject):
     @classmethod
     def by_element(

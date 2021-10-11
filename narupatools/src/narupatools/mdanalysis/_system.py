@@ -31,6 +31,6 @@ class MDAnalysisSystem(FrameSource):
     def __init__(self, universe: Universe):
         self._universe = universe
 
-    @override
+    @override(FrameSource.get_frame)
     def get_frame(self, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
         return mdanalysis_universe_to_frame(self._universe)

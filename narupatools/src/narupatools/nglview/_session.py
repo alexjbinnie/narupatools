@@ -3,14 +3,20 @@
 from typing import Any
 
 import numpy as np
-from infinite_sets import everything, InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from nglview import NGLWidget
 
 from narupatools.app import Session
 from narupatools.app.scivana import CameraView
-from narupatools.core.dynamics import SimulationDynamics
-from narupatools.frame.fields import ParticlePositions, ParticleNames, BondPairs, ParticleResidues, ParticleElements, \
-    ResidueNames, ResidueChains
+from narupatools.frame.fields import (
+    BondPairs,
+    ParticleElements,
+    ParticleNames,
+    ParticlePositions,
+    ParticleResidues,
+    ResidueChains,
+    ResidueNames,
+)
 from narupatools.nglview._structure import FrameDataStructure
 from narupatools.util.timing import throttle
 
@@ -25,6 +31,7 @@ _PDB_FIELDS = {
     ResidueChains.key,
 }
 
+
 class _SessionWidget:
     def __init__(self, session: Session, sync_camera=False):
         self.widget = NGLWidget()
@@ -34,26 +41,32 @@ class _SessionWidget:
         self.frame_component = self.widget.add_structure(structure)
         session.on_fields_changed.add_callback(self._on_fields_changed)
         if sync_camera:
-            self.widget.observe(self._on_camera_orientation_changed, names=["_camera_orientation"])
-            self._camera_view = self.session.camera_views.add(CameraView(display_name="nglview"))
+            self.widget.observe(
+                self._on_camera_orientation_changed, names=["_camera_orientation"]
+            )
+            self._camera_view = self.session.camera_views.add(
+                CameraView(display_name="nglview")
+            )
             self.update_camera(self.widget._camera_orientation)
 
-    def _on_camera_orientation_changed(self, changes):
+    def _on_camera_orientation_changed(self, changes: Any) -> None:
         self.update_camera(changes["new"])
 
-    def update_camera(self, transformation):
+    def update_camera(self, transformation: Any) -> None:
         transformation = np.array(transformation)
         if len(transformation) != 16:
             return
         transformation = transformation[[0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14]]
         self._camera_view.update(transformation=transformation)
 
-    def _on_fields_changed(self, *, fields: InfiniteSet[str] = everything(), **kwargs: Any) -> None:
+    def _on_fields_changed(
+        self, *, fields: InfiniteSet[str] = everything(), **kwargs: Any
+    ) -> None:
         self.refresh(fields)
 
     @throttle(0.05)
     def refresh(self, fields: InfiniteSet[str]) -> None:
-        changed_fields = _PDB_FIELDS & fields
+        changed_fields = fields & _PDB_FIELDS
         if changed_fields == {ParticlePositions.key}:
             frame = self.session.get_frame(fields={ParticlePositions.key})
             positions = ParticlePositions.get(frame)

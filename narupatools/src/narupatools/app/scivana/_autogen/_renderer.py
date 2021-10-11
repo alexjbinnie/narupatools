@@ -1,3 +1,5 @@
+# flake8: noqa
+
 from __future__ import annotations
 
 from typing import Optional, Union
@@ -16,23 +18,23 @@ from ._typing import SingleColor
 class Renderer(SharedStateObject):
     @properties.auto
     def color(self) -> Union[Color, SingleColor]:
-        """"""
+        """ """
 
     @properties.auto
     def scale(self) -> Union[float, Scale]:
-        """"""
+        """ """
 
     @properties.auto
     def width(self) -> Union[float, Scale]:
-        """"""
+        """ """
 
     @properties.auto
     def sequence(self) -> Sequence:
-        """"""
+        """ """
 
     @properties.auto
     def render(self) -> Render:
-        """"""
+        """ """
 
     @classmethod
     def create(

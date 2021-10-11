@@ -32,7 +32,7 @@ def neuraminidase_pdbfile(neuraminidase_pdb_filename) -> PDBFile:
 def neuraminidase_frame(neuraminidase_pdbfile) -> FrameData:
     frame = FrameData()
     openmm_topology_to_frame(neuraminidase_pdbfile.getTopology(), existing=frame)
-    ParticlePositions.set(frame, neuraminidase_pdbfile.getPositions(asNumpy=True))
+    frame[ParticlePositions] = neuraminidase_pdbfile.getPositions(asNumpy=True)
     return frame
 
 

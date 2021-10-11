@@ -491,20 +491,20 @@ class LAMMPSSimulation:
                 self._universe, fields=fields, frame=frame
             )
         if ParticleCount.key in fields:
-            ParticleCount.set(frame, len(self))
+            frame[ParticleCount] = len(self)
         if ParticlePositions.key in fields:
-            ParticlePositions.set(frame, self.positions)
+            frame[ParticlePositions] = self.positions
         if ParticleVelocities.key in fields:
-            ParticleVelocities.set(frame, self.velocities)
+            frame[ParticleVelocities] = self.velocities
         if ParticleMasses.key in fields:
-            ParticleMasses.set(frame, self.masses)
+            frame[ParticleMasses] = self.masses
         if ParticleCharges.key in fields:
             with contextlib.suppress(AttributeError):
-                ParticleCharges.set(frame, self.charges)
+                frame[ParticleCharges] = self.charges
         if ParticleForces.key in fields:
-            ParticleForces.set(frame, self.forces)
+            frame[ParticleForces] = self.forces
         if PotentialEnergy.key in fields:
-            PotentialEnergy.set(frame, self.potential_energy)
+            frame[PotentialEnergy] = self.potential_energy
         return frame
 
     @property

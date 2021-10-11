@@ -18,7 +18,7 @@
 
 from ._converter import ase_atoms_to_frame
 from ._dynamics import ASEDynamics
-from ._system import create_ase_atoms, ASESystem
+from ._system import ASESystem, create_ase_atoms
 from ._trajectory import ASETrajectory
 from ._units import UnitsASE
 from .calculators import ConstantCalculator, NullCalculator, OneBodyPotentialCalculator

@@ -25,6 +25,7 @@ from narupatools.frame import FrameConverter, convert
 
 from ._calculator import LAMMPSCalculator
 from ._simulation import LAMMPSSimulation
+from ..override import override
 
 _TType = TypeVar("_TType")
 
@@ -33,6 +34,7 @@ class LAMMPSConverter(FrameConverter):
     """FrameConverter for the mdtraj package."""
 
     @classmethod
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls, object_: Any, /, *, fields: InfiniteSet[str], existing: Optional[FrameData]
     ) -> FrameData:
@@ -41,6 +43,7 @@ class LAMMPSConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,

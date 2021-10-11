@@ -27,6 +27,8 @@ _TClass = TypeVar("_TClass", bound="SubgraphObject")
 
 
 class SubgraphObject(SharedStateObject):
+    """Subgraph object defining part of a Scivana renderer."""
+
     _subgraph_ids: ClassVar[List[str]] = []
     _subclasses: List[Type[SubgraphObject]] = []
 
@@ -34,7 +36,7 @@ class SubgraphObject(SharedStateObject):
         super().__init__(**kwargs)
 
     @classmethod
-    @override
+    @override(SharedStateObject.deserialize)
     def deserialize(cls: Type[_TClass], value: Serializable) -> _TClass:  # noqa: D102
         if isinstance(value, Mapping):
             subgraph_type = value.get("type", None)
@@ -48,8 +50,8 @@ class SubgraphObject(SharedStateObject):
             return super().deserialize(value)
         raise ValueError
 
-    @override
-    def serialize(self) -> Dict[str, Serializable]:
+    @override(SharedStateObject.serialize)
+    def serialize(self) -> Dict[str, Serializable]:  # noqa: D102
         serialized = super().serialize()
         serialized["type"] = type(self)._subgraph_ids[0]
         return serialized

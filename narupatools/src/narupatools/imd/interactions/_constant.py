@@ -64,13 +64,13 @@ class ConstantInteraction(Interaction[ConstantInteractionData]):
     def scale(self) -> None:
         """Scaling factor to apply to the force."""
 
-    @override
+    @override(Interaction.update)
     def update(self, interaction: ConstantInteractionData) -> None:  # noqa: D102
         super().update(interaction)
         self.force = interaction.force
         self.scale = interaction.scale
 
-    @override
+    @override(Interaction.calculate_forces_and_energy)
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]

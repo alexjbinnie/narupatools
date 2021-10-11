@@ -31,11 +31,12 @@ from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
 from narupatools.imd.interactions import InteractionParameters
+from narupatools.override import override
 from narupatools.state.view import SharedStateClientWrapper
 
-from ..override import override
 from ._session import Session
 from ._shared_state import SessionSharedState, SharedStateMixin
+from ..frame import FrameSource
 
 
 class OnFrameReceivedCallback(Protocol):
@@ -59,7 +60,8 @@ class Client(NarupaImdClient, SharedStateMixin):
       variables to store them.
     """
 
-    def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:
+    @override(FrameSource.get_frame)
+    def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
         return self.current_frame  # type: ignore
 
     _on_frame_received_event: Event[OnFrameReceivedCallback]
@@ -99,7 +101,7 @@ class Client(NarupaImdClient, SharedStateMixin):
         """Event triggered when a frame is received by the client."""
         return self._on_frame_received_event
 
-    @override
+    @override(NarupaImdClient._on_frame_received)
     def _on_frame_received(self, frame_index: int, frame: FrameData) -> None:
         changes = frame.array_keys | frame.value_keys
         super()._on_frame_received(frame_index, frame)
@@ -142,7 +144,7 @@ class Client(NarupaImdClient, SharedStateMixin):
         ) as client:
             yield client
 
-    @override
+    @override(NarupaImdClient.start_interaction)
     def start_interaction(
         self,
         interaction: Optional[Union[InteractionParameters, ParticleInteraction]] = None,

@@ -43,18 +43,18 @@ from narupatools.physics.units import UnitsNarupa
 
 MDTRAJ_PROPERTIES = frozenset(
     (
-        ParticlePositions.key,
-        BondPairs.key,
-        ParticleResidues.key,
-        ParticleElements.key,
-        ParticleNames.key,
-        ResidueNames.key,
-        ResidueChains.key,
-        ParticleCount.key,
-        ResidueCount.key,
-        BondCount.key,
-        ChainCount.key,
-        BoxVectors.key,
+        ParticlePositions,
+        BondPairs,
+        ParticleResidues,
+        ParticleElements,
+        ParticleNames,
+        ResidueNames,
+        ResidueChains,
+        ParticleCount,
+        ResidueCount,
+        BondCount,
+        ChainCount,
+        BoxVectors,
     )
 )
 
@@ -67,7 +67,7 @@ class MDTrajConverter(FrameConverter):
     """FrameConverter for the mdtraj package."""
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls,
         object_: _TType,
@@ -83,7 +83,7 @@ class MDTrajConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
@@ -112,13 +112,13 @@ def mdtraj_trajectory_to_frame(
     """
     if frame is None:
         frame = FrameData()
-    if ParticlePositions.key in fields:
+    if ParticlePositions in fields:
         ParticlePositions.set(
             frame, trajectory.xyz[frame_index] * _MDTrajToNarupa.length
         )
-    if ParticleCount.key in fields:
-        ParticleCount.set(frame, trajectory.n_atoms)
-    if BoxVectors.key in fields:
+    if ParticleCount in fields:
+        frame[ParticleCount] = trajectory.n_atoms
+    if BoxVectors in fields:
         BoxVectors.set(
             frame, trajectory.unitcell_vectors[frame_index] * _MDTrajToNarupa.length
         )
@@ -142,21 +142,21 @@ def mdtraj_topology_to_frame(
     """
     if frame is None:
         frame = FrameData()
-    if BondPairs.key in fields:
+    if BondPairs in fields:
         BondPairs.set(
             frame, [[bond[0].index, bond[1].index] for bond in topology.bonds]
         )
-    if ParticleResidues.key in fields:
-        ParticleResidues.set(frame, [atom.residue.index for atom in topology.atoms])
-    if ParticleElements.key in fields:
-        ParticleElements.set(frame, [atom.element.number for atom in topology.atoms])
-    if ParticleNames.key in fields:
-        ParticleNames.set(frame, [atom.name for atom in topology.atoms])
+    if ParticleResidues in fields:
+        frame[ParticleResidues] = [atom.residue.index for atom in topology.atoms]
+    if ParticleElements in fields:
+        frame[ParticleElements] = [atom.element.number for atom in topology.atoms]
+    if ParticleNames in fields:
+        frame[ParticleNames] = [atom.name for atom in topology.atoms]
 
-    if ResidueNames.key in fields:
-        ResidueNames.set(frame, [residue.name for residue in topology.residues])
-    if ResidueChains.key in fields:
-        ResidueChains.set(frame, [residue.chain.index for residue in topology.residues])
+    if ResidueNames in fields:
+        frame[ResidueNames] = [residue.name for residue in topology.residues]
+    if ResidueChains in fields:
+        frame[ResidueChains] = [residue.chain.index for residue in topology.residues]
 
     _get_mdtraj_topology_counts(topology, fields=fields, frame=frame)
     return frame
@@ -165,11 +165,11 @@ def mdtraj_topology_to_frame(
 def _get_mdtraj_topology_counts(
     topology: Topology, *, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
-    if ParticleCount.key in fields:
-        ParticleCount.set(frame, topology.n_atoms)
-    if ResidueCount.key in fields:
-        ResidueCount.set(frame, topology.n_residues)
-    if ChainCount.key in fields:
-        ChainCount.set(frame, topology.n_chains)
-    if BondCount.key in fields:
-        BondCount.set(frame, topology.n_bonds)
+    if ParticleCount in fields:
+        frame[ParticleCount] = topology.n_atoms
+    if ResidueCount in fields:
+        frame[ResidueCount] = topology.n_residues
+    if ChainCount in fields:
+        frame[ChainCount] = topology.n_chains
+    if BondCount in fields:
+        frame[BondCount] = topology.n_bonds

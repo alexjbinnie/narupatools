@@ -219,7 +219,7 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         """
         super().restart()
 
-    @override
+    @override(Playable._restart)
     def _restart(self) -> None:
         self._previous_total_time += self.elapsed_time
         self._previous_total_steps += self.elapsed_steps
@@ -229,7 +229,7 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         self._on_reset.invoke()
         self._on_fields_changed.invoke(fields=everything())
 
-    @override
+    @override(Playable.run)
     def run(  # type: ignore
         self, steps: Optional[int] = None, *, block: Optional[bool] = None
     ) -> Union[bool, Future[bool]]:
@@ -252,7 +252,7 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         self._remaining_steps = steps
         return super().run(block=block)
 
-    @override
+    @override(Playable._advance)
     def _advance(self) -> bool:
         self._on_pre_step.invoke()
         self._step_internal()
@@ -335,7 +335,7 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         pass
 
-    @override
+    @override(FrameSourceWithNotify.get_frame)
     def get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         """
         Get the current state of the system as a Narupa `FrameData`.
@@ -344,44 +344,44 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         :return: Narupa `FrameData` populated with requested fields.
         """
         frame = self._get_frame(fields)
-        SimulationElapsedTime.set(frame, self.elapsed_time)
-        SimulationElapsedSteps.set(frame, self.elapsed_steps)
-        SimulationTotalTime.set(frame, self.total_time)
-        SimulationTotalSteps.set(frame, self.total_steps)
+        frame[SimulationElapsedTime] = self.elapsed_time
+        frame[SimulationElapsedSteps] = self.elapsed_steps
+        frame[SimulationTotalTime] = self.total_time
+        frame[SimulationTotalSteps] = self.total_steps
         return frame
 
     @property
-    @override
+    @override(DynamicsProperties.positions)
     def positions(self) -> Vector3Array:
         """Positions of particles in nanometers."""
         raise AttributeError
 
     @property
-    @override
+    @override(DynamicsProperties.velocities)
     def velocities(self) -> Vector3Array:
         """Velocities of particles in nanometers per picosecond."""
         raise AttributeError
 
     @property
-    @override
+    @override(DynamicsProperties.forces)
     def forces(self) -> Vector3Array:
         """Forces on particles in kilojoules per mole per nanometer."""
         raise AttributeError
 
     @property
-    @override
+    @override(DynamicsProperties.masses)
     def masses(self) -> ScalarArray:
         """Masses of particles in daltons."""
         raise AttributeError
 
     @property
-    @override
+    @override(DynamicsProperties.kinetic_energy)
     def kinetic_energy(self) -> float:
         """Kinetic energy in kilojoules per mole."""
         raise AttributeError
 
     @property
-    @override
+    @override(DynamicsProperties.potential_energy)
     def potential_energy(self) -> float:
         """Potential energy in kilojoules per mole."""
         raise AttributeError

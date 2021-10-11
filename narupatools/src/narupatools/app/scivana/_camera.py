@@ -14,4 +14,3 @@ class CameraView(SharedStateObject):
     @properties.auto
     def display_name(self) -> str:
         """Display name of the camera."""
-

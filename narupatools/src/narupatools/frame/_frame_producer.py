@@ -170,7 +170,7 @@ class FrameProducer(Playable):
         self._is_dirty = True
         self._dirty_fields = self._dirty_fields | (self._fields & fields)
 
-    @override
+    @override(Playable._advance)
     def _advance(self) -> bool:
         if self._is_dirty or self._always_dirty:
             frame = self._produce(fields=self._dirty_fields)
@@ -179,6 +179,6 @@ class FrameProducer(Playable):
             self._dirty_fields = set()
         return True
 
-    @override
+    @override(Playable._restart)
     def _restart(self) -> None:
         self._dirty_fields = everything()

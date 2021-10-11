@@ -24,35 +24,48 @@ from narupatools.app.scivana import Renderer
 from narupatools.state import SharedStateObject
 
 
-class ParticleVisualiser(SharedStateObject):
+class ParticleVisualisation(SharedStateObject):
+    """Visualiation of a set of particles."""
+
     @properties.string
     def display_name(self) -> str:
-        pass
+        """User-facing display name."""
 
     @properties.auto
     def selection(self) -> Union[str, np.ndarray]:
-        pass
+        """
+        Selection to be visualised, as either a reference to a predefined selection or a list of particle ids.
+
+        If not set, all particles will be rendered.
+        """
 
     @properties.auto
     def renderer(self) -> Renderer:
-        pass
+        """Renderer to be used to render the system."""
 
     @properties.boolean
     def hide(self) -> bool:
-        pass
+        """Should the visualiser be hidden."""
 
     @properties.integer
     def layer(self) -> int:
-        pass
+        """Layer on which the visualisation should be shown."""
 
     @properties.number
     def priority(self) -> float:
-        pass
+        """Priority of the visualisation in its layer."""
 
     @properties.auto
     def frame(self) -> FrameData:
-        pass
+        """
+        Custom frame data to be used with the visualisaiton.
+
+        If extend is set to True, then this frame data is overlaid over the existing frame data.
+
+        If extend is set to False, then this frame data replaces the existing frame data. This is
+        to allow ghost atoms to be shown.
+        """
 
     @properties.boolean
     def extend(self) -> bool:
-        pass
+        """Should the additional frame data extend or replace the default?"""

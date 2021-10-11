@@ -40,7 +40,6 @@ from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLi
 from narupatools.physics.units import UnitsNarupa
 
 from ..core.dynamics import SimulationRotationProperties
-from ..frame.fields import ParticlePositions
 from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
@@ -161,7 +160,7 @@ class ASEDynamics(
         return ASEDynamics.from_ase_dynamics(dynamics)
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.imd)
     def imd(self) -> ASEIMDFeature:  # noqa:D102
         return self._imd
 
@@ -183,12 +182,12 @@ class ASEDynamics(
         """
         return self._dynamics
 
-    @override
+    @override(InteractiveSimulationDynamics._step_internal)
     def _step_internal(self) -> None:
         with self._atom_lock:
             self._dynamics.run(1)
 
-    @override
+    @override(InteractiveSimulationDynamics._reset_internal)
     def _reset_internal(self) -> None:
         with self._atom_lock:
             self.atoms.set_positions(self._initial_positions)
@@ -202,7 +201,7 @@ class ASEDynamics(
         self._initial_box = self.atoms.get_cell()
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.timestep)
     def timestep(self) -> float:  # noqa: D102
         return self.molecular_dynamics.dt * _ASEToNarupa.time
 
@@ -210,7 +209,7 @@ class ASEDynamics(
     def timestep(self, value: float) -> None:
         self.molecular_dynamics.dt = value * _NarupaToASE.time
 
-    @override
+    @override(InteractiveSimulationDynamics._get_frame)
     def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
         frame = FrameData()
         with self._atom_lock:
@@ -218,7 +217,7 @@ class ASEDynamics(
         return frame
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.positions)
     def positions(self) -> Vector3Array:  # noqa: D102
         return self.atoms.positions * _ASEToNarupa.length  # type: ignore
 
@@ -226,7 +225,7 @@ class ASEDynamics(
     def positions(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_positions(np.asfarray(value) * _NarupaToASE.length)
 
-    @override
+    @override(InteractiveSimulationDynamics.velocities)
     @property
     def velocities(self) -> Vector3Array:  # noqa: D102
         return self.atoms.get_velocities() * _ASEToNarupa.velocity  # type: ignore
@@ -235,28 +234,28 @@ class ASEDynamics(
     def velocities(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_velocities(np.asfarray(value) * _NarupaToASE.velocity)
 
-    @override
+    @override(InteractiveSimulationDynamics.forces)
     @property
     def forces(self) -> Vector3Array:  # noqa: D102
         return self.atoms.get_forces() * _ASEToNarupa.force  # type: ignore
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.masses)
     def masses(self) -> ScalarArray:  # noqa: D102
         return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.kinetic_energy)
     def kinetic_energy(self) -> float:  # noqa: D102
         return self.atoms.get_kinetic_energy() * _ASEToNarupa.energy
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.potential_energy)
     def potential_energy(self) -> float:  # noqa: D102
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
 
     @property
-    @override
+    @override(SimulationRotationProperties.orientations)
     def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
         return get_rotations(self.atoms)
 
@@ -265,7 +264,7 @@ class ASEDynamics(
         set_rotations(self.atoms, value)
 
     @property
-    @override
+    @override(SimulationRotationProperties.angular_momenta)
     def angular_momenta(self) -> Vector3Array:  # noqa: D102
         return get_angular_momenta(self.atoms) * _ASEToNarupa.angular_momentum
 
@@ -276,12 +275,12 @@ class ASEDynamics(
         )
 
     @property
-    @override
+    @override(SimulationRotationProperties.angular_velocities)
     def angular_velocities(self) -> Vector3Array:  # noqa: D102
         """Angular velocity of each particle abouts its center of mass, in radians per picoseconds."""
         return get_angular_velocities(self.atoms) * _ASEToNarupa.angular_velocity
 
-    @override
+    @override(SimulationRotationProperties.moments_of_inertia)
     @property
     def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
@@ -293,7 +292,7 @@ class ASEDynamics(
         )
 
     @property
-    @override
+    @override(SimulationRotationProperties.torques)
     def torques(self) -> Vector3Array:  # noqa: D102
         return get_torques(self.atoms) * _NarupaToASE.torque
 
@@ -306,11 +305,11 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         self.constraints: Dict[str, InteractionConstraint] = {}
 
     @property
-    @override
+    @override(InteractionFeature._system_size)
     def _system_size(self) -> int:
         return len(self.dynamics.atoms)
 
-    @override
+    @override(InteractionFeature.create_interaction)
     def create_interaction(  # noqa: D102
         self, *, key: str, interaction: InteractionParameters, start_time: float
     ) -> Interaction:
@@ -326,17 +325,9 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         self.dynamics.atoms.constraints.append(constraint)
         return instance
 
-    @override
+    @override(InteractionFeature.remove_interaction)
     def remove_interaction(self, key: str) -> Interaction:  # noqa: D102
         instance = super().remove_interaction(key)
         constraint = self.constraints[key]
         self.dynamics.atoms.constraints.remove(constraint)
         return instance
-
-    def mark_positions_dirty(self) -> None:
-        for constraint in self.constraints.values():
-            constraint.interaction.mark_positions_dirty()
-
-    def mark_velocities_dirty(self) -> None:
-        for constraint in self.constraints.values():
-            constraint.interaction.mark_velocities_dirty()

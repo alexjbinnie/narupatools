@@ -56,22 +56,22 @@ from narupatools.physics.typing import ScalarArray
 from narupatools.physics.units import UnitsNarupa
 from narupatools.util import atomic_numbers_to_symbols
 
-DEFAULT_OPENMM_STATE_PROPERTIES = frozenset((ParticlePositions.key, BoxVectors.key))
+DEFAULT_OPENMM_STATE_PROPERTIES = frozenset((ParticlePositions, BoxVectors))
 
 DEFAULT_OPENMM_TOPOLOGY_PROPERTIES = frozenset(
     (
-        ResidueNames.key,
-        ResidueChains.key,
-        ResidueCount.key,
-        ParticleCount.key,
-        ChainNames.key,
-        ChainCount.key,
-        ParticleNames.key,
-        ParticleElements.key,
-        ParticleResidues.key,
-        BondPairs.key,
-        BondCount.key,
-        BoxVectors.key,
+        ResidueNames,
+        ResidueChains,
+        ResidueCount,
+        ParticleCount,
+        ChainNames,
+        ChainCount,
+        ParticleNames,
+        ParticleElements,
+        ParticleResidues,
+        BondPairs,
+        BondCount,
+        BoxVectors,
     )
 )
 
@@ -88,7 +88,7 @@ class OpenMMConverter(FrameConverter):
     """Frame converter for the OpenMM package."""
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa:D102
         cls,
         object_: _TType,
@@ -108,7 +108,7 @@ class OpenMMConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa:D102
         cls,
         frame: FrameData,
@@ -130,7 +130,7 @@ def frame_to_openmm_system(frame: FrameData, /) -> System:
     :return: OpenMM system generated using masses.
     """
     system = System()
-    if ParticleMasses.key not in frame:
+    if ParticleMasses not in frame:
         raise ValueError("FrameData does not contain masses.")
     for mass in ParticleMasses.get(frame):
         system.addParticle(mass)
@@ -146,7 +146,7 @@ def frame_to_openmm_topology(frame: FrameData, /) -> Topology:
     """
     topology = Topology()
 
-    elements = ParticleElements.get(frame)
+    elements = frame[ParticleElements]
     residues = ParticleResidues.get_with_default(frame, itertools.repeat(0))
     resnames = ResidueNames.get_with_default(frame, itertools.repeat("Xxx"))
     names = ParticleNames.get_with_default(frame, atomic_numbers_to_symbols(elements))
@@ -205,8 +205,8 @@ def openmm_simulation_to_frame(
     else:
         frame = existing
 
-    if ParticleMasses.key in fields:
-        ParticleMasses.set(frame, get_openmm_masses(simulation))
+    if ParticleMasses in fields:
+        frame[ParticleMasses] = get_openmm_masses(simulation)
 
     openmm_topology_to_frame(simulation.topology, fields=fields, existing=frame)
     openmm_context_to_frame(simulation.context, fields=fields, existing=frame)
@@ -237,10 +237,10 @@ def openmm_context_to_frame(
     else:
         frame = existing
 
-    need_positions = ParticlePositions.key in fields
-    need_forces = ParticleForces.key in fields
-    need_velocities = ParticleVelocities.key in fields
-    need_energy = PotentialEnergy.key in fields
+    need_positions = ParticlePositions in fields
+    need_forces = ParticleForces in fields
+    need_velocities = ParticleVelocities in fields
+    need_energy = PotentialEnergy in fields
 
     state = context.getState(
         getPositions=need_positions,
@@ -273,30 +273,20 @@ def openmm_state_to_frame(
     else:
         frame = existing
 
-    if ParticlePositions.key in fields:
-        ParticlePositions.set(
-            frame, state.getPositions(asNumpy=True)._value * OpenMMToNarupa.length
-        )
-    if ParticleForces.key in fields:
-        ParticleForces.set(
-            frame, state.getForces(asNumpy=True)._value * OpenMMToNarupa.force
-        )
-    if ParticleVelocities.key in fields:
-        ParticleVelocities.set(
-            frame, state.getVelocities(asNumpy=True)._value * OpenMMToNarupa.velocity
-        )
+    if ParticlePositions in fields:
+        frame[ParticlePositions] = state.getPositions(asNumpy=True)._value * OpenMMToNarupa.length
 
-    if PotentialEnergy.key in fields:
-        PotentialEnergy.set(
-            frame, state.getPotentialEnergy()._value * OpenMMToNarupa.energy
-        )
+    if ParticleForces in fields:
+        frame[ParticleForces] = state.getForces(asNumpy=True)._value * OpenMMToNarupa.force
 
-    if BoxVectors.key in fields:
-        BoxVectors.set(
-            frame,
-            np.array(state.getPeriodicBoxVectors()._value, dtype=float)
-            * OpenMMToNarupa.length,
-        )
+    if ParticleVelocities in fields:
+        frame[ParticleVelocities] = state.getVelocities(asNumpy=True)._value * OpenMMToNarupa.velocity
+
+    if PotentialEnergy in fields:
+        frame[PotentialEnergy] = state.getPotentialEnergy()._value * OpenMMToNarupa.energy
+
+    if BoxVectors in fields:
+        frame[BoxVectors] = np.array(state.getPeriodicBoxVectors()._value, dtype=float) * OpenMMToNarupa.length
     return frame
 
 
@@ -321,26 +311,24 @@ def openmm_topology_to_frame(
     else:
         frame = existing
 
-    if ParticleCount.key in fields:
-        ParticleCount.set(frame, topology.getNumAtoms())
+    if ParticleCount in fields:
+        frame[ParticleCount] = topology.getNumAtoms()
 
     _get_openmm_topology_residue_info(topology, fields=fields, frame=frame)
 
-    if ChainNames.key in fields:
-        ChainNames.set(frame, [str(chain.id) for chain in topology.chains()])
-    if ChainCount.key in fields:
-        ChainCount.set(frame, topology.getNumChains())
+    if ChainNames in fields:
+        frame[ChainNames] = [str(chain.id) for chain in topology.chains()]
+    if ChainCount in fields:
+        frame[ChainCount] = topology.getNumChains()
 
     _get_openmm_topology_atom_info(topology, fields=fields, frame=frame)
 
     _get_openmm_topology_bonds(topology, fields=fields, frame=frame)
 
-    if BoxVectors.key in fields:
+    if BoxVectors in fields:
         box = topology.getPeriodicBoxVectors()
         if box is not None:
-            BoxVectors.set(
-                frame, np.array(box._value, dtype=float) * OpenMMToNarupa.length
-            )
+            frame[BoxVectors] = np.array(box._value, dtype=float) * OpenMMToNarupa.length
 
     return frame
 
@@ -348,22 +336,22 @@ def openmm_topology_to_frame(
 def _get_openmm_topology_bonds(
     topology: Topology, /, *, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
-    if BondPairs.key in fields:
+    if BondPairs in fields:
         bonds = []
         for bond in topology.bonds():
             bonds.append((bond[0].index, bond[1].index))
-        BondPairs.set(frame, bonds)
-    if BondCount.key in fields:
-        BondCount.set(frame, topology.getNumBonds())
+        frame[BondPairs] = bonds
+    if BondCount in fields:
+        frame[BondCount] = topology.getNumBonds()
 
 
 def _get_openmm_topology_atom_info(
     topology: Topology, /, *, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
     if (
-        ParticleNames.key in fields
-        or ParticleElements.key in fields
-        or ParticleResidues.key in fields
+        ParticleNames in fields
+        or ParticleElements in fields
+        or ParticleResidues in fields
     ):
 
         n = topology.getNumAtoms()
@@ -376,27 +364,25 @@ def _get_openmm_topology_atom_info(
             elements[i] = atom.element.atomic_number
             residue_indices[i] = atom.residue.index
 
-        if ParticleNames.key in fields:
-            ParticleNames.set(frame, atom_names)
-        if ParticleElements.key in fields:
-            ParticleElements.set(frame, elements)
-        if ParticleResidues.key in fields:
-            ParticleResidues.set(frame, residue_indices)
+        if ParticleNames in fields:
+            frame[ParticleNames] = atom_names
+        if ParticleElements in fields:
+            frame[ParticleElements] = elements
+        if ParticleResidues in fields:
+            frame[ParticleResidues] = residue_indices
 
 
 def _get_openmm_topology_residue_info(
     topology: Topology, /, *, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
-    if ResidueNames.key in fields:
-        ResidueNames.set(frame, [residue.name for residue in topology.residues()])
-    if ResidueIds.key in fields:
-        ResidueIds.set(frame, [residue.id for residue in topology.residues()])
-    if ResidueChains.key in fields:
-        ResidueChains.set(
-            frame, [residue.chain.index for residue in topology.residues()]
-        )
-    if ResidueCount.key in fields:
-        ResidueCount.set(frame, topology.getNumResidues())
+    if ResidueNames in fields:
+        frame[ResidueNames] = [residue.name for residue in topology.residues()]
+    if ResidueIds in fields:
+        frame[ResidueIds] = [residue.id for residue in topology.residues()]
+    if ResidueChains in fields:
+        frame[ResidueChains] = [residue.chain.index for residue in topology.residues()]
+    if ResidueCount in fields:
+        frame[ResidueCount] = topology.getNumResidues()
 
 
 def get_openmm_masses(simulation: Simulation) -> ScalarArray:

@@ -91,7 +91,7 @@ class RDKitConverter(FrameConverter):
     """Frame converter for the RDKit package."""
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
@@ -104,7 +104,7 @@ class RDKitConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls,
         object_: _TType,
@@ -145,7 +145,7 @@ def rdkit_mol_to_frame(
         )
 
     if ParticleMasses.key in fields:
-        ParticleMasses.set(frame, [atom.GetMass() for atom in mol.GetAtoms()])
+        frame[ParticleMasses] = [atom.GetMass() for atom in mol.GetAtoms()]
 
     if ParticleElements.key in fields:
         ParticleElements.set(
@@ -157,7 +157,7 @@ def rdkit_mol_to_frame(
     rdkit_res_number_to_index: Dict[int, int] = {}
 
     if atom_extra[0] is not None and ParticleNames.key in fields:
-        ParticleNames.set(frame, [atom.GetName() for atom in atom_extra])
+        frame[ParticleNames] = [atom.GetName() for atom in atom_extra]
 
     if atom_extra[0] is not None and (
         ParticleResidues.key in fields or ResidueNames.key in fields
@@ -174,9 +174,9 @@ def rdkit_mol_to_frame(
                 res_indices.append(res_index)
                 res_names.append(atom.GetResidueName())
         if ParticleResidues.key in fields:
-            ParticleResidues.set(frame, res_indices)
+            frame[ParticleResidues] = res_indices
         if ResidueNames.key in fields:
-            ResidueNames.set(frame, res_names)
+            frame[ResidueNames] = res_names
 
     if BondPairs.key in fields or BondTypes.key in fields:
         bonds = []
@@ -187,9 +187,9 @@ def rdkit_mol_to_frame(
             bonds.append([indices[id1], indices[id2]])
             types.append(_NT_BOND_TYPES.get(bond.GetBondType(), Chem.BondType.SINGLE))
         if BondPairs.key in fields:
-            BondPairs.set(frame, bonds)
+            frame[BondPairs] = bonds
         if BondTypes.key in fields:
-            BondTypes.set(frame, types)
+            frame[BondTypes] = types
 
     return frame
 

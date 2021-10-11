@@ -63,7 +63,7 @@ class Calculator(ASECalculator, metaclass=ABCMeta):
         :param atoms: Atoms object which has been assigned to this calculator.
         """
 
-    @override
+    @override(ASECalculator.calculate)
     @final
     def calculate(  # noqa: D102
         self,

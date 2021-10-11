@@ -125,7 +125,7 @@ class Event(EventListener, Generic[TEventCallback]):
                     signature(callback_type.__call__)
                 )
 
-    @override
+    @override(EventListener.add_callback)
     def add_callback(self, callback: TEventCallback, priority: float = 0) -> None:
         """
         Add a callback to this event.
@@ -159,7 +159,7 @@ class Event(EventListener, Generic[TEventCallback]):
             self._callbacks, key=attrgetter("priority"), reverse=True
         )
 
-    @override
+    @override(EventListener.remove_callback)
     def remove_callback(self, callback: TEventCallback) -> None:
         """
         Remove a callback from this event.

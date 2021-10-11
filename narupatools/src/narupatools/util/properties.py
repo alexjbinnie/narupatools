@@ -18,6 +18,7 @@
 
 """Generate properties without having to write getter and setter."""
 import collections
+import contextlib
 import typing
 from typing import Any, Callable, Optional, Tuple, TypeVar
 
@@ -159,10 +160,8 @@ def get_converter(annot):
                 if isinstance(value, arg):
                     return value
             for conv in converters:
-                try:
+                with contextlib.suppress(ValueError, TypeError):
                     return conv(value)
-                except (ValueError, TypeError):
-                    pass
             raise ValueError
 
         return to_union
@@ -170,6 +169,7 @@ def get_converter(annot):
 
 
 def auto(f: Callable) -> Any:
+    """Convert an empty annotated function into a property."""
     public_name = f.__name__
     private_name = "_value_" + f.__name__
 

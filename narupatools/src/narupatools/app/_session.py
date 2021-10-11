@@ -19,7 +19,6 @@
 from __future__ import annotations
 
 import time
-from abc import ABCMeta
 from contextlib import contextmanager
 from types import TracebackType
 from typing import (
@@ -49,7 +48,12 @@ from narupa.trajectory.frame_server import (
 from narupatools.core import Playable
 from narupatools.core.event import Event, EventListener
 from narupatools.core.health_check import HealthCheck
-from narupatools.frame import FrameProducer, FrameSource, FrameSourceWithNotify, OnFieldsChangedCallback
+from narupatools.frame import (
+    FrameProducer,
+    FrameSource,
+    FrameSourceWithNotify,
+    OnFieldsChangedCallback,
+)
 from narupatools.state.view import SharedStateServerWrapper
 
 from ..override import override
@@ -117,11 +121,15 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
     completely detached from the MD loop, and hence can be specified in real time.
     """
 
+    @override(FrameSourceWithNotify.on_fields_changed)
     @property
-    def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:
+    def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
         return self._on_fields_changed
 
-    def get_frame(self, *, fields: InfiniteSet[str] = everything()) -> FrameData:
+    @override(FrameSourceWithNotify.get_frame)
+    def get_frame(  # noqa: D102
+        self, *, fields: InfiniteSet[str] = everything()
+    ) -> FrameData:
         return FrameData(self._server.frame_publisher.last_frame)
 
     def __init__(
@@ -180,7 +188,9 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         """The last frame sent by the server."""
         return self._server.frame_publisher.last_frame  # type: ignore[no-any-return]
 
-    def _on_frame_produced(self, *, frame: FrameData, fields: InfiniteSet[str], **kwargs: Any) -> None:
+    def _on_frame_produced(
+        self, *, frame: FrameData, fields: InfiniteSet[str], **kwargs: Any
+    ) -> None:
         self._server.frame_publisher.send_frame(self.frame_index, frame)
         self.frame_index += 1
         self._on_fields_changed.invoke(fields=fields)
@@ -244,7 +254,9 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         if isinstance(self._target, Playable):
             self._target.stop(wait=True)
         if isinstance(self._target, FrameSourceWithNotify):
-            self._target.on_fields_changed.remove_callback(self._on_target_fields_changed)
+            self._target.on_fields_changed.remove_callback(
+                self._on_target_fields_changed
+            )
         if isinstance(self._target, Broadcastable):
             self._target.end_broadcast(self)
 
@@ -310,7 +322,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         self._frame_producer.stop(wait=True)
         self._server.close()
 
-    @override
+    @override(HealthCheck.health_check)
     def health_check(self) -> None:  # noqa: D102
         self._frame_producer.health_check()
         if isinstance(self._target, HealthCheck):

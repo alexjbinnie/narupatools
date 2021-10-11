@@ -49,8 +49,9 @@ from narupatools.frame.fields import (
     ParticleResidues,
     ParticleVelocities,
     PotentialEnergy,
+    ResidueChains,
     ResidueCount,
-    ResidueNames, ResidueChains,
+    ResidueNames,
 )
 from narupatools.frame.util import calculate_residue_entities
 from narupatools.mdanalysis import UnitsMDAnalysis
@@ -74,7 +75,7 @@ ASE_PROPERTIES = frozenset(
         ResidueCount,
         BondPairs,
         BondTypes,
-        ResidueChains
+        ResidueChains,
     )
 )
 
@@ -85,7 +86,7 @@ class ASEConverter(FrameConverter):
     """Converters for the ASE package."""
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls,
         object_: _TType,
@@ -99,7 +100,7 @@ class ASEConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
@@ -167,7 +168,9 @@ def frame_to_ase_atoms(
 
         if ResidueNames in fields and ResidueNames in frame:
             residue_names = ResidueNames.get(frame)
-            atoms.set_array("residuenames", np.array([residue_names[i] for i in particle_residues]))
+            atoms.set_array(
+                "residuenames", np.array([residue_names[i] for i in particle_residues])
+            )
 
     if ParticleNames in fields and ParticleNames in frame:
         atoms.set_array("atomtypes", np.array(ParticleNames.get(frame)))
@@ -199,18 +202,23 @@ def ase_atoms_to_frame(
     _add_ase_atoms_calculated_properties_to_frame(atoms, fields, frame)
 
     if BoxVectors in fields:
-        BoxVectors.set(frame, atoms.get_cell() * _ASEToNarupa.length)
+        frame[BoxVectors] = atoms.get_cell() * _ASEToNarupa.length
 
     if KineticEnergy in fields:
-        KineticEnergy.set(frame, atoms.get_kinetic_energy() * _ASEToNarupa.energy)
+        frame[KineticEnergy] = atoms.get_kinetic_energy() * _ASEToNarupa.energy
 
     _add_ase_bonds_to_frame(atoms, fields, frame)
 
-    if BondPairs in frame and ParticleResidues in frame and ResidueCount in frame and ResidueChains in fields:
+    if (
+        BondPairs in frame
+        and ParticleResidues in frame
+        and ResidueCount in frame
+        and ResidueChains in fields
+    ):
         frame[ResidueChains] = calculate_residue_entities(
             residue_count=frame[ResidueCount],
             particle_residues=frame[ParticleResidues],
-            bond_pairs=frame[BondPairs]
+            bond_pairs=frame[BondPairs],
         )
 
     return frame
@@ -220,29 +228,29 @@ def _add_ase_atoms_particles_to_frame(
     atoms: Atoms, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
     if ParticlePositions in fields:
-        ParticlePositions.set(frame, atoms.get_positions() * _ASEToNarupa.length)
+        frame[ParticlePositions] = atoms.get_positions() * _ASEToNarupa.length
 
     if ParticleCount in fields:
-        ParticleCount.set(frame, len(atoms))
+        frame[ParticleCount] = len(atoms)
 
     if ParticleElements in fields:
         elements = []
         for atom in atoms:
             elements.append(atom.number)
 
-        ParticleElements.set(frame, elements)
+        frame[ParticleElements] = elements
 
     if ParticleMasses in fields:
-        ParticleMasses.set(frame, atoms.get_masses())
+        frame[ParticleMasses] = atoms.get_masses()
 
     if ParticleVelocities in fields:
-        ParticleVelocities.set(frame, atoms.get_velocities() * _ASEToNarupa.velocity)
+        frame[ParticleVelocities] = atoms.get_velocities() * _ASEToNarupa.velocity
 
     if ParticleNames in fields:
         if "atomtypes" in atoms.arrays:
-            ParticleNames.set(frame, atoms.arrays["atomtypes"])
+            frame[ParticleNames] = atoms.arrays["atomtypes"]
         else:
-            ParticleNames.set(frame, list(atoms.symbols))
+            frame[ParticleNames] = list(atoms.symbols)
 
 
 def _add_ase_atoms_calculated_properties_to_frame(
@@ -252,14 +260,14 @@ def _add_ase_atoms_calculated_properties_to_frame(
         calc_charges = False
         if atoms.calc is not None:
             with contextlib.suppress(PropertyNotImplementedError):
-                ParticleCharges.set(frame, atoms.get_charges())
+                frame[ParticleCharges] = atoms.get_charges()
                 calc_charges = True
         if not calc_charges:
-            ParticleCharges.set(frame, atoms.get_initial_charges())
+            frame[ParticleCharges] = atoms.get_initial_charges()
 
     if ParticleForces in fields and atoms.calc is not None:
         with contextlib.suppress(PropertyNotImplementedError):
-            ParticleForces.set(frame, atoms.get_forces() * _ASEToNarupa.force)
+            frame[ParticleForces] = atoms.get_forces() * _ASEToNarupa.force
 
     if PotentialEnergy in fields and atoms.calc is not None:
         with suppress(PropertyNotImplementedError):
@@ -272,9 +280,7 @@ def _add_ase_atoms_residues_to_frame(
     atoms: Atoms, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
     if (
-        ResidueNames in fields
-        or ResidueCount in fields
-        or ParticleResidues in fields
+        ResidueNames in fields or ResidueCount in fields or ParticleResidues in fields
     ) and "residuenumbers" in atoms.arrays:
         segid_to_index: Dict[Any, int] = {}
         res_to_first_particle_index = []
@@ -301,7 +307,7 @@ def _add_ase_atoms_residues_to_frame(
             )
 
         if ResidueCount in fields and "residuenames" in atoms.arrays:
-            ResidueCount.set(frame, len(res_to_first_particle_index))
+            frame[ResidueCount] = len(res_to_first_particle_index)
 
 
 def _add_bonds_to_ase_atoms(
@@ -334,10 +340,10 @@ def _add_ase_bonds_to_frame(
         for index, atom_bonds in enumerate(atoms.get_array("bonds", copy=False)):
             for other in atom_bonds:
                 bonds.append([index, other])
-        BondPairs.set(frame, bonds)
+        frame[BondPairs] = bonds
     if BondTypes in fields and atoms.has("bond_types"):
         bond_types = []
         for types in atoms.get_array("bond_types", copy=False):
             for type_ in types:
                 bond_types.append(type_)
-        BondTypes.set(frame, bond_types)
+        frame[BondTypes] = bond_types

@@ -25,7 +25,12 @@ from infinite_sets import everything
 from MDAnalysis import Universe
 from narupa.utilities.change_buffers import DictionaryChange
 
-from narupatools.app.scivana import ParticleSelection, ParticleVisualiser, Renderer, CameraView
+from narupatools.app.scivana import (
+    CameraView,
+    ParticleSelection,
+    ParticleVisualisation,
+    Renderer,
+)
 from narupatools.core.event import Event, EventListener
 from narupatools.frame import FrameSource, convert
 from narupatools.imd.interactions import InteractionParameters
@@ -138,7 +143,6 @@ class SharedStateMixin(FrameSource, Protocol):
     @abstractmethod
     def shared_state(self) -> SessionSharedState:
         """View of the shared state."""
-        pass
 
     def create_selection(
         self,
@@ -177,7 +181,7 @@ class SharedStateMixin(FrameSource, Protocol):
         renderer: Renderer,
         layer: Optional[int] = None,
         priority: Optional[int] = None,
-    ) -> SharedStateReference[ParticleVisualiser]:
+    ) -> SharedStateReference[ParticleVisualisation]:
         """
         Create a new visualisation to draw atoms.
 
@@ -198,10 +202,10 @@ class SharedStateMixin(FrameSource, Protocol):
             selection = None
         else:
             selection = np.asarray(selection, dtype=int)
-        vis = ParticleVisualiser(
+        vis = ParticleVisualisation(
             selection=selection, renderer=renderer, layer=layer, priority=priority
         )
-        return self.visualisers.add(vis)
+        return self.visualisations.add(vis)
 
     @property
     def interactions(self) -> SharedStateCollectionView[InteractionParameters]:
@@ -214,9 +218,11 @@ class SharedStateMixin(FrameSource, Protocol):
         return self.shared_state.collection("selection.", ParticleSelection)
 
     @property
-    def visualisers(self) -> SharedStateCollectionView[ParticleVisualiser]:
-        return self.shared_state.collection("visualisation.", ParticleVisualiser)
+    def visualisations(self) -> SharedStateCollectionView[ParticleVisualisation]:
+        """View of the current visualisations."""
+        return self.shared_state.collection("visualisation.", ParticleVisualisation)
 
     @property
     def camera_views(self) -> SharedStateCollectionView[CameraView]:
+        """View of the current camera views."""
         return self.shared_state.collection("camera.", CameraView)

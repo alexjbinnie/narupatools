@@ -91,7 +91,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         self._center_of_mass_velocity_dirty = True
         self._angular_velocity_dirty = True
 
-    @override
+    @override(Interaction.update)
     def update(self, interaction: RigidMotionInteractionData) -> None:  # noqa: D102
         super().update(interaction)
         try:
@@ -150,6 +150,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
     @property
     def angular_velocity(self) -> np.ndarray:
+        """Angular velocity of selected particles."""
         if self._angular_velocity_dirty:
             self._angular_velocity = self._calculate_angular_velocity(
                 positions=self.dynamics.positions[self.particle_indices],
@@ -161,6 +162,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
     @property
     def center_of_mass(self) -> np.ndarray:
+        """Center of mass of selected particles."""
         if self._center_of_mass_dirty:
             self._center_of_mass = center_of_mass(
                 positions=self.dynamics.positions[self.particle_indices],
@@ -171,6 +173,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
     @property
     def center_of_mass_velocity(self) -> np.ndarray:
+        """Center of mass velocity of selected particles."""
         if self._center_of_mass_velocity_dirty:
             self._center_of_mass_velocity = center_of_mass_velocity(
                 velocities=self.dynamics.velocities[self.particle_indices],
@@ -179,10 +182,9 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             self._center_of_mass_velocity_dirty = False
         return self._center_of_mass_velocity
 
-    @override
+    @override(Interaction.calculate_forces_and_energy)
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
-        velocities = self.dynamics.velocities[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]
 
         k = self.scale
@@ -217,8 +219,6 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         self._forces = np.zeros((len(self), 3))
         self._torques = np.zeros((len(self), 3))
 
-        inertias = self._get_particle_inertias()
-
         self._forces = masses[:, np.newaxis] * (
             (positions - com) @ rotation_matrix.T + translation_vector
         )
@@ -236,13 +236,9 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         self._energy = 0.0
 
-    @override
+    @override(Interaction.on_post_step)
     def on_post_step(self, timestep: float, **kwargs: Any) -> None:  # noqa: D102
         super().on_post_step(timestep=timestep, **kwargs)
-
-        positions = self.dynamics.positions[self.particle_indices]
-        velocities = self.dynamics.velocities[self.particle_indices]
-        masses = self.dynamics.masses[self.particle_indices]
 
         ang_vel = self.angular_velocity
         center_velocity = self.center_of_mass_velocity
@@ -260,13 +256,15 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         feedback.accumulated_translation = self._accumulated_displacement
         return feedback
 
-    def mark_positions_dirty(self) -> None:
+    @override(Interaction.mark_positions_dirty)
+    def mark_positions_dirty(self) -> None:  # noqa: D102
         super().mark_positions_dirty()
         self._center_of_mass_dirty = True
         self._center_of_mass_velocity_dirty = True
         self._angular_velocity_dirty = True
 
-    def mark_velocities_dirty(self) -> None:
+    @override(Interaction.mark_velocities_dirty)
+    def mark_velocities_dirty(self) -> None:  # noqa: D102
         super().mark_velocities_dirty()
         self._center_of_mass_dirty = True
         self._center_of_mass_velocity_dirty = True

@@ -15,7 +15,6 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Patch to FrameData that allows copy() to work with empty arrays."""
-from collections import KeysView
 from typing import Any, Generator, Tuple, Union
 
 import numpy as np
@@ -25,7 +24,7 @@ from narupa.utilities.protobuf_utilities import value_to_object
 from narupatools.frame.fields import FrameKey, get_frame_key
 
 
-def _copy(self: FrameData) -> FrameData:
+def _copy(self: Any) -> FrameData:
     frame = FrameData()
     for key, value in self.raw.arrays.items():
         frame.raw.arrays[key].CopyFrom(value)
@@ -34,7 +33,7 @@ def _copy(self: FrameData) -> FrameData:
     return frame
 
 
-def _repr(self: FrameData) -> str:
+def _repr(self: Any) -> str:
     rep = "<NarupaFrame"
 
     for key, value in self.items():
@@ -45,19 +44,19 @@ def _repr(self: FrameData) -> str:
     return rep
 
 
-def _keys(self) -> Generator[str, None, None]:
+def _keys(self: Any) -> Generator[str, None, None]:
     """Iterate over the keys of the Frame."""
     yield from self.raw.values.keys()
     yield from self.raw.arrays.keys()
 
 
-def _items(self) -> Generator[Tuple[str, Any], None, None]:
+def _items(self: Any) -> Generator[Tuple[str, Any], None, None]:
     """Iterate over the keys and values of the Frame."""
     for key in self.keys():
         yield key, self[key]
 
 
-def _getitem(self, k: Union[str, FrameKey]) -> Any:
+def _getitem(self: Any, k: Union[str, FrameKey]) -> Any:
     if isinstance(k, FrameKey):
         return k.get(self)
     try:
@@ -76,7 +75,8 @@ def _getitem(self, k: Union[str, FrameKey]) -> Any:
                 return np.array(arr.ListFields()[0][1].values, dtype=object)
         raise KeyError from e
 
-def _setitem(self, key: Union[str, FrameKey], value: Any) -> None:
+
+def _setitem(self: Any, key: Union[str, FrameKey], value: Any) -> None:
     if isinstance(key, FrameKey):
         key.set(self, value)
         return
@@ -85,7 +85,8 @@ def _setitem(self, key: Union[str, FrameKey], value: Any) -> None:
     except KeyError:
         self._set_from_type(key, value)
 
-def _set_from_type(self, key: str, value: Any) -> None:
+
+def _set_from_type(self: Any, key: str, value: Any) -> None:
     if isinstance(value, str):
         self.set_string_value(key, value)
     elif isinstance(value, float):
@@ -105,7 +106,8 @@ def _set_from_type(self, key: str, value: Any) -> None:
     else:
         raise TypeError(f"Did not know how to serialize {value}.")
 
-def _contains(self, key: Any) -> bool:
+
+def _contains(self: Any, key: Any) -> bool:
     if isinstance(key, FrameKey):
         return key.key in self.arrays or key.key in self.values
     return key in self.arrays or key in self.values
@@ -119,9 +121,9 @@ def _print_value(value: Any) -> str:
 
 
 FrameData.copy = _copy  # type: ignore
-FrameData.__repr__ = _repr
-FrameData.keys = _keys
-FrameData.items = _items
-FrameData.__getitem__ = _getitem
-FrameData.__setitem__ = _setitem
-FrameData.__contains__ = _contains
+FrameData.__repr__ = _repr  # type: ignore
+FrameData.keys = _keys  # type: ignore
+FrameData.items = _items  # type: ignore
+FrameData.__getitem__ = _getitem  # type: ignore
+FrameData.__setitem__ = _setitem  # type: ignore
+FrameData.__contains__ = _contains  # type: ignore

@@ -25,9 +25,9 @@ if not __has_ngl:
 
 from ._client import show_client
 from ._dynamics import show_dynamics
+from ._session import show_session
 from ._show import show_ase, show_narupa, show_trajectory
 from ._structure import ASEStructure, FrameDataStructure
-from ._session import show_session
 
 __all__ = [
     "show_ase",

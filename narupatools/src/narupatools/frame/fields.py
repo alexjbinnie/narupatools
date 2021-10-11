@@ -16,8 +16,9 @@
 
 """Standard fields and their getters/setters for Narupa frames."""
 
+from __future__ import annotations
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Generic, Iterable, TypeVar, Union
+from typing import Dict, Generic, Iterable, TypeVar, Union, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -45,6 +46,7 @@ from typing_extensions import Final
 
 from narupatools.override import override
 from narupatools.util import atomic_numbers_to_masses
+
 from ._converter import convert
 
 PARTICLE_MASSES = "particle.masses"
@@ -102,7 +104,7 @@ def get_frame_key(key: str) -> "FrameKey":
 _TDefault = TypeVar("_TDefault")
 
 
-class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
+class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
     """
     Key that can be placed in a Narupa FrameData, such as positions or potential energy.
 
@@ -111,6 +113,10 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
     """
 
     key: Final[str]
+
+    def __new__(cls, key: str) -> FrameKey:
+        """New"""
+        return super().__new__(cls, key)
 
     def __init__(self, key: str):
         global _DEFINED_KEYS
@@ -140,7 +146,7 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         """
         raise KeyError
 
-    def get(self, frame_data: FrameData, /, *, calculate: bool = False) -> _TTo:
+    def get(self, frame_data: Any, /, *, calculate: bool = False) -> _TTo:
         """
         Get the value of the given frame data for this key.
 
@@ -158,7 +164,7 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         raise KeyError(f"Frame does not contain key {self.key}")
 
     def get_with_default(
-            self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
+        self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
     ) -> Union[_TTo, _TDefault]:
         """
         Get the value for this key, returning a default value if the key is absent.
@@ -172,10 +178,10 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         except KeyError:
             return default
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.key)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, FrameKey):
             return other.key == self.key
         if isinstance(other, str):
@@ -184,11 +190,11 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
 
 
 class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
-    @override
+    @override(FrameKey.set)
     def set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
         frame_data.set_float_array(self.key, value)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
@@ -196,14 +202,14 @@ class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
 
 class _ThreeByNFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
-    @override
+    @override(FrameKey.set)
     def set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
         array = _flatten_array(value)
         if len(array) % 3 > 0:
             raise TypeError(f"Cannot set {self.key} to array not divisible by 3.")
         frame_data.set_float_array(self.key, array)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
@@ -211,11 +217,11 @@ class _ThreeByNFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
 
 class _IntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
-    @override
+    @override(FrameKey.set)
     def set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
         frame_data.set_index_array(self.key, value)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
@@ -223,14 +229,14 @@ class _IntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
 
 
 class _TwoByNIntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
-    @override
+    @override(FrameKey.set)
     def set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
         array = _flatten_array(value)
         if len(array) % 2 > 0:
             raise TypeError(f"Cannot set {self.key} to array not divisible by 2.")
         frame_data.set_index_array(self.key, array)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
@@ -238,11 +244,11 @@ class _TwoByNIntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
 
 
 class _StringArrayKey(FrameKey[AssignableToStringArray, np.ndarray]):
-    @override
+    @override(FrameKey.set)
     def set(self, frame_data: FrameData, value: AssignableToStringArray) -> None:
         frame_data.set_string_array(self.key, value)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
@@ -250,11 +256,11 @@ class _StringArrayKey(FrameKey[AssignableToStringArray, np.ndarray]):
 
 
 class _IntegerKey(FrameKey[int, int]):
-    @override
+    @override(FrameKey.set)
     def set(self, frame_data: FrameData, value: int) -> None:
         frame_data.raw.values[self.key].number_value = value
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> int:
         if self.key not in frame_data.raw.values.keys():
             raise KeyError(f"{self.key} not present in FrameData")
@@ -262,11 +268,11 @@ class _IntegerKey(FrameKey[int, int]):
 
 
 class _FloatKey(FrameKey[float, float]):
-    @override
+    @override(FrameKey.set)
     def set(self, frame_data: FrameData, value: float) -> None:
         frame_data.raw.values[self.key].number_value = value
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> float:
         if self.key not in frame_data.raw.values.keys():
             raise KeyError(f"{self.key} not present in FrameData")
@@ -274,7 +280,7 @@ class _FloatKey(FrameKey[float, float]):
 
 
 class _ParticleMassesKey(_FloatArrayKey):
-    @override
+    @override(FrameKey._calculate)
     def _calculate(self, frame_data: FrameData, /) -> np.ndarray:
         elements = ParticleElements.get(frame_data)
         return atomic_numbers_to_masses(elements)
