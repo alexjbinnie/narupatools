@@ -18,7 +18,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
@@ -33,6 +33,7 @@ from narupatools.physics.typing import (
 )
 
 from ._simulation import LAMMPSSimulation
+from ..physics.units import UnitSystem
 
 
 class LAMMPSDynamics(InteractiveSimulationDynamics):
@@ -45,7 +46,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         :param simulation: LAMMPS simulation to run.
         :param playback_interval: Interval at which to run dynamics, in seconds.
         """
-        super().__init__(playback_interval=0.0)
+        super().__init__(playback_interval=playback_interval)
         self._simulation = simulation
         self._imd = LAMMPSIMDFeature(self)
         simulation.add_imd_force()
@@ -104,6 +105,21 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
     @property
     def potential_energy(self) -> float:  # noqa: D102
         return self._simulation.potential_energy
+
+    @classmethod
+    def from_file(cls, filename: str, units: Optional[UnitSystem] = None
+    ) -> LAMMPSDynamics:
+        """
+        Load LAMMPS simulation from a file.
+
+        This automatically runs the 'atom_modify map yes' command required to use atom
+        IDs and hence allow certain operations such as setting positions.
+        :param filename: Filename of LAMMPS input.
+        :param units: If the file uses LJ units, a UnitSystem must be provided.
+        :return: LAMMPS simulation based on file.
+        """
+        simulation = LAMMPSSimulation.from_file(filename, units)
+        return cls(simulation)
 
 
 class LAMMPSIMDFeature(SetAndClearInteractionFeature[LAMMPSDynamics]):

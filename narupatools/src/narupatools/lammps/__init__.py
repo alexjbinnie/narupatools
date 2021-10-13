@@ -25,8 +25,6 @@ has_lammps = importlib.util.find_spec("lammps") is not None
 if not has_lammps:
     raise ImportError("narupatools.lammps requires lammps to be installed.")
 
-from ._calculator import LAMMPSCalculator
-from ._converter import atoms_from_lammps_simulation
 from ._dynamics import LAMMPSDynamics
 from ._simulation import LAMMPSSimulation
 from ._units import (
@@ -49,10 +47,8 @@ __all__ = [
     "UnitsLAMMPSNano",
     "UnitsLAMMPSReal",
     "get_unit_system",
-    "LAMMPSCalculator",
     "LAMMPSSimulation",
     "LAMMPSError",
     "LAMMPSWarning",
     "LAMMPSDynamics",
-    "atoms_from_lammps_simulation",
 ]

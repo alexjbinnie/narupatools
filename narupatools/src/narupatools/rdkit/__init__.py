@@ -26,7 +26,10 @@ if not has_rdkit:
 from ._converter import frame_to_rdkit_mol, rdkit_mol_to_frame
 from ._units import UnitsRDKit
 
+from ._generate import generate_from_smiles
+
 __all__ = [
+    "generate_from_smiles",
     "frame_to_rdkit_mol",
     "rdkit_mol_to_frame",
     "UnitsRDKit",

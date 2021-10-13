@@ -22,7 +22,7 @@
 from simtk.openmm import CustomIntegrator
 
 
-def VelocityVerletIntegrator(timestep: float) -> CustomIntegrator:
+def VelocityVerletIntegrator(*, timestep: float) -> CustomIntegrator:
     """
     Velocity-verlet integrator, using RATTLE to implement constraints.
 

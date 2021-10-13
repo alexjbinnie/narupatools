@@ -1,26 +1,11 @@
-# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
-# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
-#
-# narupatools is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# narupatools is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
+from typing import Type, TypeVar
 
 import numpy as np
 import numpy.typing as npt
-from ase import Atoms
 from rdkit import Chem
 from rdkit.Chem import AllChem, CombineMols
-from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdShapeHelpers import ComputeConfDimsAndOffset
+from rdkit.Chem.rdchem import Mol
 from rdkit.Geometry import Point3D
 
 from narupatools.frame import convert
@@ -73,7 +58,9 @@ def _scatter_rectangles(rectangles: npt.ArrayLike) -> np.ndarray:
     return points - midpoint  # type: ignore
 
 
-def atoms_from_smiles(*smiles: str, add_hydrogens: bool = True) -> Atoms:
+_TType = TypeVar("_TType")
+
+def generate_from_smiles(*smiles: str, add_hydrogens: bool = True, output_type: Type[_TType] = Mol) -> _TType:
     """
     Generate an ASE Atoms object from a SMILES string.
 
@@ -122,13 +109,4 @@ def atoms_from_smiles(*smiles: str, add_hydrogens: bool = True) -> Atoms:
     Chem.SanitizeMol(mol)
     AllChem.UFFOptimizeMolecule(mol, ignoreInterfragInteractions=False, maxIters=100)
 
-    atoms = convert(mol, Atoms)
-
-    # Generate box containing the atoms
-    inset = 10
-    size, corner = ComputeConfDimsAndOffset(mol.GetConformer(0))
-    atoms.positions += -np.array(corner) + np.array([1, 1, 1]) * inset
-    box_size = size + np.array([1, 1, 1]) * inset * 2.0
-    atoms.set_cell(box_size)
-
-    return atoms
+    return convert(mol, output_type)

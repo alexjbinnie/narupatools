@@ -8,3 +8,5 @@ Frequently Asked Questions
    dynamics
    servers_clients
    ase
+   openmm
+   rdkit
