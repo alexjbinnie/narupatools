@@ -213,6 +213,8 @@ def ase_atoms_to_frame(
         BondPairs in frame
         and ParticleResidues in frame
         and ResidueCount in frame
+        and ResidueChains not in frame
+        and len(frame[BondPairs]) > 0
         and ResidueChains in fields
     ):
         frame[ResidueChains] = calculate_residue_entities(

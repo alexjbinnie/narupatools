@@ -100,11 +100,10 @@ class SharedStateObject(SerializableObject):
     def __init__(self, **kwargs: Serializable):
         self._arbitrary_data = {}
         for key, value in kwargs.items():
-            if value is None:
-                continue
             key = self._serializable_property_names.get(key, key)
             if key in self._serializable_properties:
-                self._serializable_properties[key].fset(self, value)  # type: ignore[misc]
+                if value is not None:
+                    self._serializable_properties[key].fset(self, value)  # type: ignore[misc]
             else:
                 self._arbitrary_data[key] = value
 

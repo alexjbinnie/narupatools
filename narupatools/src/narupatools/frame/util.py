@@ -11,6 +11,7 @@ def calculate_residue_entities(
 
     An entity is a set of one or more residues which are connected by bonds.
     """
+    assert len(bond_pairs) > 0
     entities = np.arange(residue_count)
     for pair in particle_residues[bond_pairs]:
         entities[pair.max()] = entities[pair.min()]

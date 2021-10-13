@@ -134,10 +134,10 @@ def spin_angular_momentum(
         )
     return (  # type: ignore
         np.cross(
-            positions - center_of_mass[..., np.newaxis, :],
-            velocities - center_of_mass_velocity[..., np.newaxis, :],
+            np.asfarray(positions) - center_of_mass[..., np.newaxis, :],
+            np.asfarray(velocities) - center_of_mass_velocity[..., np.newaxis, :],
         )
-        * masses[..., np.newaxis]
+        * np.asfarray(masses)[..., np.newaxis]
     ).sum(axis=-2)
 
 
@@ -273,6 +273,10 @@ def moment_of_inertia_tensor(
         origin = center_of_mass(masses=masses, positions=positions)
     else:
         origin = np.asfarray(origin)
+
+    positions = np.asfarray(positions)
+    masses = np.asfarray(masses)
+
     positions = positions - origin[..., np.newaxis, :]  # type: ignore
     return (masses * (positions ** 2).sum(-1)).sum(-1)[  # type: ignore
         ..., np.newaxis, np.newaxis

@@ -89,13 +89,13 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         velocity = force * elapsed_time / mass
         work = dot_product(force, position - vector(5, 5, 5))
         assert elapsed_time == pytest.approx(1)
-        assert dynamics.positions[0] == pytest.approx(position)
-        assert dynamics.velocities[0] == pytest.approx(velocity)
-        assert dynamics.imd.total_work == pytest.approx(work, rel=1e-3)
+        assert dynamics.positions[0] == pytest.approx(position, rel=5e-2)
+        assert dynamics.velocities[0] == pytest.approx(velocity, rel=5e-2)
+        assert dynamics.imd.total_work == pytest.approx(work, rel=5e-2)
         assert dynamics.kinetic_energy == pytest.approx(
-            0.5 * 12.0 * sqr_magnitude(velocity), rel=1e-3
+            0.5 * 12.0 * sqr_magnitude(velocity), rel=5e-2
         )
-        assert dynamics.potential_energy == pytest.approx(-dot_product(force, position))
+        assert dynamics.potential_energy == pytest.approx(-dot_product(force, position), rel=5e-2)
 
     @pytest.mark.parametrize(
         ("position", "velocity", "force"),
@@ -109,9 +109,10 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         dynamics.imd.add_interaction(constant_interaction(particles=[0], force=force))
         dynamics.run(1)
         assert dynamics.positions[0] == pytest.approx(
-            position + dt * velocity + 0.5 * dt * dt * acceleration
+            position + dt * velocity + 0.5 * dt * dt * acceleration,
+            abs=1e-2
         )
-        assert dynamics.velocities[0] == pytest.approx(velocity + dt * acceleration)
+        assert dynamics.velocities[0] == pytest.approx(velocity + dt * acceleration, rel=1e-3)
         dS = dt * velocity + 0.5 * dt * dt * acceleration
         assert dynamics.imd.total_work == pytest.approx(dot_product(force, dS))
 
@@ -160,7 +161,7 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
                 t = dynamics.timestep * 10
                 mass = dynamics.masses[0]
                 position = vector(5, 5, 5) + 0.5 / mass * t * t * force
-                assert dynamics.positions[0] == pytest.approx(position)
+                assert dynamics.positions[0] == pytest.approx(position, rel=1e-2)
 
                 client.stop_interaction(interaction_id)
 

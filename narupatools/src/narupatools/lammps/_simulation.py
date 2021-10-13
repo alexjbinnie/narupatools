@@ -177,7 +177,7 @@ class LAMMPSSimulation:
         return cls(lammps, units)
 
     def __len__(self) -> int:
-        return self.extract(SETTINGS.NumberAllAtoms)
+        return len(self.__lammps)
 
     def gather_atoms(
         self, atom_property: PROPERTIES.AtomProperty[_TReturnType]
@@ -551,7 +551,7 @@ class LAMMPSSimulation:
             prev_ids = set(self.gather_atoms(PROPERTIES.AtomID))  # type: ignore[arg-type]
         position = position * self._narupa_to_lammps.length
         command = (
-            f"create_atoms {type} single {position[0]} {position[1]} {position[2]}"
+            f"create_atoms {atom_type} single {position[0]} {position[1]} {position[2]}"
         )
         if rotation is not None:
             rot_vec = rotation.rotation_vector

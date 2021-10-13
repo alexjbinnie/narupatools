@@ -152,8 +152,6 @@ class InteractionFeature(Generic[TDynamics]):
     def total_work(self) -> float:
         """
         Total work performed by all active interactions, in kilojoules per mole.
-
-        This does not include interactions which have now finished.
         """
         total_work = [
             interaction.total_work for interaction in self.current_interactions.values()
@@ -187,7 +185,7 @@ class InteractionFeature(Generic[TDynamics]):
         return np.array(potential_energy).sum()  # type:ignore
 
     @property
-    def imd_forces(self) -> np.ndarray:
+    def forces(self) -> np.ndarray:
         """
         Total interactive forces from all active interactions.
 

@@ -6,6 +6,7 @@ import pytest
 
 from narupatools.app import Client, Session
 from narupatools.core import Playable
+from narupatools.util.timing import wait_for
 
 
 class TestPlayable(Playable):
@@ -13,7 +14,7 @@ class TestPlayable(Playable):
         pass
 
     def _advance(self) -> bool:
-        pass
+        return True
 
 
 @pytest.fixture
@@ -40,7 +41,7 @@ def test_session_autoplay():
     playable = TestPlayable()
     assert not playable.is_running
     session = Session(playable, port=0, run_discovery=False)
-    assert playable.is_running
+    wait_for(lambda: playable.is_running)
     session.close()
     playable.stop()
 

@@ -53,23 +53,20 @@ from narupatools.frame import (
     FrameSource,
     FrameSourceWithNotify,
     OnFieldsChangedCallback,
+    TrajectorySource,
+    TrajectoryPlayback,
 )
 from narupatools.state.view import SharedStateServerWrapper
+from ..core.dynamics import SimulationDynamics
 
 from ..override import override
 from ._shared_state import SessionSharedState, SharedStateMixin
 
-TTarget = TypeVar("TTarget")
 
-TTarget_Co = TypeVar("TTarget_Co", contravariant=True)
-
-
-class OnTargetChanged(Protocol[TTarget_Co]):
+class OnTargetChanged(Protocol):
     """Callback for when the target of a session is altered."""
 
-    def __call__(
-        self, target: Optional[TTarget_Co], previous_target: Optional[TTarget_Co]
-    ) -> None:
+    def __call__(self, target: Optional[Any], previous_target: Optional[Any]) -> None:
         """
         Called when the target of a session is altered.
 
@@ -102,7 +99,21 @@ class Broadcastable(Protocol):
         """
 
 
-class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTarget]):
+def _resolve_target(value: Any):
+    if isinstance(value, FrameSourceWithNotify):
+        return value
+    if isinstance(value, Playable):
+        return value
+    dynamics = SimulationDynamics.create_from_object(value)
+    if dynamics is not None:
+        return dynamics
+    traj_source = TrajectorySource.create_from_object(value)
+    if traj_source is not None:
+        return TrajectoryPlayback(traj_source)
+    return value
+
+
+class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
     """
     Generic Narupa server that can broadcast various objects.
 
@@ -133,7 +144,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         return FrameData(self._server.frame_publisher.last_frame)
 
     def __init__(
-        self, target: Optional[TTarget] = None, *, autoplay: bool = True, **kwargs: Any
+        self, target: Optional[Any] = None, *, autoplay: bool = True, **kwargs: Any
     ):
         """
         Create a session.
@@ -141,7 +152,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         :param autoplay: If the target is playable, should it be automatically started if its not running.
         :param kwargs: Parameters to initialise the server with.
         """
-        self._target: Optional[TTarget] = None
+        self._target: Optional[Any] = None
 
         self.frame_index = 0
         self._server = self._initialise_server(**kwargs)
@@ -170,7 +181,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         if target is not None:
             self.show(target)
 
-        if isinstance(target, Playable) and autoplay:
+        if isinstance(self.target, Playable) and autoplay:
             target.play()
 
     @property
@@ -231,7 +242,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         if isinstance(self._target, Playable):
             self._target.pause()
 
-    def show(self, target: TTarget, /) -> None:
+    def show(self, target: Any, /) -> None:
         """
         Broadcast an object, replacing the previous target if present.
 
@@ -245,12 +256,13 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         self._on_frame_produced(frame=frame, fields=everything())
 
     @property
-    def target(self) -> Optional[TTarget]:
+    def target(self) -> Optional[Any]:
         """Target which is being broadcast by this session."""
         return self._target
 
     @target.setter
-    def target(self, value: TTarget) -> None:
+    def target(self, value: Any) -> None:
+        value = _resolve_target(value)
         if isinstance(self._target, Playable):
             self._target.stop(wait=True)
         if isinstance(self._target, FrameSourceWithNotify):
@@ -294,7 +306,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck, Generic[TTar
         if isinstance(self._target, FrameSource):
             return self._target.get_frame(fields=fields)
         if isinstance(self._target, FrameData):
-            return self._target.copy()
+            return self._target.copy()  # type: ignore
         return FrameData()
 
     @staticmethod

@@ -52,6 +52,7 @@ Some code is originally part of the narupa python libraries, and is modified und
 .. toctree::
    :maxdepth: 2
 
+   FAQ <faq/faq>
    Concepts <concepts/concepts>
    Tutorials <tutorials/tutorials>
 

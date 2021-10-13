@@ -78,7 +78,7 @@ def test_translate_1(dynamics, methane_positions, translation):
     dynamics.imd.add_interaction(interaction)
     dynamics.run(500)
     assert dynamics.positions == pytest.approx(
-        Translation(translation) @ methane_positions
+        Translation(translation) @ methane_positions, rel=1e-1
     )
 
 

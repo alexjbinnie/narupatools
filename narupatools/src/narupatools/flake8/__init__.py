@@ -1,7 +1,7 @@
 """Narupatools flake8 plugin."""
 
 import ast
-from typing import Iterator, Any
+from typing import Any, Iterator
 
 
 class NarupatoolsFlake8Plugin:

@@ -35,12 +35,12 @@ def seed(request):
 
 @pytest.fixture
 def radius(seed):
-    return random_float(min=0.2, max=10.0)
+    return random_float(minimum=0.2, maximum=10.0)
 
 
 @pytest.fixture
 def timestep(seed):
-    return random_float(min=0.01, max=0.1)
+    return random_float(minimum=0.01, maximum=0.1)
 
 
 @pytest.fixture
@@ -60,13 +60,13 @@ def angular_momentum(seed):
 
 @pytest.fixture
 def mass(seed):
-    return random_float(min=0.1, max=10.0)
+    return random_float(minimum=0.1, maximum=10.0)
 
 
 @pytest.fixture
 def spherical_atom(seed, simulation, radius, mass, angular_momentum):
     atom = simulation.create_atom(
-        type=1, position=vector(0, 0, 0), rotation=Rotation.identity
+        atom_type=1, position=vector(0, 0, 0), rotation=Rotation.identity
     )
     atom.set_shape(shape=vector(1, 1, 1) * radius * 2.0)
     atom.set_peratom_mass(mass=mass)

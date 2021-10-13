@@ -596,6 +596,9 @@ class LAMMPSWrapper:
             raise InvalidThermoKeywordError(keyword)
         return value
 
+    def __len__(self):
+        return self.__lammps.get_natoms()
+
     def close(self) -> None:
         """Close the LAMMPS instance."""
         self.__pylammps.close()

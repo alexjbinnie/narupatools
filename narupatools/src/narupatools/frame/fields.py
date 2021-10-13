@@ -17,8 +17,9 @@
 """Standard fields and their getters/setters for Narupa frames."""
 
 from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Generic, Iterable, TypeVar, Union, Any
+from typing import Any, Dict, Generic, Iterable, TypeVar, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -114,8 +115,7 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
 
     key: Final[str]
 
-    def __new__(cls, key: str) -> FrameKey:
-        """New"""
+    def __new__(cls, key: str) -> FrameKey:  # noqa: D102
         return super().__new__(cls, key)
 
     def __init__(self, key: str):

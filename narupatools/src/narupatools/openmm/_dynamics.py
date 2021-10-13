@@ -177,6 +177,12 @@ class OpenMMDynamics(InteractiveSimulationDynamics):
         """
         return OpenMMDynamics(simulation)
 
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> OpenMMDynamics:
+        if isinstance(obj, Simulation):
+            return OpenMMDynamics.from_simulation(obj)
+        raise NotImplementedError
+
 
 def _get_or_create_imd_force(simulation: Simulation) -> CustomExternalForce:
     """Get a suitable force in an OpenMM simulation for IMD."""

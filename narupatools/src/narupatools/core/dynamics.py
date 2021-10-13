@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
-from typing import Optional, Protocol, Union
+from typing import Optional, Protocol, Union, List, Type, Any
 
 import numpy.typing as npt
 from infinite_sets import InfiniteSet, everything
@@ -142,6 +142,9 @@ class SimulationRotationProperties:
                  3-vectors.
         """
         raise AttributeError
+
+
+_DYNAMICS_SUBCLASSES: List[Type[SimulationDynamics]] = []
 
 
 class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
@@ -389,3 +392,31 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
     @property
     def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
         return self._on_fields_changed
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)  # type: ignore
+        if cls != SimulationDynamics:
+            _DYNAMICS_SUBCLASSES.append(cls)
+
+    @staticmethod
+    def create_from_object(obj: Any) -> Optional[SimulationDynamics]:
+        """Attempt to convert an arbitrary object to simulation dynamics."""
+        try:
+            return SimulationDynamics._create_from_object(obj)
+        except NotImplementedError:
+            return None
+
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> SimulationDynamics:
+        """
+        Attempt to convert an arbitrary object to a trajectory source.
+
+        Subclasses can override this to allow automatic conversion of objects to trajectory sources.
+        """
+        if cls == SimulationDynamics:
+            for subclass in _DYNAMICS_SUBCLASSES:
+                try:
+                    return subclass._create_from_object(obj)
+                except NotImplementedError:
+                    continue
+        raise NotImplementedError

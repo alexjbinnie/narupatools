@@ -23,9 +23,9 @@ from narupa.trajectory import FrameData
 
 from narupatools.frame import FrameConverter, convert
 
+from ..override import override
 from ._calculator import LAMMPSCalculator
 from ._simulation import LAMMPSSimulation
-from ..override import override
 
 _TType = TypeVar("_TType")
 

@@ -9,7 +9,6 @@ from narupatools.state.typing import Serializable
 from ._subgraph import SubgraphObject
 from ._typing import SingleColor
 
-
 # flake8: noqa
 
 

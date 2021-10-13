@@ -83,14 +83,14 @@ def _setitem(self: Any, key: Union[str, FrameKey], value: Any) -> None:
     try:
         get_frame_key(key).set(self, value)
     except KeyError:
-        self._set_from_type(key, value)
+        _set_from_type(self, key, value)
 
 
 def _set_from_type(self: Any, key: str, value: Any) -> None:
     if isinstance(value, str):
-        self.set_string_value(key, value)
+        self.raw.values[key].string_value = str(value)
     elif isinstance(value, float):
-        self.set_float_value(key, value)
+        self.raw.values[key].number_value = float(value)
     elif isinstance(value, np.ndarray):
         if value.dtype == float:
             self.set_float_array(key, value)

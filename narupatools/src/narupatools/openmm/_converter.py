@@ -274,19 +274,30 @@ def openmm_state_to_frame(
         frame = existing
 
     if ParticlePositions in fields:
-        frame[ParticlePositions] = state.getPositions(asNumpy=True)._value * OpenMMToNarupa.length
+        frame[ParticlePositions] = (
+            state.getPositions(asNumpy=True)._value * OpenMMToNarupa.length
+        )
 
     if ParticleForces in fields:
-        frame[ParticleForces] = state.getForces(asNumpy=True)._value * OpenMMToNarupa.force
+        frame[ParticleForces] = (
+            state.getForces(asNumpy=True)._value * OpenMMToNarupa.force
+        )
 
     if ParticleVelocities in fields:
-        frame[ParticleVelocities] = state.getVelocities(asNumpy=True)._value * OpenMMToNarupa.velocity
+        frame[ParticleVelocities] = (
+            state.getVelocities(asNumpy=True)._value * OpenMMToNarupa.velocity
+        )
 
     if PotentialEnergy in fields:
-        frame[PotentialEnergy] = state.getPotentialEnergy()._value * OpenMMToNarupa.energy
+        frame[PotentialEnergy] = (
+            state.getPotentialEnergy()._value * OpenMMToNarupa.energy
+        )
 
     if BoxVectors in fields:
-        frame[BoxVectors] = np.array(state.getPeriodicBoxVectors()._value, dtype=float) * OpenMMToNarupa.length
+        frame[BoxVectors] = (
+            np.array(state.getPeriodicBoxVectors()._value, dtype=float)
+            * OpenMMToNarupa.length
+        )
     return frame
 
 
@@ -328,7 +339,9 @@ def openmm_topology_to_frame(
     if BoxVectors in fields:
         box = topology.getPeriodicBoxVectors()
         if box is not None:
-            frame[BoxVectors] = np.array(box._value, dtype=float) * OpenMMToNarupa.length
+            frame[BoxVectors] = (
+                np.array(box._value, dtype=float) * OpenMMToNarupa.length
+            )
 
     return frame
 

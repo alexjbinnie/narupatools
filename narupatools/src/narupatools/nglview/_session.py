@@ -33,7 +33,7 @@ _PDB_FIELDS = {
 
 
 class _SessionWidget:
-    def __init__(self, session: Session, sync_camera=False):
+    def __init__(self, session: Session, sync_camera: bool = False):
         self.widget = NGLWidget()
         self.session = session
         frame = session.get_frame(fields=everything())

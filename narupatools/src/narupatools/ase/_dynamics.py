@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from threading import Lock
-from typing import Dict, Generic, TypeVar
+from typing import Dict, Generic, TypeVar, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -295,6 +295,12 @@ class ASEDynamics(
     @override(SimulationRotationProperties.torques)
     def torques(self) -> Vector3Array:  # noqa: D102
         return get_torques(self.atoms) * _NarupaToASE.torque
+
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> ASEDynamics:
+        if isinstance(obj, MolecularDynamics):
+            return ASEDynamics.from_ase_dynamics(obj)
+        raise NotImplementedError
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):
