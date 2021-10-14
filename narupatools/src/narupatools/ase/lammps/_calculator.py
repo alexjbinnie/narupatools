@@ -25,13 +25,8 @@ from ase.calculators.calculator import Calculator, all_changes
 
 from narupatools.ase import UnitsASE
 from narupatools.ase.constraints import ASEObserver
+from narupatools.lammps import LAMMPSSimulation
 from narupatools.physics.typing import Vector3Array
-from narupatools.physics.units import UnitsNarupa
-
-from ._simulation import LAMMPSSimulation
-
-_NarupaToASE = UnitsNarupa >> UnitsASE
-_ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
 class LAMMPSCalculator(Calculator):
@@ -51,6 +46,9 @@ class LAMMPSCalculator(Calculator):
         self._simulation = simulation
         self._lammps_lock = Lock()
         self._atoms = atoms
+
+        self._LAMMPSToASE = self._simulation.unit_system >> UnitsASE
+        self._ASEToLAMMPS = UnitsASE >> self._simulation.unit_system
 
         if atoms is not None:
             _position_observer = ASEObserver.get_or_create(atoms)
@@ -102,16 +100,16 @@ class LAMMPSCalculator(Calculator):
         self._positions_dirty = True
 
     def _extract_potential_energy(self) -> float:
-        return self._simulation.potential_energy * _NarupaToASE.energy
+        return self._simulation.potential_energy * self._LAMMPSToASE.energy
 
     def _set_positions(self, positions: Vector3Array) -> None:
-        self._simulation.positions = positions * _ASEToNarupa.length
+        self._simulation.positions = positions * self._ASEToLAMMPS.length
 
     def _set_velocities(self, velocities: Vector3Array) -> None:
-        self._simulation.velocities = velocities * _ASEToNarupa.velocity
+        self._simulation.velocities = velocities * self._ASEToLAMMPS.velocity
 
     def _run_system(self) -> None:
         self._simulation.run(0)
 
     def _extract_forces(self) -> Vector3Array:
-        return self._simulation.forces * _NarupaToASE.force
+        return self._simulation.forces * self._LAMMPSToASE.force

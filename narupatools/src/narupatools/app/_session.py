@@ -53,12 +53,12 @@ from narupatools.frame import (
     FrameSource,
     FrameSourceWithNotify,
     OnFieldsChangedCallback,
-    TrajectorySource,
     TrajectoryPlayback,
+    TrajectorySource,
 )
 from narupatools.state.view import SharedStateServerWrapper
-from ..core.dynamics import SimulationDynamics
 
+from ..core.dynamics import SimulationDynamics
 from ..override import override
 from ._shared_state import SessionSharedState, SharedStateMixin
 

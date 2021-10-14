@@ -20,7 +20,7 @@ The method :obj:`narupatools.lammps.LAMMPSDynamics.from_file` can be used direct
 ... create a new simulation from scratch?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To create a new LAMMPS simulation from scratch, use the :obj:`narupatools.lammps.LAMMPSSimulation.create_new`. You must provide what unit system to use, which may be one of the options provided `here <https://docs.lammps.org/units.html>`_. If you want to use "lj" units, then instead of specifying "lj" you must pass in a custom :obj:`narupatools.core.UnitSystem`. This is because "lj" is unitless, and narupatools needs to be told how to convert units to and from actual narupatools units.
+To create a new LAMMPS simulation from scratch, use the :obj:`narupatools.lammps.LAMMPSSimulation.create_new`. You must provide what unit system to use, which may be one of the options provided `here <https://docs.lammps.org/units.html>`_. If you want to use "lj" units, then instead of specifying "lj" you must pass in a custom :obj:`narupatools.physics.units.UnitSystem`. This is because "lj" is unitless, and narupatools needs to be told how to convert units to and from actual narupa units.
 
 ... handle a specific LAMMPS error or warning?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -30,7 +30,7 @@ LAMMPS normally just throws generic exceptions, or worst prints them to the outp
 ... gather all of a specific atom property?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Gathering collects a value for each atom across all processors and returns them as an array ordered by atom ID. This can be done using the :obj:`~narupatools.lammps.LAMMPSSimulation.gather_atoms` method, providing one of the predefine atom properties found in :obj:`narupatools.lammps.atom_properties`, such as :obj:`~narupatools.lammps.atom_properties.Position` or :obj:`~narupatools.lammps.atom_properties.Velocity`. Note that this **does not** convert it to narupatools units.
+Gathering collects a value for each atom across all processors and returns them as an array ordered by atom ID. This can be done using the :obj:`~narupatools.lammps.LAMMPSSimulation.gather_atoms` method, providing one of the predefine atom properties found in :obj:`narupatools.lammps.atom_properties`, such as :obj:`~narupatools.lammps.atom_properties.Position` or :obj:`~narupatools.lammps.atom_properties.Velocity`. Note that these values will be in LAMMPS units, **not** narupa units.
 
 ... run LAMMPS through ASE?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

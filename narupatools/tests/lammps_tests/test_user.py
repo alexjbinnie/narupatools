@@ -19,11 +19,8 @@ import pytest
 lammps = pytest.importorskip("lammps")
 
 from narupatools.ase import ASEDynamics
-from narupatools.lammps import (
-    LAMMPSDynamics,
-    LAMMPSSimulation,
-    atoms_from_lammps_simulation,
-)
+from narupatools.ase.lammps import atoms_from_lammps_simulation
+from narupatools.lammps import LAMMPSDynamics, LAMMPSSimulation
 
 
 def test_ase_lammps():

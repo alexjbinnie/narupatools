@@ -37,6 +37,7 @@ from ._units import (
     UnitsLAMMPSSI,
     get_unit_system,
 )
+from ._converter import *
 
 __all__ = [
     "UnitsLAMMPSCGS",

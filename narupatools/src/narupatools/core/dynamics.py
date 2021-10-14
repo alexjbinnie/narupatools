@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
-from typing import Optional, Protocol, Union, List, Type, Any
+from typing import Any, List, Optional, Protocol, Type, Union
 
 import numpy.typing as npt
 from infinite_sets import InfiniteSet, everything

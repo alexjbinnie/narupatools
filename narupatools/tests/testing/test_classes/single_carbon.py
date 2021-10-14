@@ -50,8 +50,8 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         dynamics.positions = np.array([position])
         dynamics.velocities = np.array([velocity])
         dynamics.run(1)
-        assert dynamics.positions[0] == pytest.approx(position + 0.01 * velocity)
-        assert dynamics.velocities[0] == pytest.approx(velocity)
+        assert dynamics.positions[0] == pytest.approx(position + 0.01 * velocity, 1e-2)
+        assert dynamics.velocities[0] == pytest.approx(velocity, 1e-2)
         assert dynamics.kinetic_energy == pytest.approx(
             0.5 * 12.0 * sqr_magnitude(velocity)
         )
@@ -61,6 +61,9 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         assert dynamics.kinetic_energy == pytest.approx(
             0.5 * 12.0 * sqr_magnitude(velocity)
         )
+
+    def test_timestep(self, dynamics):
+        assert dynamics.timestep == 0.01
 
     def test_stationary(self, dynamics):
         assert dynamics.positions[0] == pytest.approx(vector(5, 5, 5))
@@ -95,7 +98,9 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         assert dynamics.kinetic_energy == pytest.approx(
             0.5 * 12.0 * sqr_magnitude(velocity), rel=5e-2
         )
-        assert dynamics.potential_energy == pytest.approx(-dot_product(force, position), rel=5e-2)
+        assert dynamics.potential_energy == pytest.approx(
+            -dot_product(force, position), rel=5e-2
+        )
 
     @pytest.mark.parametrize(
         ("position", "velocity", "force"),
@@ -107,13 +112,15 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         dt = 0.01
         acceleration = force / dynamics.masses[0]
         dynamics.imd.add_interaction(constant_interaction(particles=[0], force=force))
-        dynamics.run(1)
+        dynamics.run(10)
+        time = dt * 10
         assert dynamics.positions[0] == pytest.approx(
-            position + dt * velocity + 0.5 * dt * dt * acceleration,
-            abs=1e-2
+            position + time * velocity + 0.5 * time * time * acceleration, abs=1e-2
         )
-        assert dynamics.velocities[0] == pytest.approx(velocity + dt * acceleration, rel=1e-3)
-        dS = dt * velocity + 0.5 * dt * dt * acceleration
+        assert dynamics.velocities[0] == pytest.approx(
+            velocity + time * acceleration, rel=1e-2
+        )
+        dS = time * velocity + 0.5 * time * time * acceleration
         assert dynamics.imd.total_work == pytest.approx(dot_product(force, dS))
 
     def test_get_frame(self, dynamics):

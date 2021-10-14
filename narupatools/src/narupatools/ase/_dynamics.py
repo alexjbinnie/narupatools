@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from threading import Lock
-from typing import Dict, Generic, TypeVar, Any
+from typing import Any, Dict, Generic, TypeVar
 
 import numpy as np
 import numpy.typing as npt

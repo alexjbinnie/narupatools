@@ -1,8 +1,9 @@
 from ase import Atoms
 
-from ._calculator import LAMMPSCalculator
 from narupatools.frame import convert
 from narupatools.lammps import LAMMPSSimulation
+
+from ._calculator import LAMMPSCalculator
 
 
 def atoms_from_lammps_simulation(simulation: LAMMPSSimulation) -> Atoms:
@@ -16,3 +17,6 @@ def atoms_from_lammps_simulation(simulation: LAMMPSSimulation) -> Atoms:
     calc = LAMMPSCalculator(simulation, atoms)
     atoms.set_calculator(calc)
     return atoms
+
+
+__all__ = ["atoms_from_lammps_simulation", "LAMMPSCalculator"]

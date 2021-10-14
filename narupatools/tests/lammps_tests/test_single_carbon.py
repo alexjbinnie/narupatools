@@ -22,11 +22,8 @@ lammps = pytest.importorskip("lammps")
 from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE
-from narupatools.lammps import (
-    LAMMPSDynamics,
-    LAMMPSSimulation,
-    atoms_from_lammps_simulation,
-)
+from narupatools.ase.lammps import atoms_from_lammps_simulation
+from narupatools.lammps import LAMMPSDynamics, LAMMPSSimulation
 from narupatools.lammps.regions import Box
 from narupatools.physics.units import UnitsNarupa
 from narupatools.physics.vector import vector
@@ -36,7 +33,7 @@ _NarupaToASE = UnitsNarupa >> UnitsASE
 
 @pytest.fixture
 def single_carbon_verlet_simulation():
-    simulation = LAMMPSSimulation.create_new("real")
+    simulation = LAMMPSSimulation.create_new(UnitsNarupa)
     simulation.command("atom_style atomic")
     simulation.command("boundary s s s")
     simulation.create_box(1, Box.bounds(vector(0, 0, 0), vector(10, 10, 10)))

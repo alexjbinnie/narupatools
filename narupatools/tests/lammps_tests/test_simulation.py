@@ -34,7 +34,7 @@ def simulation_dynamic():
 
 
 def test_energy(simulation):
-    assert simulation.potential_energy == pytest.approx(-26662.02362458588)
+    assert simulation.potential_energy == pytest.approx(-6372.37658)
 
 
 def test_temperature(simulation):
@@ -44,7 +44,7 @@ def test_temperature(simulation):
 def test_positions(simulation):
     assert len(simulation.positions) == 2004
     assert simulation.positions[0] == pytest.approx(
-        np.array([4.399993, 5.852678, 3.67855])
+        np.array([43.99993, 58.52678, 36.7855])
     )
 
 

@@ -74,21 +74,21 @@ class LAMMPSSimulation:
                 raise ValueError(
                     "LAMMPS simulation uses 'lj' units but no UnitSystem provided."
                 )
-            unit_system = units
+            self.unit_system = units
         else:
             if units is not None:
                 raise ValueError(
                     "LAMMPS simulation does not use 'lj' units but UnitSystem provided."
                 )
-            unit_system = get_unit_system(unit_str)
-        self._lammps_to_narupa = unit_system >> UnitsNarupa
-        self._narupa_to_lammps = UnitsNarupa >> unit_system
+            self.unit_system = get_unit_system(unit_str)
+        self._lammps_to_narupa = self.unit_system >> UnitsNarupa
+        self._narupa_to_lammps = UnitsNarupa >> self.unit_system
         self.indexing = LAMMPSIndexing(self)
         self.bond_compute: Optional[COMPUTES.ComputeReference] = None
 
         self._needs_pre_run = True
 
-        self.mass_compute = COMPUTES.AtomProperty(
+        self._mass_compute = COMPUTES.AtomProperty(
             self.__lammps,
             compute_id="mass",
             properties=["mass"],
@@ -218,24 +218,24 @@ class LAMMPSSimulation:
     @property
     def potential_energy(self) -> float:
         """
-        Potential energy of the system in kilojoules per mole.
+        Potential energy of the system in current LAMMPS units.
 
         The potential energy is computed using the 'thermo_pe' compute which is added to
         all LAMMPS simulations automatically. This uses the 'pe' compute style which
         includes contributions from pairs, bonds, angles, dihedrals, impropers, kspace
         and various fixes.
         """
-        return self._potential_energy_compute.extract() * self._lammps_to_narupa.energy
+        return self._potential_energy_compute.extract()
 
     @property
     def kinetic_energy(self) -> float:
-        """Kinetic energy of the system in kilojoules per mole."""
-        return self._kinetic_energy_compute.extract() * self._lammps_to_narupa.energy
+        """Kinetic energy of the system in current LAMMPS units."""
+        return self._kinetic_energy_compute.extract()
 
     @property
     def temperature(self) -> float:
         r"""
-        Temperature of the system in kelvin.
+        Temperature of the system in current LAMMPS units.
 
         The temperature is computed using the 'thermo_temp' compute which is added to
         all LAMMPS simulations automatically. This uses the 'temp' compute style which
@@ -249,17 +249,17 @@ class LAMMPSSimulation:
 
         This removes degrees of freedom due to other fixes that limit molecular motion.
         """
-        return self._temperature_compute.extract() * self._lammps_to_narupa.temperature
+        return self._temperature_compute.extract()
 
     @property
     def pressure(self) -> float:
-        """Pressure of the system in kilojoules per nanometers cubed."""
-        return self._pressure_compute.extract() * self._lammps_to_narupa.pressure
+        """Pressure of the system in current LAMMPS units."""
+        return self._pressure_compute.extract()
 
     @property
     def forces(self) -> npt.NDArray[np.float64]:
-        """Forces on each atom in kilojoules per mole per nanometer."""
-        return self.gather_atoms(PROPERTIES.Force) * self._lammps_to_narupa.force.value
+        """Forces on each atom in current LAMMPS units."""
+        return self.gather_atoms(PROPERTIES.Force)
 
     @property
     def atom_ids(self) -> npt.NDArray[np.int64]:
@@ -268,43 +268,34 @@ class LAMMPSSimulation:
 
     @property
     def charges(self) -> npt.NDArray[np.float64]:
-        """Charge of each atom in elementary charges."""
+        """Charge of each atom in current LAMMPS units."""
         try:
-            return (
-                self.gather_atoms(PROPERTIES.Charge)
-                * self._lammps_to_narupa.charge.value
-            )
+            return self.gather_atoms(PROPERTIES.Charge)
         except UnknownAtomPropertyError as e:
             raise AttributeError from e
 
     @property
     def masses(self) -> npt.NDArray[np.float64]:
-        """Masses of each atom in daltons."""
-        return self.mass_compute.gather() * self._lammps_to_narupa.mass.value
+        """Masses of each atom in current LAMMPS units."""
+        return self._mass_compute.gather()
 
     @property
     def positions(self) -> npt.NDArray[np.float64]:
-        """Positions of each atom in nanometers."""
-        return (
-            self.gather_atoms(PROPERTIES.Position) * self._lammps_to_narupa.length.value
-        )
+        """Positions of each atom in current LAMMPS units."""
+        return self.gather_atoms(PROPERTIES.Position)
 
     @positions.setter
     def positions(self, positions: np.ndarray) -> None:
-        self.scatter_atoms(
-            PROPERTIES.Position, positions * self._narupa_to_lammps.length
-        )
+        self.scatter_atoms(PROPERTIES.Position, positions)
 
     @property
     def velocities(self) -> npt.NDArray[np.float64]:
-        """Velocities of each atom in nanometers per picoseconds."""
-        return self.gather_atoms(PROPERTIES.Velocity) * self._lammps_to_narupa.velocity
+        """Velocities of each atom in current LAMMPS units."""
+        return self.gather_atoms(PROPERTIES.Velocity)
 
     @velocities.setter
     def velocities(self, velocities: np.ndarray) -> None:
-        self.scatter_atoms(
-            PROPERTIES.Velocity, velocities * self._narupa_to_lammps.velocity
-        )
+        self.scatter_atoms(PROPERTIES.Velocity, velocities)
 
     @property
     def orientations(self) -> npt.NDArray[quaternion.quaternion]:
@@ -334,7 +325,7 @@ class LAMMPSSimulation:
                 properties=["shapex", "shapey", "shapez"],
                 datatype=VariableType.DOUBLE,
             )
-        return self._shape_compute.gather() * self._lammps_to_narupa.length
+        return self._shape_compute.gather()
 
     @property
     def angular_momenta(self) -> npt.NDArray[np.float64]:
@@ -350,7 +341,7 @@ class LAMMPSSimulation:
                 properties=["angmomx", "angmomy", "angmomz"],
                 datatype=VariableType.DOUBLE,
             )
-        return self._angmom_compute.gather() * self._lammps_to_narupa.angular_momentum
+        return self._angmom_compute.gather()
 
     @property
     def bond_energies(self) -> npt.NDArray[np.float64]:
@@ -359,7 +350,7 @@ class LAMMPSSimulation:
             self._bond_energy_compute = COMPUTES.BondLocal(
                 self.__lammps, compute_id="bond_energy", properties=["engpot"]
             )
-        return self._bond_energy_compute.extract() * self._lammps_to_narupa.energy
+        return self._bond_energy_compute.extract()
 
     @staticmethod
     def _inject_python_function(func: Any) -> str:
@@ -381,9 +372,7 @@ class LAMMPSSimulation:
         This needs to be called when forces are recalculated.
         """
         if self._imd_torques is not None:
-            self.scatter_atoms(
-                PROPERTIES.Torque, self._imd_torques * self._narupa_to_lammps.torque
-            )
+            self.scatter_atoms(PROPERTIES.Torque, self._imd_torques)
 
     def _update_forces(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -394,7 +383,7 @@ class LAMMPSSimulation:
         if self._imd_forces is not None:
             self.scatter_atoms(
                 PROPERTIES.Force,
-                (self.forces + self._imd_forces) * self._narupa_to_lammps.force,
+                (self.forces + self._imd_forces),
             )
 
     def add_imd_torque(self) -> None:
@@ -478,22 +467,28 @@ class LAMMPSSimulation:
         if ParticleCount in fields:
             frame[ParticleCount] = len(self)
         if ParticlePositions in fields:
-            frame[ParticlePositions] = self.positions
+            frame[ParticlePositions] = self.positions * self._lammps_to_narupa.length
         if ParticleVelocities in fields:
-            frame[ParticleVelocities] = self.velocities
+            frame[ParticleVelocities] = (
+                self.velocities * self._lammps_to_narupa.velocity
+            )
         if ParticleMasses in fields:
-            frame[ParticleMasses] = self.masses
+            frame[ParticleMasses] = self.masses * self._lammps_to_narupa.mass
         if ParticleElements in fields:
-            elements = np.vectorize(mass_to_element)(self.masses)
+            elements = np.vectorize(mass_to_element)(
+                self.masses * self._lammps_to_narupa.mass
+            )
             if not np.any(np.equal(elements, None)):  # type: ignore[call-overload]
                 frame[ParticleElements] = elements
         if ParticleCharges in fields:
             with contextlib.suppress(AttributeError):
-                frame[ParticleCharges] = self.charges
+                frame[ParticleCharges] = self.charges * self._lammps_to_narupa.charge
         if ParticleForces in fields:
-            frame[ParticleForces] = self.forces
+            frame[ParticleForces] = self.forces * self._lammps_to_narupa.force
         if PotentialEnergy in fields:
-            frame[PotentialEnergy] = self.potential_energy
+            frame[PotentialEnergy] = (
+                self.potential_energy * self._lammps_to_narupa.energy
+            )
 
         if BondPairs in fields and self[SETTINGS.AtomStylesIncludesMolecularTopology]:
             self.indexing.recompute()
@@ -527,12 +522,12 @@ class LAMMPSSimulation:
 
     @property
     def timestep(self) -> float:
-        """Timestep of the simulation in picoseconds."""
-        return self.extract(GLOBALS.TimestepLength) * self._lammps_to_narupa.time
+        """Timestep of the simulation in current LAMMPS units."""
+        return self.extract(GLOBALS.TimestepLength)
 
     @timestep.setter
     def timestep(self, value: float) -> None:
-        self.command(f"timestep {value * self._narupa_to_lammps.time}")
+        self.command(f"timestep {value}")
         self._timestep = None
 
     def create_atom(
@@ -542,14 +537,14 @@ class LAMMPSSimulation:
         Insert an atom into the simulation.
 
         :param atom_type: Type of the atom to insert.
-        :param position: Position of the atom in nanometers.
+        :param position: Position of the atom in current LAMMPS units.
         :param rotation: Initial rotation of the atom.
         """
         if len(self) == 0:
             prev_ids: Set[np.int64] = set()
         else:
             prev_ids = set(self.gather_atoms(PROPERTIES.AtomID))  # type: ignore[arg-type]
-        position = position * self._narupa_to_lammps.length
+        position = position
         command = (
             f"create_atoms {atom_type} single {position[0]} {position[1]} {position[2]}"
         )
@@ -578,9 +573,7 @@ class LAMMPSSimulation:
         """
         if region_id is None:
             region_id = self.__lammps.regions.generate_id()
-        self.command(
-            f"region {region_id} {region.style} {region.args(self._narupa_to_lammps)}"
-        )
+        self.command(f"region {region_id} {region.style} {region.args}")
         return Region(self, region_id, region)
 
     def create_box(
@@ -603,12 +596,10 @@ class LAMMPSSimulation:
         """
         Setup a Langevin thermostat.
 
-        :param temperature: Temperature in kelvin
-        :param friction: Friction of the thermostat in inverse picoseconds.
+        :param temperature: Temperature in LAMMPS units
+        :param friction: Friction of the thermostat in LAMMPS units.
         :param seed: Seed to use for random number generation.
         """
-        temperature *= self._narupa_to_lammps.temperature
-        friction /= self._narupa_to_lammps.time
         self.command(
             f"fix langevin all langevin {temperature} {temperature} {1.0 / friction} "
             f"{seed}"
@@ -783,29 +774,24 @@ class AtomSetReference(metaclass=ABCMeta):
         """
         Set the shape of the given atom(s).
 
-        :param shape: Shape in nanometers.
+        :param shape: Shape in LAMMPS units.
         """
-        shape = shape * self._simulation._narupa_to_lammps.length
         self._set(f"shape {shape[0]} {shape[1]} {shape[2]}")
 
     def set_peratom_mass(self, *, mass: float) -> None:
         """
         Set the mass of the given atom(s).
 
-        :param mass: Mass in daltons.
+        :param mass: Mass in LAMMPS units.
         """
-        mass = mass * self._simulation._narupa_to_lammps.mass
         self._set(f"mass {mass}")
 
     def set_angular_momentum(self, *, angular_momentum: Vector3) -> None:
         """
         Set the angular momentum of the given atom(s).
 
-        :param angular_momentum: Angular momentum in dalton nanometer squared per picosecond.
+        :param angular_momentum: Angular momentum in LAMMPS units.
         """
-        angular_momentum = (
-            angular_momentum * self._simulation._narupa_to_lammps.angular_momentum
-        )
         self._set(
             f"angmom {angular_momentum[0]} {angular_momentum[1]} {angular_momentum[2]}"
         )
@@ -846,11 +832,9 @@ class _TypeReferenceMixin:
         """
         Set the per-type mass.
 
-        :param mass: Mass in daltons.
+        :param mass: Mass in LAMMPS units.
         """
-        self._simulation.command(
-            f"mass {self._selection_str()} {mass * self._simulation._narupa_to_lammps.mass}"
-        )
+        self._simulation.command(f"mass {self._selection_str()} {mass}")
 
 
 class SingleTypeReference(AtomSetReference, _TypeReferenceMixin):

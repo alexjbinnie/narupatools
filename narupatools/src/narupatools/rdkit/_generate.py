@@ -4,8 +4,8 @@ import numpy as np
 import numpy.typing as npt
 from rdkit import Chem
 from rdkit.Chem import AllChem, CombineMols
-from rdkit.Chem.rdShapeHelpers import ComputeConfDimsAndOffset
 from rdkit.Chem.rdchem import Mol
+from rdkit.Chem.rdShapeHelpers import ComputeConfDimsAndOffset
 from rdkit.Geometry import Point3D
 
 from narupatools.frame import convert
@@ -60,7 +60,10 @@ def _scatter_rectangles(rectangles: npt.ArrayLike) -> np.ndarray:
 
 _TType = TypeVar("_TType")
 
-def generate_from_smiles(*smiles: str, add_hydrogens: bool = True, output_type: Type[_TType] = Mol) -> _TType:
+
+def generate_from_smiles(
+    *smiles: str, add_hydrogens: bool = True, output_type: Type[_TType] = Mol
+) -> _TType:
     """
     Generate an ASE Atoms object from a SMILES string.
 

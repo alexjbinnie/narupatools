@@ -22,7 +22,6 @@ from abc import ABCMeta, abstractmethod
 from typing import Any
 
 from narupatools.physics.typing import Vector3
-from narupatools.physics.units import UnitConversion
 from narupatools.physics.vector import vector
 
 
@@ -55,14 +54,10 @@ class RegionSpecification(metaclass=ABCMeta):
     def style(self) -> str:
         """Style of the region."""
 
+    @property
     @abstractmethod
-    def args(self, conversion: UnitConversion) -> str:
-        """
-        Parameters for the region.
-
-        :param conversion: Unit conversion from Narupa to the units of the given
-                           simulation.
-        """
+    def args(self) -> str:
+        """Parameters for the region."""
 
 
 class Box(RegionSpecification):
@@ -107,7 +102,6 @@ class Box(RegionSpecification):
     def style(self) -> str:  # noqa: D102
         return "block"
 
-    def args(self, conversion: UnitConversion) -> str:  # noqa: D102
-        lo = self.lo * conversion.length
-        hi = self.hi * conversion.length
-        return f"{lo[0]} {hi[0]} {lo[1]} {hi[1]} {lo[2]} {hi[2]}"
+    @property
+    def args(self) -> str:  # noqa: D102
+        return f"{self.lo[0]} {self.hi[0]} {self.lo[1]} {self.hi[1]} {self.lo[2]} {self.hi[2]}"

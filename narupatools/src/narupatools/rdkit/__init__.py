@@ -24,9 +24,8 @@ if not has_rdkit:
     raise ImportError("narupatools.rdkit requires rdkit to be installed.")
 
 from ._converter import frame_to_rdkit_mol, rdkit_mol_to_frame
-from ._units import UnitsRDKit
-
 from ._generate import generate_from_smiles
+from ._units import UnitsRDKit
 
 __all__ = [
     "generate_from_smiles",
