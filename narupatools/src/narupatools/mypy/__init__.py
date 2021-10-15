@@ -47,23 +47,20 @@ class NarupatoolsPlugin(Plugin):
 
     def remove_decorators(self, context: ClassDefContext):
         """Callback that removes ignored decorators from narupatools classes."""
-        try:
-            for expr in context.cls.defs.body:
-                if isinstance(expr, Decorator):
-                    self.remove_ignored_decorators(expr)
-                elif isinstance(expr, OverloadedFuncDef):
-                    for item in expr.items:
-                        if isinstance(item, Decorator):
-                            self.remove_ignored_decorators(item)
-        except Exception as e:
-            print(e)
+        for expr in context.cls.defs.body:
+            if isinstance(expr, Decorator):
+                self.remove_ignored_decorators(expr)
+            elif isinstance(expr, OverloadedFuncDef):
+                for item in expr.items:
+                    if isinstance(item, Decorator):
+                        self.remove_ignored_decorators(item)
 
     def get_customize_class_mro_hook(  # noqa: D102
         self, fullname: str
     ) -> Optional[Callable[[ClassDefContext], None]]:
         if fullname.startswith("narupatools."):
             return self.remove_decorators
-        if "narupa.trajectory.frame_data.FrameData" == fullname:
+        if fullname == "narupa.trajectory.frame_data.FrameData":
             return self.add_monkeypatched_framedata
 
     def add_monkeypatched_framedata(self, context: ClassDefContext) -> None:
@@ -106,4 +103,5 @@ class NarupatoolsPlugin(Plugin):
 
 
 def plugin(version: str):
+    """Entry point of the mypy plugin."""
     return NarupatoolsPlugin

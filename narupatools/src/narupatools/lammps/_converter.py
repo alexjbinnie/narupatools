@@ -29,7 +29,7 @@ _TType = TypeVar("_TType")
 
 
 class LAMMPSConverter(FrameConverter):
-    """FrameConverter for the mdtraj package."""
+    """FrameConverter for the LAMMPS package."""
 
     @classmethod
     @override(FrameConverter.convert_to_frame)

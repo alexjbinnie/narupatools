@@ -24,11 +24,9 @@ from types import TracebackType
 from typing import (
     Any,
     Generator,
-    Generic,
     Optional,
     Protocol,
     Type,
-    TypeVar,
     runtime_checkable,
 )
 

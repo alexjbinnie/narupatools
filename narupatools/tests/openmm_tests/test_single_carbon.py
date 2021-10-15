@@ -37,7 +37,7 @@ def simulation():
     chain = topology.addChain(0)
     residue = topology.addResidue("RES", chain)
     topology.addAtom("C", Element.getBySymbol("C"), residue)
-    integrator = VelocityVerletIntegrator(0.01)
+    integrator = VelocityVerletIntegrator(timestep=0.01)
     simulation = Simulation(topology, system, integrator)
     simulation.context.setPositions([vector(5.0, 5.0, 5.0)])
     return simulation

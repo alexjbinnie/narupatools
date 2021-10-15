@@ -103,7 +103,7 @@ def get_torques(
         torques = np.zeros((len(atoms), 3))
     if apply_constraint:
         for constraint in atoms.constraints:
-            if not md or hasattr(constraint, "adjust_torques"):
+            if not md and hasattr(constraint, "adjust_torques"):
                 constraint.adjust_torques(atoms, torques)
     return torques  # type: ignore
 

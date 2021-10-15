@@ -150,9 +150,7 @@ class InteractionFeature(Generic[TDynamics]):
 
     @property
     def total_work(self) -> float:
-        """
-        Total work performed by all active interactions, in kilojoules per mole.
-        """
+        """Total work performed by all active interactions, in kilojoules per mole."""
         total_work = [
             interaction.total_work for interaction in self.current_interactions.values()
         ]

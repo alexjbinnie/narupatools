@@ -34,7 +34,6 @@ from narupatools.physics.typing import (
 from narupatools.physics.units import UnitsNarupa, UnitSystem
 
 from ._simulation import LAMMPSSimulation
-from ._units import get_unit_system
 
 
 class LAMMPSDynamics(InteractiveSimulationDynamics):
@@ -148,7 +147,9 @@ class LAMMPSIMDFeature(SetAndClearInteractionFeature[LAMMPSDynamics]):
 
     def _set_forces(self, forces: Dict[int, Vector3], /) -> None:
         for index, force in forces.items():
-            self._dynamics.simulation.set_imd_force(index, force * self.dynamics._lammps_to_narupa.force)
+            self._dynamics.simulation.set_imd_force(
+                index, force * self.dynamics._lammps_to_narupa.force
+            )
 
     def _clear_forces(self, indices: InfiniteSet[int] = everything(), /) -> None:
         for index in set(range(self._system_size)) & indices:  # type: ignore[operator]
