@@ -124,6 +124,9 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
         _DEFINED_KEYS[key] = self
 
     @abstractmethod
+    def _set(self, frame_data: FrameData, new_value: _TFrom, /) -> None:
+        ...
+
     def set(self, frame_data: FrameData, new_value: _TFrom, /) -> None:
         r"""
         Insert the value into the given frame data for this key.
@@ -131,7 +134,12 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
         :param frame_data: FrameData to modify.
         :param new_value: Value to insert.
         """
-        ...
+        if isinstance(frame_data, FrameData):
+            self._set(frame_data, new_value)
+        else:
+            frame = FrameData()
+            self._set(frame, new_value)
+            convert(frame, frame_data, fields={self.key})
 
     def __set__(self, obj: Any, value: Any, /) -> None:
         self.set(obj, value)
@@ -197,7 +205,7 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
 
 class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
     @override(FrameKey.set)
-    def set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
+    def _set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
         frame_data.set_float_array(self.key, value)
 
     @override(FrameKey._get)
@@ -209,7 +217,7 @@ class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
 class _ThreeByNFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
     @override(FrameKey.set)
-    def set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
+    def _set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
         array = _flatten_array(value)
         if len(array) % 3 > 0:
             raise TypeError(f"Cannot set {self.key} to array not divisible by 3.")
@@ -224,7 +232,7 @@ class _ThreeByNFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
 class _IntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
     @override(FrameKey.set)
-    def set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
+    def _set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
         frame_data.set_index_array(self.key, value)
 
     @override(FrameKey._get)
@@ -236,7 +244,7 @@ class _IntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
 
 class _TwoByNIntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
     @override(FrameKey.set)
-    def set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
+    def _set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
         array = _flatten_array(value)
         if len(array) % 2 > 0:
             raise TypeError(f"Cannot set {self.key} to array not divisible by 2.")
@@ -251,7 +259,7 @@ class _TwoByNIntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
 
 class _StringArrayKey(FrameKey[AssignableToStringArray, np.ndarray]):
     @override(FrameKey.set)
-    def set(self, frame_data: FrameData, value: AssignableToStringArray) -> None:
+    def _set(self, frame_data: FrameData, value: AssignableToStringArray) -> None:
         frame_data.set_string_array(self.key, value)
 
     @override(FrameKey._get)
@@ -263,7 +271,7 @@ class _StringArrayKey(FrameKey[AssignableToStringArray, np.ndarray]):
 
 class _IntegerKey(FrameKey[int, int]):
     @override(FrameKey.set)
-    def set(self, frame_data: FrameData, value: int) -> None:
+    def _set(self, frame_data: FrameData, value: int) -> None:
         frame_data.raw.values[self.key].number_value = value
 
     @override(FrameKey._get)
@@ -275,7 +283,7 @@ class _IntegerKey(FrameKey[int, int]):
 
 class _FloatKey(FrameKey[float, float]):
     @override(FrameKey.set)
-    def set(self, frame_data: FrameData, value: float) -> None:
+    def _set(self, frame_data: FrameData, value: float) -> None:
         frame_data.raw.values[self.key].number_value = value
 
     @override(FrameKey._get)

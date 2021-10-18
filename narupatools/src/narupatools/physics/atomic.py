@@ -372,11 +372,14 @@ _ATOMIC_RADII = np.array(
     ]
 )
 
+
 def atomic_radius(value, /):
     return _ATOMIC_RADII[value]
 
+
 def vdw_radius(value, /):
     return _VDW_RADII[value]
+
 
 def covalent_radius(value, /):
     return _COVALENT_RADII[value]
