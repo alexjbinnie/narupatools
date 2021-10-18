@@ -110,7 +110,21 @@ class ASEConverter(FrameConverter):
     ) -> _TType:
         if destination == Atoms:
             return frame_to_ase_atoms(frame=frame, fields=fields)  # type: ignore
+        if isinstance(destination, Atoms):
+            copy_frame_to_ase_atoms(atoms=destination, frame=frame, fields=fields)
+            return destination
         raise NotImplementedError
+
+
+def copy_frame_to_ase_atoms(
+    *, atoms: Atoms, frame: FrameData, fields: InfiniteSet[str] = everything()
+) -> None:
+    if ParticlePositions in fields and ParticlePositions in frame:
+        atoms.set_positions(frame[ParticlePositions] * _NarupaToASE.length)
+    if ParticleVelocities in fields and ParticleVelocities in frame:
+        atoms.set_velocities(frame[ParticleVelocities] * _NarupaToASE.velocity)
+    if ParticleMasses in fields and ParticleMasses in frame:
+        atoms.set_masses(frame[ParticleMasses] * _NarupaToASE.masses)
 
 
 def frame_to_ase_atoms(
@@ -310,6 +324,28 @@ def _add_ase_atoms_residues_to_frame(
 
         if ResidueCount in fields and "residuenames" in atoms.arrays:
             frame[ResidueCount] = len(res_to_first_particle_index)
+
+
+def get_bonds(atoms: Atoms):
+    bonds = []
+    for index, atom_bonds in enumerate(atoms.get_array("bonds", copy=False)):
+        for other in atom_bonds:
+            bonds.append([index, other])
+    return np.array(bonds)
+
+
+def set_bonds(atoms: Atoms, src_bonds: Any, /):
+    bonds: List[List[int]] = [[] for _ in range(len(atoms))]
+
+    for bond in src_bonds:
+        i = min(bond[0], bond[1])
+        bonds[i].append(max(bond[0], bond[1]))
+
+    atoms.arrays["bonds"] = np.array(bonds, dtype=object)
+
+
+Atoms.get_bonds = get_bonds
+Atoms.set_bonds = set_bonds
 
 
 def _add_bonds_to_ase_atoms(
