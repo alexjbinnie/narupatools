@@ -88,7 +88,7 @@ def sqr_magnitude(vector: VectorNLike, /) -> float:
 
 def magnitude(vector: VectorNLike, /) -> float:
     """Get the magnitude of a n-dimensional vector."""
-    return np.linalg.norm(vector)  # type: ignore
+    return np.linalg.norm(vector, axis=-1)  # type: ignore
 
 
 @overload

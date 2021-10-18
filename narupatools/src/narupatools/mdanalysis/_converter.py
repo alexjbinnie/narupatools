@@ -32,7 +32,7 @@ from MDAnalysis.core.topologyattrs import (
     Elements,
     Masses,
     Resnames,
-    TopologyAttr,
+    TopologyAttr, Atomtypes,
 )
 from narupa.trajectory import FrameData
 
@@ -231,6 +231,10 @@ def frame_to_mdanalysis_topology(  # noqa: C901
     if ParticleNames.key in fields:
         with contextlib.suppress(KeyError):
             attrs.append(Atomnames(ParticleNames.get(frame)))
+
+    if ParticleTypes in fields:
+        with contextlib.suppress(KeyError):
+            attrs.append(Atomtypes(frame[ParticleTypes]))
 
     if ParticleCharges.key in fields:
         with contextlib.suppress(KeyError):

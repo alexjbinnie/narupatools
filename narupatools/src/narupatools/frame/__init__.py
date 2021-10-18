@@ -27,9 +27,11 @@ from ._frame_source import (
 from ._patch import *  # noqa: F401, F403
 from ._pdb import frame_to_pdb_string
 from ._trajectory_playback import TrajectoryPlayback
+from ._select import select
 
 __all__ = [
     "convert",
+    "select",
     "TrajectoryPlayback",
     "FrameSource",
     "FrameSourceWithNotify",
