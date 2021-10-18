@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 from time import monotonic as time_monotonic
 from types import TracebackType
@@ -286,7 +287,7 @@ class HDF5Writer:
 
         self._file.flush()
 
-    def create_interaction(
+    def create_interaction_if_absent(
         self,
         *,
         key: str,
@@ -398,7 +399,8 @@ class HDF5Writer:
         del self._per_interaction[key]
 
 
-def add_hdf5_writer(
+@contextlib.contextmanager
+def record_hdf5(
     dynamics: InteractiveSimulationDynamics,
     *,
     filename: str,
@@ -433,7 +435,7 @@ def add_hdf5_writer(
         nonlocal has_logged_initial
 
         for interaction in dynamics.imd.current_interactions.values():
-            writer.create_interaction(
+            writer.create_interaction_if_absent(
                 key=interaction.key,
                 interaction=interaction,
                 frame_index=dynamics.elapsed_steps,
@@ -442,11 +444,11 @@ def add_hdf5_writer(
         if has_logged_initial:
             return
 
-        log_step(**kwargs)
+        log_step(**kwargs, write_interactions=False)
         writer.save_topology(dynamics.get_frame(everything()))
         has_logged_initial = True
 
-    def log_step(**kwargs: Any) -> None:
+    def log_step(write_interactions = True, **kwargs: Any) -> None:
         nonlocal writer
         writer.save_frame(
             coordinates=dynamics.positions,
@@ -456,12 +458,13 @@ def add_hdf5_writer(
             potential_energy=dynamics.potential_energy,
             time=dynamics.elapsed_time,
         )
-        for interaction in dynamics.imd.current_interactions.values():
-            writer.save_interaction(
-                key=interaction.key,
-                interaction=interaction,
-                frame_index=dynamics.elapsed_steps,
-            )
+        if write_interactions:
+            for interaction in dynamics.imd.current_interactions.values():
+                writer.save_interaction(
+                    key=interaction.key,
+                    interaction=interaction,
+                    frame_index=dynamics.elapsed_steps,
+                )
 
     def log_end_interaction(key: str, **kwargs: Any) -> None:
         nonlocal writer
@@ -482,4 +485,11 @@ def add_hdf5_writer(
     dynamics.on_reset.add_callback(on_reset)
     dynamics.imd.on_end_interaction.add_callback(log_end_interaction)
 
-    return writer
+    yield writer
+
+    dynamics.on_pre_step.remove_callback(log_initial)
+    dynamics.on_post_step.remove_callback(log_step)
+    dynamics.on_reset.remove_callback(on_reset)
+    dynamics.imd.on_end_interaction.remove_callback(log_end_interaction)
+
+    writer.close()

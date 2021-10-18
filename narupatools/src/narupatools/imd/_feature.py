@@ -97,7 +97,7 @@ class InteractionFeature(Generic[TDynamics]):
 
         self._sources: List[InteractionSource] = []
 
-        self._user_interaction_keys: List[str] = []
+        self._user_interactions: Dict[str, InteractionParameters] = {}
 
         self._elapsed_work = 0.0
 
@@ -210,22 +210,22 @@ class InteractionFeature(Generic[TDynamics]):
         if self._has_reset:
             for key in list(self.current_interactions.keys()):
                 self.remove_interaction(key)
-            self._user_interaction_keys.clear()
+            self._user_interactions.clear()
 
         _source_interactions = self._source_interactions()
         for key in list(self.current_interactions.keys()):
             if (
                 key not in _source_interactions
-                and key not in self._user_interaction_keys
+                and key not in self._user_interactions
             ):
                 self.remove_interaction(key)
         for key, interaction in _source_interactions.items():
-            if key in self._user_interaction_keys:
-                continue
             if key not in self.current_interactions:
                 self._add_interaction(key, interaction)
             else:
                 self.update_interaction(key=key, interaction=interaction)
+        for key, parameters in self._user_interactions.items():
+            self.update_interaction(key=key, interaction=parameters)
 
         self._has_reset = False
 
@@ -253,7 +253,7 @@ class InteractionFeature(Generic[TDynamics]):
         """
         if key is None:
             key = f"_interaction.{uuid.uuid4()}"
-        self._user_interaction_keys.append(key)
+        self._user_interactions[key] = interaction_data
         self._add_interaction(key, interaction_data)
         return key
 
@@ -336,8 +336,8 @@ class InteractionFeature(Generic[TDynamics]):
             key=key, work_done=interaction.total_work, duration=duration
         )
 
-        if key in self._user_interaction_keys:
-            self._user_interaction_keys.remove(key)
+        if key in self._user_interactions:
+            del self._user_interactions[key]
 
         if interaction.velocity_reset:
             velocities = self.dynamics.velocities

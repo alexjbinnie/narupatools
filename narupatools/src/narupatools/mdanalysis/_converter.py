@@ -32,7 +32,8 @@ from MDAnalysis.core.topologyattrs import (
     Elements,
     Masses,
     Resnames,
-    TopologyAttr, Atomtypes,
+    TopologyAttr,
+    Atomtypes,
 )
 from narupa.trajectory import FrameData
 

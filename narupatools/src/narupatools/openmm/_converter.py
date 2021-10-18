@@ -118,6 +118,11 @@ class OpenMMConverter(FrameConverter):
     ) -> _TType:
         if destination == Topology:
             return frame_to_openmm_topology(frame)  # type: ignore
+        if isinstance(destination, Simulation):
+            copy_frame_to_openmm_simulation(
+                frame=frame, simulation=destination, fields=fields
+            )
+            return destination
         raise NotImplementedError
 
 
@@ -183,6 +188,15 @@ def frame_to_openmm_topology(frame: FrameData, /) -> Topology:
         topology.setPeriodicBoxVectors(box)
 
     return topology
+
+
+def copy_frame_to_openmm_simulation(
+    frame: FrameData, simulation: Simulation, fields: InfiniteSet[str]
+):
+    if ParticlePositions in frame and ParticlePositions in fields:
+        simulation.context.setPositions(frame[ParticlePositions])
+    if ParticleVelocities in frame and ParticleVelocities in fields:
+        simulation.context.setVelocities(frame[ParticleVelocities])
 
 
 def openmm_simulation_to_frame(

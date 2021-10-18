@@ -51,7 +51,7 @@ from narupatools.frame.fields import (
     PotentialEnergy,
     ResidueChains,
     ResidueCount,
-    ResidueNames,
+    ResidueNames, ChainCount,
 )
 from narupatools.frame.util import calculate_residue_entities
 from narupatools.mdanalysis import UnitsMDAnalysis
@@ -236,6 +236,7 @@ def ase_atoms_to_frame(
             particle_residues=frame[ParticleResidues],
             bond_pairs=frame[BondPairs],
         )
+        frame[ChainCount] = frame[ResidueChains].max() + 1
 
     return frame
 

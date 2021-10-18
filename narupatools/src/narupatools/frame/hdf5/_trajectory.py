@@ -140,6 +140,11 @@ class InteractionView:
         """Range of frame indices covered by this interaction."""
         return range(self.frame_indices[0], self.frame_indices[-1] + 1)
 
+    @property
+    def frame_slice(self) -> slice:
+        """Slice of frame indices covered by this interaction."""
+        return slice(self.frame_indices[0], self.frame_indices[-1] + 1)
+
     def calculate_work(self) -> float:
         r"""
         Calculate the work done by an interaction, in kilojoules per mole.
@@ -301,7 +306,7 @@ class InteractionsView(Mapping[str, InteractionView]):
         """
         forces = np.zeros((self._source._n_frames, self._source._n_atoms, 3))
         for interaction in self.values():
-            forces[interaction.frame_indices] += interaction.forces
+            forces[interaction.frame_slice, interaction.indices] += interaction.forces
         return forces
 
     def __repr__(self) -> str:

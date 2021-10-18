@@ -22,6 +22,6 @@ in the documentation.
 """
 
 from ._trajectory import HDF5Trajectory
-from ._writer import add_hdf5_writer
+from ._writer import record_hdf5
 
-__all__ = ["add_hdf5_writer", "HDF5Trajectory"]
+__all__ = ["record_hdf5", "HDF5Trajectory"]
