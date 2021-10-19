@@ -399,7 +399,6 @@ class HDF5Writer:
         del self._per_interaction[key]
 
 
-@contextlib.contextmanager
 def record_hdf5(
     dynamics: InteractiveSimulationDynamics,
     *,
@@ -470,6 +469,18 @@ def record_hdf5(
         nonlocal writer
         writer.end_interaction(key=key, frame_index=dynamics.total_steps)
 
+    def add_callbacks():
+        dynamics.on_pre_step.add_callback(log_initial)
+        dynamics.on_post_step.add_callback(log_step)
+        dynamics.on_reset.add_callback(on_reset)
+        dynamics.imd.on_end_interaction.add_callback(log_end_interaction)
+
+    def remove_callbacks():
+        dynamics.on_pre_step.remove_callback(log_initial)
+        dynamics.on_post_step.remove_callback(log_step)
+        dynamics.on_reset.remove_callback(on_reset)
+        dynamics.imd.on_end_interaction.remove_callback(log_end_interaction)
+
     def on_reset(**kwargs: Any) -> None:
         nonlocal writer
         nonlocal has_logged_initial
@@ -479,17 +490,16 @@ def record_hdf5(
             suffix += 1
         writer.reopen(filename=new_filename, title=title, author=author)
         has_logged_initial = False
+        add_callbacks()
 
-    dynamics.on_pre_step.add_callback(log_initial)
-    dynamics.on_post_step.add_callback(log_step)
-    dynamics.on_reset.add_callback(on_reset)
-    dynamics.imd.on_end_interaction.add_callback(log_end_interaction)
+    orig_close = writer.close
 
-    yield writer
+    add_callbacks()
 
-    dynamics.on_pre_step.remove_callback(log_initial)
-    dynamics.on_post_step.remove_callback(log_step)
-    dynamics.on_reset.remove_callback(on_reset)
-    dynamics.imd.on_end_interaction.remove_callback(log_end_interaction)
+    def close_wrapped(**kwargs):
+        remove_callbacks()
+        orig_close()
 
-    writer.close()
+    writer.close = close_wrapped
+
+    return writer
