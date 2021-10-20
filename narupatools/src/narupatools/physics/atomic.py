@@ -373,13 +373,16 @@ _ATOMIC_RADII = np.array(
 )
 
 
-def atomic_radius(value, /):
-    return _ATOMIC_RADII[value]
+def atomic_radius(value: int, /) -> float:
+    """Get the atomic radii of one or more atomic elements in nanometers."""
+    return _ATOMIC_RADII[value]  # type: ignore
 
 
-def vdw_radius(value, /):
-    return _VDW_RADII[value]
+def vdw_radius(value: int, /) -> float:
+    """Get the VdW radii of one or more atomic elements in nanometers."""
+    return _VDW_RADII[value]  # type: ignore
 
 
-def covalent_radius(value, /):
-    return _COVALENT_RADII[value]
+def covalent_radius(value: int, /) -> float:
+    """Get the covalent radii of one or more atomic elements in nanometers."""
+    return _COVALENT_RADII[value]  # type: ignore

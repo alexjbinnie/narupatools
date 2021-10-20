@@ -288,6 +288,17 @@ def moment_of_inertia_tensor(
     )
 
 
+def principal_moments_and_axes(*, masses, positions):
+    inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
+    eigvals, eigvecs = np.linalg.eig(inertia)
+    idx = eigvals.argsort()[::-1]
+    return eigvals[idx], eigvecs.T[idx]
+
+
+def principal_axes(*, masses, positions):
+    return principal_moments_and_axes(masses=masses, positions=positions)[1]
+
+
 def angular_velocity(
     *,
     masses: ScalarArray,

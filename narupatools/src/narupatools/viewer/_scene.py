@@ -1,3 +1,5 @@
+from typing import Any
+
 from IPython.core.display import display
 from narupa.trajectory import FrameData
 from pythreejs import (
@@ -18,7 +20,7 @@ from narupatools.viewer._representation import ball_and_stick
 
 
 class ViewerScene:
-    def __init__(self):
+    def __init__(self) -> None:
         self._key_light = DirectionalLight(
             color="white", position=[3, 5, 1], intensity=0.5
         )
@@ -49,10 +51,10 @@ class ViewerScene:
             height=512,
         )
 
-    def display(self):
+    def display(self) -> Any:
         return display(self._renderer)
 
-    def add_frame(self, frame, render_func):
+    def add_frame(self, frame: Any, render_func: Any) -> None:
         self._scene.add(render_func(frame))
 
         if ParticleVelocities in frame:
@@ -69,7 +71,7 @@ class ViewerScene:
             self._scene.add(velocity_arrows)
 
 
-def show(frame: FrameData):
+def show(frame: Any) -> ViewerScene:
     if not isinstance(frame, FrameData):
         frame = convert(frame, FrameData)
     viewer = ViewerScene()

@@ -38,8 +38,13 @@ from narupatools.imd.interactions import InteractionParameters
 from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 from narupatools.physics.units import UnitsNarupa
+from ..frame import (
+    DynamicStructureProperties,
+    DynamicStructureMethods,
+    ParticlePositions,
+    ParticleVelocities,
+)
 
-from ..core.dynamics import SimulationRotationProperties
 from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
@@ -64,7 +69,10 @@ _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
 class ASEDynamics(
-    InteractiveSimulationDynamics, SimulationRotationProperties, Generic[TIntegrator]
+    InteractiveSimulationDynamics,
+    DynamicStructureProperties,
+    DynamicStructureMethods,
+    Generic[TIntegrator],
 ):
     """
     Run dynamics using an ASE `MolecularDynamics` object.
@@ -224,6 +232,7 @@ class ASEDynamics(
     @positions.setter
     def positions(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_positions(np.asfarray(value) * _NarupaToASE.length)
+        self._on_fields_changed.invoke(fields={ParticlePositions})
 
     @override(InteractiveSimulationDynamics.velocities)
     @property
@@ -233,6 +242,7 @@ class ASEDynamics(
     @velocities.setter
     def velocities(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_velocities(np.asfarray(value) * _NarupaToASE.velocity)
+        self._on_fields_changed.invoke(fields={ParticleVelocities})
 
     @override(InteractiveSimulationDynamics.forces)
     @property
@@ -255,7 +265,7 @@ class ASEDynamics(
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
 
     @property
-    @override(SimulationRotationProperties.orientations)
+    @override(DynamicStructureProperties.orientations)
     def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
         return get_rotations(self.atoms)
 
@@ -264,7 +274,7 @@ class ASEDynamics(
         set_rotations(self.atoms, value)
 
     @property
-    @override(SimulationRotationProperties.angular_momenta)
+    @override(DynamicStructureProperties.angular_momenta)
     def angular_momenta(self) -> Vector3Array:  # noqa: D102
         return get_angular_momenta(self.atoms) * _ASEToNarupa.angular_momentum
 
@@ -275,12 +285,12 @@ class ASEDynamics(
         )
 
     @property
-    @override(SimulationRotationProperties.angular_velocities)
+    @override(DynamicStructureProperties.angular_velocities)
     def angular_velocities(self) -> Vector3Array:  # noqa: D102
         """Angular velocity of each particle abouts its center of mass, in radians per picoseconds."""
         return get_angular_velocities(self.atoms) * _ASEToNarupa.angular_velocity
 
-    @override(SimulationRotationProperties.moments_of_inertia)
+    @override(DynamicStructureProperties.moments_of_inertia)
     @property
     def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
@@ -292,7 +302,7 @@ class ASEDynamics(
         )
 
     @property
-    @override(SimulationRotationProperties.torques)
+    @override(DynamicStructureProperties.torques)
     def torques(self) -> Vector3Array:  # noqa: D102
         return get_torques(self.atoms) * _NarupaToASE.torque
 

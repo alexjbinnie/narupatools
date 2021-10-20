@@ -106,7 +106,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
     def _get_particle_inertias(self) -> Vector3Array:
         try:
-            particle_inertia = self.dynamics.moments_of_inertia[self.particle_indices]  # type: ignore[attr-defined]
+            particle_inertia = self.dynamics.moments_of_inertia[self.particle_indices]
         except AttributeError:
             particle_inertia = None
 
@@ -136,7 +136,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         )
 
         try:
-            particle_angular_momenta = self.dynamics.angular_momenta[  # type: ignore[attr-defined]
+            particle_angular_momenta = self.dynamics.angular_momenta[
                 self.particle_indices
             ]
             angular_momentum += particle_angular_momenta.sum(axis=-2)

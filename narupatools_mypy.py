@@ -56,7 +56,7 @@ class NarupatoolsPlugin(Plugin):
                         self.remove_ignored_decorators(item)
 
     def get_customize_class_mro_hook(  # noqa: D102
-        self, fullname: str
+            self, fullname: str
     ) -> Optional[Callable[[ClassDefContext], None]]:
         if fullname.startswith("narupatools."):
             return self.remove_decorators

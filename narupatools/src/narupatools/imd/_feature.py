@@ -214,10 +214,7 @@ class InteractionFeature(Generic[TDynamics]):
 
         _source_interactions = self._source_interactions()
         for key in list(self.current_interactions.keys()):
-            if (
-                key not in _source_interactions
-                and key not in self._user_interactions
-            ):
+            if key not in _source_interactions and key not in self._user_interactions:
                 self.remove_interaction(key)
         for key, interaction in _source_interactions.items():
             if key not in self.current_interactions:

@@ -97,7 +97,7 @@ class Broadcastable(Protocol):
         """
 
 
-def _resolve_target(value: Any):
+def _resolve_target(value: Any) -> Any:
     if isinstance(value, FrameSourceWithNotify):
         return value
     if isinstance(value, Playable):
@@ -285,7 +285,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         self._frame_producer.mark_dirty()
 
         self._on_target_changed.invoke(
-            target=self._target, previous_target=previous_target  # type: ignore
+            target=self._target, previous_target=previous_target
         )
 
     def _on_target_fields_changed(self, *, fields: InfiniteSet, **kwargs: Any) -> None:

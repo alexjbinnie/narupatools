@@ -15,6 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 import functools
 import logging
+from collections import Callable
 
 import numpy as np
 from ase.atoms import Atoms
@@ -101,10 +102,10 @@ def openmm_simulation_to_ase_molecular_dynamics(
     timestep = simulation.integrator.getStepSize().value_in_unit(picoseconds)
 
     if isinstance(simulation.integrator, LangevinIntegrator):
-        integrator = functools.partial(
+        integrator: Callable[..., MolecularDynamics] = functools.partial(
             Langevin,
             timestep=timestep * _OpenMMToASE.time,
-            temperature_K=simulation.integrator.getTemperature()._value,
+            temperature_K=simulation.integrator.getTemperature()._value,  # type: ignore
             friction=simulation.integrator.getFriction().value_in_unit(
                 picoseconds ** (-1)
             )

@@ -21,11 +21,11 @@ from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
 import numpy as np
 
-from narupatools.core.dynamics import DynamicsProperties
 from narupatools.physics.typing import Vector3Array
 
 from ._feedback import InteractionFeedback
 from ._parameters import InteractionParameters
+from ...frame import DynamicStructureProperties
 
 _TInteractionData = TypeVar("_TInteractionData", bound=InteractionParameters)
 
@@ -40,7 +40,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     def __init__(
         self,
         *,
-        dynamics: DynamicsProperties,
+        dynamics: DynamicStructureProperties,
         key: str,
         start_time: float,
         interaction: _TInteractionData,
@@ -89,7 +89,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         cls,
         *,
         key: str,
-        dynamics: DynamicsProperties,
+        dynamics: DynamicStructureProperties,
         start_time: float,
         interaction: InteractionParameters,
     ) -> Interaction:
@@ -131,7 +131,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         return len(self._particles)
 
     @property
-    def dynamics(self) -> DynamicsProperties:
+    def dynamics(self) -> DynamicStructureProperties:
         """Underlying dynamics this interaction is affecting."""
         return self._dynamics
 

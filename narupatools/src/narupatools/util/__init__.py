@@ -21,5 +21,11 @@ from ._conversions import (
     atomic_numbers_to_symbols,
     mass_to_element,
 )
+from ._monkeypatch import monkeypatch
 
-__all__ = ["atomic_numbers_to_symbols", "atomic_numbers_to_masses", "mass_to_element"]
+__all__ = [
+    "atomic_numbers_to_symbols",
+    "atomic_numbers_to_masses",
+    "mass_to_element",
+    "monkeypatch",
+]

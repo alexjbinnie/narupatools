@@ -28,16 +28,21 @@ from ._patch import *  # noqa: F401, F403
 from ._pdb import frame_to_pdb_string
 from ._trajectory_playback import TrajectoryPlayback
 from ._select import select
+from ._properties import StaticStructureProperties, DynamicStructureProperties
+from narupa.trajectory import FrameData
 
 __all__ = [
     "convert",
     "select",
     "TrajectoryPlayback",
     "FrameSource",
+    "FrameData",
     "FrameSourceWithNotify",
     "OnFieldsChangedCallback",
     "TrajectorySource",
     "FrameConverter",
     "FrameProducer",
     "frame_to_pdb_string",
+    "StaticStructureProperties",
+    "DynamicStructureProperties",
 ]

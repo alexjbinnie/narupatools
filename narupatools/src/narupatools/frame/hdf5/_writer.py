@@ -447,7 +447,7 @@ def record_hdf5(
         writer.save_topology(dynamics.get_frame(everything()))
         has_logged_initial = True
 
-    def log_step(write_interactions = True, **kwargs: Any) -> None:
+    def log_step(write_interactions: bool = True, **kwargs: Any) -> None:
         nonlocal writer
         writer.save_frame(
             coordinates=dynamics.positions,
@@ -469,13 +469,13 @@ def record_hdf5(
         nonlocal writer
         writer.end_interaction(key=key, frame_index=dynamics.total_steps)
 
-    def add_callbacks():
+    def add_callbacks() -> None:
         dynamics.on_pre_step.add_callback(log_initial)
         dynamics.on_post_step.add_callback(log_step)
         dynamics.on_reset.add_callback(on_reset)
         dynamics.imd.on_end_interaction.add_callback(log_end_interaction)
 
-    def remove_callbacks():
+    def remove_callbacks() -> None:
         dynamics.on_pre_step.remove_callback(log_initial)
         dynamics.on_post_step.remove_callback(log_step)
         dynamics.on_reset.remove_callback(on_reset)
@@ -500,6 +500,6 @@ def record_hdf5(
         remove_callbacks()
         orig_close()
 
-    writer.close = close_wrapped
+    writer.close = close_wrapped  # type: ignore
 
     return writer

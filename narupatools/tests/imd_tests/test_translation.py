@@ -6,7 +6,7 @@ import pytest
 from ase import Atoms
 
 from narupatools.ase import ASEDynamics
-from narupatools.frame.hdf5 import add_hdf5_writer
+from narupatools.frame.hdf5 import record_hdf5
 from narupatools.imd import rigidmotion_interaction
 from narupatools.physics.random import random_unit_quaternion
 from narupatools.physics.transformation import Rotation, Translation
@@ -102,7 +102,7 @@ def not_test_rotation(seed, dynamics, methane_positions):
 
 
 def not_test_rotation_translation(dynamics, methane_positions):
-    writer = add_hdf5_writer(dynamics, filename="test.hdf5", overwrite_existing=True)
+    writer = record_hdf5(dynamics, filename="test.hdf5", overwrite_existing=True)
 
     angle = vector(0.5 * math.pi, 0, 0)
     rotation = Rotation.from_rotation_vector(angle)

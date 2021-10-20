@@ -122,7 +122,7 @@ class OpenMMConverter(FrameConverter):
             copy_frame_to_openmm_simulation(
                 frame=frame, simulation=destination, fields=fields
             )
-            return destination
+            return destination  # type: ignore
         raise NotImplementedError
 
 
@@ -192,7 +192,7 @@ def frame_to_openmm_topology(frame: FrameData, /) -> Topology:
 
 def copy_frame_to_openmm_simulation(
     frame: FrameData, simulation: Simulation, fields: InfiniteSet[str]
-):
+) -> None:
     if ParticlePositions in frame and ParticlePositions in fields:
         simulation.context.setPositions(frame[ParticlePositions])
     if ParticleVelocities in frame and ParticleVelocities in fields:

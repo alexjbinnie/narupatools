@@ -22,12 +22,15 @@ from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
 from typing import Any, List, Optional, Protocol, Type, Union
 
-import numpy.typing as npt
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from narupatools.frame import FrameSourceWithNotify, OnFieldsChangedCallback
+from narupatools.frame import (
+    FrameSourceWithNotify,
+    OnFieldsChangedCallback,
+    DynamicStructureProperties,
+)
 from narupatools.frame.fields import (
     DYNAMIC_FIELDS,
     SimulationElapsedSteps,
@@ -36,9 +39,7 @@ from narupatools.frame.fields import (
     SimulationTotalTime,
 )
 from narupatools.override import override
-from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array
-
 from . import Playable
 
 
@@ -63,91 +64,12 @@ class OnPostStepCallback(Protocol):
         ...
 
 
-class DynamicsProperties(Protocol):
-    """Readonly dynamics properties."""
-
-    @property
-    def positions(self) -> Vector3Array:
-        """Positions of particles in nanometers."""
-        raise AttributeError
-
-    @property
-    def velocities(self) -> Vector3Array:
-        """Velocities of particles in nanometers per picosecond."""
-        raise AttributeError
-
-    @property
-    def forces(self) -> Vector3Array:
-        """Forces on particles in kilojoules per mole per nanometer."""
-        raise AttributeError
-
-    @property
-    def masses(self) -> ScalarArray:
-        """Masses of particles in daltons."""
-        raise AttributeError
-
-    @property
-    def kinetic_energy(self) -> float:
-        """Kinetic energy in kilojoules per mole."""
-        raise AttributeError
-
-    @property
-    def potential_energy(self) -> float:
-        """Potential energy in kilojoules per mole."""
-        raise AttributeError
-
-
-class SimulationRotationProperties:
-    """Mixin for defining common rotation properties."""
-
-    @property
-    def orientations(self) -> npt.NDArray[quaternion]:
-        """Orientations of each atom as unit quaternions."""
-        raise AttributeError
-
-    @property
-    def angular_momenta(self) -> Vector3Array:
-        """
-        Angular momentum of each particle abouts its center of mass.
-
-        :raises AttributeError: Angular momenta is not defined for this system.
-        :return: Array of angular momenta in dalton nanometer squared per picosecond.
-        """
-        raise AttributeError
-
-    @property
-    def angular_velocities(self) -> Vector3Array:
-        """
-        Angular velocity of each particle abouts its center of mass.
-
-        :return: Array of angular velocities in radians per picoseconds.
-        """
-        raise AttributeError
-
-    @property
-    def torques(self) -> Vector3Array:
-        """
-        Torques on each particle abouts its center of mass.
-
-        :return: Array of torques in kilojoules per mole.
-        """
-        raise AttributeError
-
-    @property
-    def moments_of_inertia(self) -> Vector3Array:
-        """
-        Moments of inertia for each particle abouts its origin in its local frame.
-
-        :return: Array of moments of inertia, either scalars (for symmetric shapes) or
-                 3-vectors.
-        """
-        raise AttributeError
-
-
 _DYNAMICS_SUBCLASSES: List[Type[SimulationDynamics]] = []
 
 
-class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
+class SimulationDynamics(
+    Playable, DynamicStructureProperties, FrameSourceWithNotify, metaclass=ABCMeta
+):
     """
     Base class for an implementation of dynamics driven by Narupa.
 
@@ -354,37 +276,37 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         return frame
 
     @property
-    @override(DynamicsProperties.positions)
+    @override(DynamicStructureProperties.positions)
     def positions(self) -> Vector3Array:
         """Positions of particles in nanometers."""
         raise AttributeError
 
     @property
-    @override(DynamicsProperties.velocities)
+    @override(DynamicStructureProperties.velocities)
     def velocities(self) -> Vector3Array:
         """Velocities of particles in nanometers per picosecond."""
         raise AttributeError
 
     @property
-    @override(DynamicsProperties.forces)
+    @override(DynamicStructureProperties.forces)
     def forces(self) -> Vector3Array:
         """Forces on particles in kilojoules per mole per nanometer."""
         raise AttributeError
 
     @property
-    @override(DynamicsProperties.masses)
+    @override(DynamicStructureProperties.masses)
     def masses(self) -> ScalarArray:
         """Masses of particles in daltons."""
         raise AttributeError
 
     @property
-    @override(DynamicsProperties.kinetic_energy)
+    @override(DynamicStructureProperties.kinetic_energy)
     def kinetic_energy(self) -> float:
         """Kinetic energy in kilojoules per mole."""
         raise AttributeError
 
     @property
-    @override(DynamicsProperties.potential_energy)
+    @override(DynamicStructureProperties.potential_energy)
     def potential_energy(self) -> float:
         """Potential energy in kilojoules per mole."""
         raise AttributeError

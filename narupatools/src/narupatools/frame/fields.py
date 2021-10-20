@@ -127,7 +127,7 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
     def _set(self, frame_data: FrameData, new_value: _TFrom, /) -> None:
         ...
 
-    def set(self, frame_data: FrameData, new_value: _TFrom, /) -> None:
+    def set(self, frame_data: Any, new_value: _TFrom, /) -> None:
         r"""
         Insert the value into the given frame data for this key.
 
@@ -174,7 +174,7 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
                 return self._calculate(frame_data)
         raise KeyError(f"Frame does not contain key {self.key}")
 
-    def __get__(self, obj: Any, objtype: Any = None, /):
+    def __get__(self, obj: Any, objtype: Any = None, /) -> _TTo:
         return self.get(obj)
 
     def get_with_default(
@@ -456,31 +456,3 @@ DYNAMIC_FIELDS = frozenset(
     }
 )
 """Set of fields that are by default considered to change when a simulation is run."""
-
-# Override narupa shortcuts to use frame keys
-FrameData.bond_pairs = BondPairs
-FrameData.bond_orders = BondOrders
-FrameData.bond_types = BondTypes
-FrameData.bond_count = BondCount
-
-FrameData.particle_positions = ParticlePositions
-FrameData.particle_elements = ParticleElements
-FrameData.particle_types = ParticleTypes
-FrameData.particle_names = ParticleNames
-FrameData.particle_residues = ParticleResidues
-FrameData.particle_masses = ParticleMasses
-FrameData.particle_velocities = ParticleVelocities
-FrameData.particle_forces = ParticleForces
-FrameData.particle_count = ParticleCount
-
-FrameData.residue_names = ResidueNames
-FrameData.residue_uds = ResidueIds
-FrameData.residue_chains = ResidueChains
-FrameData.residue_count = ResidueCount
-
-FrameData.chain_names = ChainNames
-FrameData.chain_count = ChainCount
-
-FrameData.kinetic_energy = KineticEnergy
-FrameData.potential_energy = PotentialEnergy
-FrameData.box_vectors = BoxVectors

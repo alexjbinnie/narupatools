@@ -31,7 +31,7 @@ CYLINDER_GEO = CylinderGeometry(
 SPHERE_GEO = SphereGeometry(radius=0.5, widthSegments=12, heightSegments=12)
 
 
-def create_atom_mesh(*, position: np.ndarray, element: int):
+def create_atom_mesh(*, position: np.ndarray, element: int) -> Mesh:
     radius = 0.5 * vdw_radius(element)
     return Mesh(
         geometry=SPHERE_GEO,
@@ -41,7 +41,7 @@ def create_atom_mesh(*, position: np.ndarray, element: int):
     )
 
 
-def create_bond_mesh(point1, point2, radius):
+def create_bond_mesh(point1: np.ndarray, point2: np.ndarray, radius: float) -> Mesh:
     bond_direction = point2 - point1
     geo = CYLINDER_GEO
 

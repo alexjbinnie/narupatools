@@ -51,12 +51,14 @@ from narupatools.frame.fields import (
     PotentialEnergy,
     ResidueChains,
     ResidueCount,
-    ResidueNames, ChainCount,
+    ResidueNames,
+    ChainCount,
 )
 from narupatools.frame.util import calculate_residue_entities
 from narupatools.mdanalysis import UnitsMDAnalysis
 from narupatools.override import override
 from narupatools.physics.units import UnitsNarupa
+from narupatools.util import monkeypatch
 
 _ASEToNarupa = UnitsASE >> UnitsNarupa
 _NarupaToASE = UnitsNarupa >> UnitsASE
@@ -112,7 +114,7 @@ class ASEConverter(FrameConverter):
             return frame_to_ase_atoms(frame=frame, fields=fields)  # type: ignore
         if isinstance(destination, Atoms):
             copy_frame_to_ase_atoms(atoms=destination, frame=frame, fields=fields)
-            return destination
+            return destination  # type: ignore
         raise NotImplementedError
 
 
@@ -327,26 +329,23 @@ def _add_ase_atoms_residues_to_frame(
             frame[ResidueCount] = len(res_to_first_particle_index)
 
 
-def get_bonds(atoms: Atoms):
-    bonds = []
-    for index, atom_bonds in enumerate(atoms.get_array("bonds", copy=False)):
-        for other in atom_bonds:
-            bonds.append([index, other])
-    return np.array(bonds)
+@monkeypatch(Atoms)
+class _AtomsBonds(Atoms):
+    def get_bonds(self) -> np.ndarray:
+        bonds = []
+        for index, atom_bonds in enumerate(self.get_array("bonds", copy=False)):
+            for other in atom_bonds:
+                bonds.append([index, other])
+        return np.array(bonds)
 
+    def set_bonds(self, src_bonds: Any, /) -> None:
+        bonds: List[List[int]] = [[] for _ in range(len(self))]
 
-def set_bonds(atoms: Atoms, src_bonds: Any, /):
-    bonds: List[List[int]] = [[] for _ in range(len(atoms))]
+        for bond in src_bonds:
+            i = min(bond[0], bond[1])
+            bonds[i].append(max(bond[0], bond[1]))
 
-    for bond in src_bonds:
-        i = min(bond[0], bond[1])
-        bonds[i].append(max(bond[0], bond[1]))
-
-    atoms.arrays["bonds"] = np.array(bonds, dtype=object)
-
-
-Atoms.get_bonds = get_bonds
-Atoms.set_bonds = set_bonds
+        self.arrays["bonds"] = np.array(bonds, dtype=object)
 
 
 def _add_bonds_to_ase_atoms(

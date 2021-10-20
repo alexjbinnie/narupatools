@@ -6,7 +6,7 @@ import mdtraj
 import numpy as np
 import pytest
 
-from narupatools.frame.hdf5 import HDF5Trajectory, add_hdf5_writer
+from narupatools.frame.hdf5 import HDF5Trajectory, record_hdf5
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import vector
 
@@ -34,7 +34,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         raise NotImplementedError
 
     def test_hdf5_writer(self, dynamics, hdf5_filename):
-        writer = add_hdf5_writer(
+        writer = record_hdf5(
             dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
         )
         dynamics.run(100)
@@ -58,7 +58,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         assert len(traj2.interactions) == 0
 
     def test_hdf5_writer_imd(self, dynamics, hdf5_filename):
-        writer = add_hdf5_writer(
+        writer = record_hdf5(
             dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
         )
         dynamics.run(20)
@@ -107,7 +107,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         assert traj2.interactions.forces.shape == (101, 1, 3)
 
     def test_hdf5_writer_multiple_interactions(self, dynamics, hdf5_filename):
-        writer = add_hdf5_writer(
+        writer = record_hdf5(
             dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
         )
 
@@ -143,7 +143,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         )
 
     def test_hdf5_on_reset(self, dynamics, hdf5_filename):
-        writer = add_hdf5_writer(
+        writer = record_hdf5(
             dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
         )
         dynamics.run(25)
@@ -190,7 +190,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
             pass
 
         with pytest.raises(FileExistsError):
-            _ = add_hdf5_writer(
+            _ = record_hdf5(
                 dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
             )
 
@@ -204,7 +204,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
 
         assert not os.path.exists(hdf5_filename3)
 
-        writer = add_hdf5_writer(
+        writer = record_hdf5(
             dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
         )
 
