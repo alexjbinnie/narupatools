@@ -4,6 +4,7 @@ from typing import Protocol, Union
 
 import numpy as np
 import numpy.typing as npt
+from scipy.spatial.transform import Rotation
 
 from narupatools.physics import quaternion
 from narupatools.physics.rigidbody import (
@@ -70,6 +71,12 @@ class DynamicStructureMethods:
     def translate_to(self, position: Vector3):
         com = self.center_of_mass()
         self.positions += position - com
+
+    def randomly_orient(self):
+        """Randomly orientate the object around its center of mass."""
+        com = self.center_of_mass()
+        rot = Rotation.random()
+        self.positions = com + rot.apply(self.positions - com)
 
 
 class DynamicStructureProperties(StaticStructureProperties, Protocol):

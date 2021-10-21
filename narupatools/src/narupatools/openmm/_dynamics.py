@@ -37,6 +37,7 @@ from narupatools.physics.typing import (
     Vector3Array,
     Vector3ArrayLike,
 )
+from ..frame import DynamicStructureMethods, ParticlePositions
 
 from ..override import override
 from ._converter import (
@@ -47,7 +48,7 @@ from ._converter import (
 from ._serializer import deserialize_simulation
 
 
-class OpenMMDynamics(InteractiveSimulationDynamics):
+class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     """Dynamics based on an OpenMM simulation."""
 
     @override(InteractiveSimulationDynamics._step_internal)
@@ -111,6 +112,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics):
     def positions(self, value: Vector3ArrayLike) -> None:
         with self._simulation_lock:
             self._simulation.context.setPositions(np.asfarray(value))
+        self._on_fields_changed.invoke(fields={ParticlePositions})
 
     @property
     @override(InteractiveSimulationDynamics.velocities)
