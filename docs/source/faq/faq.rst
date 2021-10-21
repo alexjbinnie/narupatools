@@ -10,3 +10,4 @@ Frequently Asked Questions
    ase
    openmm
    rdkit
+   maths

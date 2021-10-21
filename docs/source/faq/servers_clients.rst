@@ -223,12 +223,12 @@ The shared state contains things such as interactions and other objects
 How do I...
 -----------
 
-... access the shared state of a Session
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+... access the shared state of a Session?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :obj:`~narupatools.app.Session.shared_state`.
 
-... access the shared state of the Client
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+... access the shared state of the Client?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :obj:`~narupatools.app.Client.shared_state`.

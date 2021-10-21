@@ -17,6 +17,13 @@
 """Code for interfacing with NGLView."""
 
 import importlib
+from typing import Any
+
+from ase import Atoms
+from narupa.trajectory import FrameData
+
+from ..app import Client, Session
+from ..core.dynamics import SimulationDynamics
 
 __has_ngl = importlib.util.find_spec("nglview") is not None
 
@@ -28,6 +35,31 @@ from ._dynamics import show_dynamics
 from ._session import show_session
 from ._show import show_ase, show_narupa, show_trajectory
 from ._structure import ASEStructure, FrameDataStructure
+
+from IPython.core.magic import register_line_magic, needs_local_scope
+
+
+def show(obj: Any):
+    if isinstance(obj, Atoms):
+        return show_ase(obj)
+    if isinstance(obj, Client):
+        return show_client(obj)
+    if isinstance(obj, Session):
+        return show_session(obj)
+    if isinstance(obj, SimulationDynamics):
+        return show_dynamics(obj)
+    if isinstance(obj, FrameData):
+        return show_narupa(obj)
+    raise ValueError(f"Cannot work out how to show object {obj} using nglview")
+
+
+@register_line_magic
+@needs_local_scope
+def ngl(line, *, local_ns):
+    if line in local_ns:
+        return show(local_ns[line])
+    raise ValueError(f"Cannot find variable {line} in local scope.")
+
 
 __all__ = [
     "show_ase",

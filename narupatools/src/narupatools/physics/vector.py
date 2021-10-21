@@ -47,11 +47,20 @@ def dot_product(a: VectorN, b: VectorN, /) -> float:
 
     .. math:: a \cdot b = \sum_i a_i b_i
 
+    If both a and b are one dimensional vectors, the dot product is calculated as above.
+
+    If either a or b have more dimensions, NumPy broadcasting is used:
+
+    * (N) + (N) -> float
+    * (M, N) + (N) -> (M)
+    * (M, N) + (M, N) -> (M)
+    * (M, N) + (K, M, N) -> (K, M)
+
     :param a: Vector :math:`a`.
     :param b: Vector :math:`b`.
     :return: Dot product :math:`a \cdot b` of the vectors :math:`a` and :math:`b`.
     """
-    return np.dot(a, b)  # type: ignore
+    return (a * b).sum(axis=-1)  # type: ignore
 
 
 def cross_product(a: Vector3Like, b: Vector3Like, /) -> Vector3:
