@@ -46,6 +46,8 @@ class OpenMMCalculator(Calculator):
 
     implemented_properties = ["energy", "forces"]
 
+    ignored_changes = set(all_changes) - {"positions"}
+
     def __init__(self, simulation: Simulation, **kwargs: Any):
         """
         Create a calculator for the given simulation.

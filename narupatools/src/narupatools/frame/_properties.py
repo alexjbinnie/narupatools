@@ -16,6 +16,7 @@ from narupatools.physics.rigidbody import (
 )
 from narupatools.physics.typing import Vector3Array, ScalarArray, Vector3
 from ._select import select
+from ..physics.thermodynamics import maxwell_boltzmann_velocities
 
 
 class StaticStructureProperties(Protocol):
@@ -77,6 +78,12 @@ class DynamicStructureMethods:
         com = self.center_of_mass()
         rot = Rotation.random()
         self.positions = com + rot.apply(self.positions - com)
+
+    def distribute_velocities(self, temperature):
+        """Distribute velocities using the Maxwell-Boltzmann distribution"""
+        self.velocities = maxwell_boltzmann_velocities(
+            masses=self.masses, temperature=300
+        )
 
 
 class DynamicStructureProperties(StaticStructureProperties, Protocol):
@@ -168,6 +175,12 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
     @property
     def velocities(self) -> Vector3Array:
         return self._source.velocities[self._selection]
+
+    @velocities.setter
+    def velocities(self, value):
+        velocities = self._source.velocities
+        velocities[self._selection] = value
+        self._source.velocities = velocities
 
     @property
     def orientations(self) -> npt.NDArray[quaternion]:

@@ -21,6 +21,7 @@ from typing import Any
 
 from ase import Atoms
 from narupa.trajectory import FrameData
+from nglview import NGLWidget
 
 from ..app import Client, Session
 from ..core.dynamics import SimulationDynamics
@@ -34,9 +35,7 @@ from ._client import show_client
 from ._dynamics import show_dynamics
 from ._session import show_session
 from ._show import show_ase, show_narupa, show_trajectory
-from ._structure import ASEStructure, FrameDataStructure
-
-from IPython.core.magic import register_line_magic, needs_local_scope
+from ._structure import ASEStructure, FrameDataStructure, FrameDataTrajectory
 
 
 def show(obj: Any):
@@ -50,15 +49,9 @@ def show(obj: Any):
         return show_dynamics(obj)
     if isinstance(obj, FrameData):
         return show_narupa(obj)
+    if isinstance(obj, list) and isinstance(obj[0], FrameData):
+        return NGLWidget(FrameDataTrajectory(obj))
     raise ValueError(f"Cannot work out how to show object {obj} using nglview")
-
-
-@register_line_magic
-@needs_local_scope
-def ngl(line, *, local_ns):
-    if line in local_ns:
-        return show(local_ns[line])
-    raise ValueError(f"Cannot find variable {line} in local scope.")
 
 
 __all__ = [

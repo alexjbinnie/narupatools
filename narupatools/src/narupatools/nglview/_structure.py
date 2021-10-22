@@ -17,6 +17,7 @@
 """Classes derived from Structure that allow NGLView to render new systems."""
 
 from io import StringIO
+from typing import List
 
 import nglview
 from ase.atoms import Atoms
@@ -56,6 +57,29 @@ class FrameDataStructure(nglview.Structure):
     def get_structure_string(self) -> str:
         """Create a PDB string so NGLView can read in the structure."""
         return frame_to_pdb_string(self.frame)
+
+
+class FrameDataTrajectory(nglview.Trajectory, nglview.Structure):
+    """Wrapper around a list of FrameData for use with nglview."""
+
+    def __init__(self, frames: List[FrameData]):
+        super(nglview.Structure, self).__init__()
+        super(nglview.Trajectory, self).__init__()
+        self.frames = frames
+
+    @override(nglview.Trajectory.get_coordinates)
+    def get_coordinates(self, index: int) -> Vector3Array:  # noqa: D102
+        frame = self.frames[index]
+        return ParticlePositions.get(frame) * 10.0
+
+    @override(nglview.Trajectory.n_frames)
+    @property
+    def n_frames(self) -> int:  # noqa: D102
+        return len(self.frames)
+
+    @override(nglview.Structure.get_structure_string)
+    def get_structure_string(self) -> str:  # noqa: D102
+        return frame_to_pdb_string(self.frames[0])
 
 
 class NarupaToolsFrame(nglview.Structure):
