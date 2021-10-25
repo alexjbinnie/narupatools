@@ -98,7 +98,7 @@ class HDF5AppendableArray:
             elif instance.writable:
                 shape = self._shape
                 if self._per_atom:
-                    shape = (instance.n_atoms, shape)
+                    shape = (instance.n_atoms, *shape)
                 value = instance.create_earray(
                     name=self._h5_name,
                     title=self._title,
@@ -112,7 +112,7 @@ class HDF5AppendableArray:
 
     def as_numpy(self):
         def get(obj):
-            return np.array(self.__get__(obj, type(obj)))
+            return np.array(self.__get__(obj, type(obj)), dtype=float)
 
         return property(fget=get)
 
@@ -380,18 +380,23 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
     def __repr__(self) -> str:
         return f"<InteractionsView {len(self)} interaction(s)>"
 
+
 class HDF5Attribute:
 
     def __init__(self, name: str):
         self._name = name
 
     def __get__(self, instance: _HDF5EditableObject, objtype):
-        return instance.hdf5_group._v_attrs[self._name]
+        try:
+            return instance.hdf5_group._v_attrs[self._name]
+        except KeyError as e:
+            raise AttributeError(f"Attribute {self._name} is not present.") from e
 
     def __set__(self, instance, value) -> None:
         if not instance.writable:
             raise ValueError("Trajectory is not writable.")
         instance.hdf5_group._v_attrs[self._name] = value
+
 
 class HDF5Trajectory(DynamicStructureMethods, _HDF5EditableObject):
 
@@ -492,14 +497,13 @@ class HDF5Trajectory(DynamicStructureMethods, _HDF5EditableObject):
 
         obj.author = author
         obj.application = "narupatools"
-        obj.conventionVersion = "1.1"
-        obj.narupatoolsConventionVersion = "1.0"
+        obj.convention_version = "1.1"
+        obj.narupatools_convention_version = "1.0"
         obj.program = "narupatools"
         obj.conventions = "Pande,NarupaTools"
-        obj.programVersion = narupatools.__version__
+        obj.program_version = narupatools.__version__
 
         return obj
-
 
     @classmethod
     def in_memory(
@@ -517,11 +521,12 @@ class HDF5Trajectory(DynamicStructureMethods, _HDF5EditableObject):
 
         obj.author = author
         obj.application = "narupatools"
-        obj.conventionVersion = "1.1"
-        obj.narupatoolsConventionVersion = "1.0"
+        obj.convention_version = "1.1"
+        obj.narupatools_convention_version = "1.0"
         obj.program = "narupatools"
         obj.conventions = "Pande,NarupaTools"
-        obj.programVersion = narupatools.__version__
+        obj.program_version = narupatools.__version__
+
 
         return obj
 
@@ -539,6 +544,13 @@ class HDF5Trajectory(DynamicStructureMethods, _HDF5EditableObject):
     @property
     def hdf5_group(self) -> Group:
         return self._file.root
+
+    @property
+    def n_atoms(self):
+        if hasattr(self, "_n_atoms"):
+            return self._n_atoms
+        self._n_atoms = int(self._positions.shape[1])
+        return self._n_atoms
 
     def save_frame(
             self,
@@ -563,8 +575,8 @@ class HDF5Trajectory(DynamicStructureMethods, _HDF5EditableObject):
         if not self._writable:
             raise ValueError("Trajectory is read only")
 
-        if not hasattr(self, "n_atoms"):
-            self.n_atoms = len(positions)
+        if not hasattr(self, "_n_atoms"):
+            self._n_atoms = len(positions)
 
         self._positions.append(np.array([positions]))
         if velocities is not None:
@@ -632,6 +644,9 @@ class HDF5Trajectory(DynamicStructureMethods, _HDF5EditableObject):
             with contextlib.suppress(AttributeError):
                 frame[KineticEnergy] = self._kinetic_energies[index]
         return frame
+
+    def save_to_file(self, filename: str, overwrite_existing=False):
+        self._file.copy_file(filename, overwrite_existing)
 
     @classmethod
     @contextlib.contextmanager
@@ -701,5 +716,6 @@ class HDF5Trajectory(DynamicStructureMethods, _HDF5EditableObject):
         if not self._writable:
             s += " read-only"
         s += f" {len(self.positions)} frame(s)"
+        s += f" {self.n_atoms} atom(s)"
         s += ">"
         return s
