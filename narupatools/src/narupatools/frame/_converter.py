@@ -25,6 +25,7 @@ from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.state.typing import Serializable
+from ._frame_source import FrameSource
 
 from ..override import override
 
@@ -123,6 +124,8 @@ def convert(
                 return converter.convert_to_frame(
                     source, fields=fields, existing=target_existing  # type: ignore
                 )
+        if isinstance(source, FrameSource):
+            return source.get_frame(fields=fields)
         raise NoConversionDefinedError(source, target)
     # Convert in two steps, via Narupa FrameData
     frame: FrameData = convert(source, FrameData)

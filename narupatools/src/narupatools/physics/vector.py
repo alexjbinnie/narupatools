@@ -17,7 +17,7 @@
 """Utility methods for using vectors."""
 
 import math
-from typing import Union, overload
+from typing import Union, overload, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -175,7 +175,7 @@ def vector_rejection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
     return np.asfarray(vector) - vector_projection(vector, onto)  # type: ignore
 
 
-def distance(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
+def distance(vector1: Vector3Like, vector2: Optional[Vector3Like] = None, /) -> float:
     r"""
     Calculate the distance :math:`d` between two points :math:`a` and :math:`b`.
 
@@ -183,6 +183,10 @@ def distance(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
     :param vector2: Point :math:`b`.
     :return: Distance between the two points.
     """
+    if vector2 is None:
+        if vector1.shape[-2] != 2:
+            raise ValueError("Cannot take distances of array without second last axes being shape 2.")
+        return np.linalg.norm(vector1[..., 1, :] - vector1[..., 0, :], axis=-1)
     return np.linalg.norm(np.subtract(vector1, vector2))  # type: ignore
 
 

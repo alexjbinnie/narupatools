@@ -254,6 +254,10 @@ class ASEDynamics(
     def masses(self) -> ScalarArray:  # noqa: D102
         return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
+    @masses.setter
+    def masses(self, value: ScalarArray) -> None:
+        self.atoms.set_masses(value * _NarupaToASE.mass)
+
     @property
     @override(InteractiveSimulationDynamics.kinetic_energy)
     def kinetic_energy(self) -> float:  # noqa: D102

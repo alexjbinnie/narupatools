@@ -261,7 +261,7 @@ class SimulationDynamics(
         pass
 
     @override(FrameSourceWithNotify.get_frame)
-    def get_frame(self, fields: InfiniteSet[str]) -> FrameData:
+    def get_frame(self, fields: InfiniteSet[str] = everything()) -> FrameData:
         """
         Get the current state of the system as a Narupa `FrameData`.
 

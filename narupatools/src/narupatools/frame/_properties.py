@@ -162,6 +162,12 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
     def masses(self) -> ScalarArray:
         return self._source.masses[self._selection]
 
+    @masses.setter
+    def masses(self, value):
+        masses = self._source.masses
+        masses[self._selection] = value
+        self._source.masses = masses
+
     @property
     def positions(self) -> Vector3Array:
         return self._source.positions[self._selection]
