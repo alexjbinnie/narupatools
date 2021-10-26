@@ -244,3 +244,9 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
 
     def __repr__(self):
         return f'<SelectionView selection="{self._selection}" of {self._source}>'
+
+    def __array__(self, dtype=None):
+        if dtype == None:
+            return self.indices.copy()
+        else:
+            return np.asarray(self.indices, dtype=dtype)

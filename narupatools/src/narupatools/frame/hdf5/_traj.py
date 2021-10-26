@@ -21,7 +21,7 @@ from narupatools.frame import (
     ParticlePositions,
     ParticleVelocities,
     PotentialEnergy,
-    TrajectorySource,
+    TrajectorySource, StateData,
 )
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.physics.typing import ScalarArray, Vector3Array
@@ -50,6 +50,10 @@ class _HDF5EditableObject(Protocol):
             shape: Tuple[int, ...],
             units: Optional[str] = None,
     ) -> EArray:
+        if hasattr(self, "expected_frames"):
+            expected_frames = self.expected_frames
+        else:
+            expected_frames = 1000
         array = self.hdf5_group._v_file.create_earray(
             self.hdf5_group,
             name=name,
@@ -57,6 +61,7 @@ class _HDF5EditableObject(Protocol):
             shape=(0,) + shape,
             title=title,
             filters=tables.Filters(shuffle=True, complib="zlib", complevel=1),
+            expectedrows=expected_frames
         )
         if units is not None:
             array._v_attrs["units"] = units
@@ -540,6 +545,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             title: Optional[str] = None,
             author: Optional[str] = None,
             overwrite_existing: bool = False,
+            expected_frames: Optional[int] = None
     ) -> HDF5Trajectory:
         if not overwrite_existing and os.path.exists(filename):
             raise FileExistsError(filename)
@@ -553,6 +559,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         obj.program = "narupatools"
         obj.conventions = "Pande,NarupaTools"
         obj.program_version = narupatools.__version__
+        obj.expected_frames = expected_frames
 
         return obj
 
@@ -562,6 +569,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             *,
             title: Optional[str] = None,
             author: Optional[str] = None,
+            expected_frames: Optional[int] = None
     ) -> HDF5Trajectory:
         with NamedTemporaryFile() as tmp:
             filename = tmp.name + ".h5"
@@ -582,6 +590,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         obj.program = "narupatools"
         obj.conventions = "Pande,NarupaTools"
         obj.program_version = narupatools.__version__
+        obj.expected_frames = expected_frames
 
         return obj
 
@@ -614,34 +623,27 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
     def save_frame(
             self,
             *,
-            positions: np.ndarray,
-            time: float,
-            potential_energy: float,
-            kinetic_energy: float,
-            velocities: Optional[np.ndarray] = None,
-            forces: Optional[np.ndarray] = None,
+            frame: FrameData,
+            time: float
     ) -> None:
         """
         Save a trajectory frame.
 
-        :param positions: Atomic positions in nanometers.
-        :param velocities: Atomic velocities in nanometers per picoseconds.
         :param time: Time in picoseconds.
-        :param potential_energy: Potential energy in kilojoules per mole.
-        :param kinetic_energy: Kinetic energy in kilojoules per mole.
-        :param forces: Atomic forces in kilojoules per mole per nanometer.
         """
         if not self._writable:
             raise ValueError("Trajectory is read only")
 
+        positions = frame[ParticlePositions]
+
         if not hasattr(self, "_n_atoms"):
             self._n_atoms = len(positions)
 
-        self._positions.append(np.array([positions]))
-        if velocities is not None:
-            self._velocities.append(np.array([velocities]))
-        if forces is not None:
-            self._forces.append(np.array([forces]))
+        self._positions.append(positions[np.newaxis])
+        if ParticleVelocities in frame:
+            self._velocities.append(frame[ParticleVelocities][np.newaxis])
+        if ParticleForces in frame:
+            self._forces.append(frame[ParticleForces][np.newaxis])
         self._times.append(np.array([time]))
         if self._start_realtime is None:
             self._start_realtime = monotonic()
@@ -649,10 +651,8 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         else:
             self._realtimes.append(np.array([monotonic() - self._start_realtime]))
 
-        self._potential_energies.append(np.array([potential_energy]))
-        self._kinetic_energies.append(np.array([kinetic_energy]))
-
-        self._file.flush()
+        self._potential_energies.append(np.array([frame[PotentialEnergy]]))
+        self._kinetic_energies.append(np.array([frame[KineticEnergy]]))
 
     def save_topology(self, frame: FrameData) -> None:
         """
@@ -668,6 +668,9 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             self._file.root, name="topology", title="Topology", obj=[raw_string]
         )
         self._topology = HDF5Topology.from_string(raw_string.decode("ascii"))
+
+    def flush(self):
+        self._file.flush()
 
     @property
     def topology(self) -> HDF5Topology:
@@ -708,18 +711,23 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
 
     def save_to_file(self, filename: str, overwrite_existing: bool = False) -> None:
         """Save the trajectory to the given filename"""
+        self._file.flush()
         self._file.copy_file(filename, overwrite_existing)
+
+    def close(self):
+        self._file.flush()
+        self._file.close()
 
     @classmethod
     @contextlib.contextmanager
     def record(
-            cls, dynamics: InteractiveSimulationDynamics, *, filename: Optional[str] = None
+            cls, dynamics: InteractiveSimulationDynamics, *, filename: Optional[str] = None, expected_frames:Optional[int] = None, flush_every: int=1
     ) -> Generator[HDF5Trajectory, None, None]:
         """Record dynamics to a single trajectory, stopping if it is reset."""
         if filename is not None:
-            traj = cls.new_file(filename=filename)
+            traj = cls.new_file(filename=filename, expected_frames=expected_frames)
         else:
-            traj = cls.in_memory()
+            traj = cls.in_memory(expected_frames=expected_frames)
 
         has_logged_initial = False
         frame_index = 0
@@ -739,12 +747,20 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             nonlocal traj
             nonlocal frame_index
 
+            fields = {
+                ParticlePositions,
+                ParticleVelocities,
+                ParticleForces,
+                KineticEnergy,
+                PotentialEnergy
+            }
+
+            state_data = StateData()
+
+            frame = dynamics.get_frame(fields=fields, existing=state_data)
+
             traj.save_frame(
-                positions=dynamics.positions,
-                velocities=dynamics.velocities,
-                forces=dynamics.forces,
-                kinetic_energy=dynamics.kinetic_energy,
-                potential_energy=dynamics.potential_energy,
+                frame=frame,
                 time=dynamics.elapsed_time,
             )
             for interaction in dynamics.imd.current_interactions.values():
@@ -755,6 +771,9 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
                 )
 
             frame_index += 1
+
+            if frame_index % flush_every == 0:
+                traj.flush()
 
         def log_end_interaction(key: str, **kwargs: Any) -> None:
             nonlocal traj
@@ -769,6 +788,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         try:
             yield traj
         finally:
+            traj.flush()
             dynamics.on_pre_step.remove_callback(log_initial)
             dynamics.on_post_step.remove_callback(log_step)
             dynamics.imd.on_end_interaction.remove_callback(log_end_interaction)

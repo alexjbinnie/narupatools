@@ -21,10 +21,11 @@
 """More performant serialization and deserialization of OpenMM simulations."""
 
 from io import StringIO
+from typing import Optional
 
 from lxml import etree
 from lxml.etree import ElementBase
-from simtk.openmm import Integrator, System, XmlSerializer
+from simtk.openmm import Integrator, System, XmlSerializer, Platform
 from simtk.openmm.app import PDBFile, Simulation
 
 
@@ -70,7 +71,7 @@ def serialize_simulation(simulation: Simulation) -> str:
     return etree.tostring(root, encoding="unicode", pretty_print=True)
 
 
-def deserialize_simulation(contents: str) -> Simulation:
+def deserialize_simulation(contents: str, platform: Optional[str]=None) -> Simulation:
     """
     Deserialize an XML string to an OpenMM simulation.
 
@@ -98,10 +99,14 @@ def deserialize_simulation(contents: str) -> Simulation:
         integrator_content
     )  # type: ignore
 
+    if isinstance(platform, str):
+        platform = Platform.getPlatformByName(platform)
+
     simulation = Simulation(
         topology=pdb.topology,
         system=system,
         integrator=integrator,
+        platform=platform
     )
     simulation.context.setPositions(pdb.positions)
     return simulation

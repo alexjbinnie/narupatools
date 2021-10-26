@@ -147,13 +147,16 @@ class SimulationDynamics(
 
     @override(Playable._restart)
     def _restart(self) -> None:
+        self.reset_time()
+        self._reset_internal()
+        self._on_reset.invoke()
+        self._on_fields_changed.invoke(fields=everything())
+
+    def reset_time(self):
         self._previous_total_time += self.elapsed_time
         self._previous_total_steps += self.elapsed_steps
         self._elapsed_time = 0
         self._elapsed_steps = 0
-        self._reset_internal()
-        self._on_reset.invoke()
-        self._on_fields_changed.invoke(fields=everything())
 
     @override(Playable.run)
     def run(  # type: ignore
@@ -258,18 +261,18 @@ class SimulationDynamics(
         raise AttributeError
 
     @abstractmethod
-    def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
+    def _get_frame(self, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
         pass
 
     @override(FrameSourceWithNotify.get_frame)
-    def get_frame(self, fields: InfiniteSet[str] = everything()) -> FrameData:
+    def get_frame(self, fields: InfiniteSet[str] = everything(), existing: Optional[FrameData] = None) -> FrameData:
         """
         Get the current state of the system as a Narupa `FrameData`.
 
         :param fields: Collection of keys to include in the FrameData
         :return: Narupa `FrameData` populated with requested fields.
         """
-        frame = self._get_frame(fields)
+        frame = self._get_frame(fields=fields, existing=existing)
         frame[SimulationElapsedTime] = self.elapsed_time
         frame[SimulationElapsedSteps] = self.elapsed_steps
         frame[SimulationTotalTime] = self.total_time

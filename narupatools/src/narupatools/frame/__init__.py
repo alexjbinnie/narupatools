@@ -31,6 +31,7 @@ from ._pdb import frame_to_pdb_string
 from ._properties import DynamicStructureProperties, StaticStructureProperties
 from ._select import select
 from ._trajectory_playback import TrajectoryPlayback
+from ._state import StateData
 
 __all__ = [
     "convert",
@@ -46,4 +47,5 @@ __all__ = [
     "frame_to_pdb_string",
     "StaticStructureProperties",
     "DynamicStructureProperties",
+    "StateData"
 ]

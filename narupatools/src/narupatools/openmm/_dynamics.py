@@ -22,7 +22,7 @@ import warnings
 from io import BytesIO
 from os import PathLike
 from threading import Lock
-from typing import AbstractSet, Any, Dict, List, Union
+from typing import AbstractSet, Any, Dict, List, Union, Optional
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
@@ -38,7 +38,7 @@ from narupatools.physics.typing import (
     Vector3ArrayLike,
 )
 
-from ..frame import DynamicStructureMethods, ParticlePositions
+from ..frame import DynamicStructureMethods, ParticlePositions, ParticleVelocities
 from ..override import override
 from ._converter import (
     get_openmm_masses,
@@ -63,8 +63,10 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
             self._simulation.context.reinitialize(preserveState=True)
 
     @override(InteractiveSimulationDynamics._get_frame)
-    def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
-        frame = FrameData()
+    def _get_frame(self, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
+        frame = existing
+        if not frame:
+            frame = FrameData()
         with self._simulation_lock:
             openmm_context_to_frame(
                 self._simulation.context, fields=fields, existing=frame
@@ -101,6 +103,14 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def masses(self) -> ScalarArray:  # noqa: D102
         return self._masses
 
+    @masses.setter
+    def masses(self, value: ScalarArray) -> None:
+        with self._simulation_lock:
+            system = self._simulation.system
+            for i, m in enumerate(value):
+                system.setParticleMass(i, m)
+            self._simulation.context.reinitialize(preserveState=True)
+
     @property
     @override(InteractiveSimulationDynamics.positions)
     def positions(self) -> Vector3Array:  # noqa: D102
@@ -112,6 +122,8 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def positions(self, value: Vector3ArrayLike) -> None:
         with self._simulation_lock:
             self._simulation.context.setPositions(np.asfarray(value))
+        for interaction in self._imd.current_interactions.values():
+            interaction.mark_positions_dirty()
         self._on_fields_changed.invoke(fields={ParticlePositions})
 
     @property
@@ -125,6 +137,9 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def velocities(self, value: Vector3ArrayLike) -> None:
         with self._simulation_lock:
             self._simulation.context.setVelocities(np.asfarray(value))
+        for interaction in self._imd.current_interactions.values():
+            interaction.mark_velocities_dirty()
+        self._on_fields_changed.invoke(fields={ParticleVelocities})
 
     @property
     @override(InteractiveSimulationDynamics.forces)
@@ -157,6 +172,13 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         """
         with open(path) as infile:
             return OpenMMDynamics.from_xml_string(infile.read())
+
+    def minimize(self, tolerance, max_iterations = None):
+        with self._simulation_lock:
+            if not max_iterations:
+                max_iterations = 0
+            self._simulation.minimizeEnergy(tolerance, max_iterations)
+            self._on_fields_changed.invoke(fields={ParticlePositions})
 
     @staticmethod
     def from_xml_string(string: str, /) -> OpenMMDynamics:
@@ -236,6 +258,12 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
     @property
     def _system_size(self) -> int:
         return len(self.dynamics.masses)
+
+    def _on_post_step(self, **kwargs):
+        for interaction in self.current_interactions.values():
+            interaction.mark_positions_dirty()
+            interaction.mark_velocities_dirty()
+        super()._on_post_step(**kwargs)
 
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"

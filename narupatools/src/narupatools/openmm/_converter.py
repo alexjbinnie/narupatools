@@ -48,7 +48,7 @@ from narupatools.frame.fields import (
     ResidueChains,
     ResidueCount,
     ResidueIds,
-    ResidueNames,
+    ResidueNames, KineticEnergy,
 )
 from narupatools.openmm._units import UnitsOpenMM
 from narupatools.override import override
@@ -305,6 +305,11 @@ def openmm_state_to_frame(
     if PotentialEnergy in fields:
         frame[PotentialEnergy] = (
             state.getPotentialEnergy()._value * OpenMMToNarupa.energy
+        )
+        
+    if KineticEnergy in fields:
+        frame[KineticEnergy] = (
+                state.getKineticEnergy()._value * OpenMMToNarupa.energy
         )
 
     if BoxVectors in fields:
