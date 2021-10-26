@@ -6,16 +6,17 @@ from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
 from narupatools.frame.fields import (
-    ParticleResidues,
-    ResidueNames,
-    ParticleNames,
-    ParticleTypes,
-    ParticlePositions,
-    BondPairs,
     BondCount,
+    BondPairs,
     ParticleCount,
+    ParticleNames,
+    ParticlePositions,
+    ParticleResidues,
+    ParticleTypes,
     ResidueCount,
+    ResidueNames,
 )
+
 from ._converter import convert
 from ._frame_source import FrameSource
 

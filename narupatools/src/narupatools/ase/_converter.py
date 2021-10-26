@@ -38,6 +38,7 @@ from narupatools.frame.fields import (
     BondPairs,
     BondTypes,
     BoxVectors,
+    ChainCount,
     KineticEnergy,
     ParticleCharges,
     ParticleCount,
@@ -52,7 +53,6 @@ from narupatools.frame.fields import (
     ResidueChains,
     ResidueCount,
     ResidueNames,
-    ChainCount,
 )
 from narupatools.frame.util import calculate_residue_entities
 from narupatools.mdanalysis import UnitsMDAnalysis

@@ -21,7 +21,7 @@ Methods here are not specific with units - as long as arguments are provided in
 consistent units, then the calculated result will be correct.
 """
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 from numpy.linalg import inv
@@ -288,14 +288,30 @@ def moment_of_inertia_tensor(
     )
 
 
-def principal_moments_and_axes(*, masses, positions):
+def principal_moments_and_axes(
+    *, masses: ScalarArrayLike, positions: Vector3ArrayLike
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Calculate the principal moments and axes of a set of point particles.
+
+    The principal axes are the eigenvectors of the moment of inertia tensor. They describe the axes
+    which form a coordinate system where the moment of inertia tensor is diagonal.
+
+    :param masses: Mass of each particles.
+    :param positions: Position of each particle.
+    :return: Tuple of the principal moments (ordered from largest to smallest) and corresponding principal axes.
+    """
+    masses = np.asfarray(masses)
+    positions = np.asfarray(positions)
     inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
     eigvals, eigvecs = np.linalg.eig(inertia)
     idx = eigvals.argsort()[::-1]
     return eigvals[idx], eigvecs.T[idx]
 
 
-def principal_axes(*, masses, positions):
+def principal_axes(
+    *, masses: ScalarArrayLike, positions: Vector3ArrayLike
+) -> np.ndarray:
     return principal_moments_and_axes(masses=masses, positions=positions)[1]
 
 

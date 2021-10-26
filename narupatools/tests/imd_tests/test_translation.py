@@ -1,4 +1,3 @@
-import math
 import random
 
 import numpy as np
@@ -6,10 +5,8 @@ import pytest
 from ase import Atoms
 
 from narupatools.ase import ASEDynamics
-from narupatools.frame.hdf5 import record_hdf5
 from narupatools.imd import rigidmotion_interaction
-from narupatools.physics.random import random_unit_quaternion
-from narupatools.physics.transformation import Rotation, Translation
+from narupatools.physics.transformation import Translation
 from narupatools.physics.vector import vector
 
 
@@ -80,48 +77,3 @@ def test_translate_1(dynamics, methane_positions, translation):
     assert dynamics.positions == pytest.approx(
         Translation(translation) @ methane_positions, rel=1e-1
     )
-
-
-def not_test_rotation(seed, dynamics, methane_positions):
-    angle = random_unit_quaternion()
-
-    interaction = rigidmotion_interaction(
-        particles=[0, 1, 2, 3, 4], rotation=angle, scale=15
-    )
-    dynamics.imd.add_interaction(interaction)
-
-    dynamics.run(500)
-
-    rotation = Rotation(angle)
-
-    np.set_printoptions(suppress=True)
-
-    assert dynamics.positions == pytest.approx(
-        rotation @ methane_positions, rel=1e-2, abs=1e-2
-    )
-
-
-def not_test_rotation_translation(dynamics, methane_positions):
-    writer = record_hdf5(dynamics, filename="test.hdf5", overwrite_existing=True)
-
-    angle = vector(0.5 * math.pi, 0, 0)
-    rotation = Rotation.from_rotation_vector(angle)
-
-    translate = vector(0.4, 0, 0)
-
-    interaction = rigidmotion_interaction(
-        particles=[0, 1, 2, 3, 4], translation=translate, rotation=rotation, scale=5
-    )
-
-    dynamics.imd.add_interaction(interaction)
-
-    rotation = Rotation.from_rotation_vector(angle)
-    translation = Translation(translate)
-
-    dynamics.run(200)
-
-    assert dynamics.positions == pytest.approx(
-        translation @ (rotation @ methane_positions), rel=1e-2, abs=1e-2
-    )
-
-    writer.close()

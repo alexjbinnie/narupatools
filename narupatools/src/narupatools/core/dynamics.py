@@ -27,9 +27,9 @@ from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
 from narupatools.frame import (
+    DynamicStructureProperties,
     FrameSourceWithNotify,
     OnFieldsChangedCallback,
-    DynamicStructureProperties,
 )
 from narupatools.frame.fields import (
     DYNAMIC_FIELDS,
@@ -40,6 +40,7 @@ from narupatools.frame.fields import (
 )
 from narupatools.override import override
 from narupatools.physics.typing import ScalarArray, Vector3Array
+
 from . import Playable
 
 

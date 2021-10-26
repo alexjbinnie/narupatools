@@ -23,9 +23,9 @@ import numpy as np
 
 from narupatools.physics.typing import Vector3Array
 
+from ...frame import DynamicStructureProperties
 from ._feedback import InteractionFeedback
 from ._parameters import InteractionParameters
-from ...frame import DynamicStructureProperties
 
 _TInteractionData = TypeVar("_TInteractionData", bound=InteractionParameters)
 

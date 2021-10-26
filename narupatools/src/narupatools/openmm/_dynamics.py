@@ -37,8 +37,8 @@ from narupatools.physics.typing import (
     Vector3Array,
     Vector3ArrayLike,
 )
-from ..frame import DynamicStructureMethods, ParticlePositions
 
+from ..frame import DynamicStructureMethods, ParticlePositions
 from ..override import override
 from ._converter import (
     get_openmm_masses,

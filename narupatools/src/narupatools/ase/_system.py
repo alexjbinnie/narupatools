@@ -26,7 +26,7 @@ from ase import Atoms
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
-from narupatools.frame import FrameSource, DynamicStructureProperties
+from narupatools.frame import DynamicStructureProperties, FrameSource
 from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 from narupatools.physics.units import UnitsNarupa

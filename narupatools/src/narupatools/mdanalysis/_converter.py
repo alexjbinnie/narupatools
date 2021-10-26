@@ -27,13 +27,13 @@ from MDAnalysis.coordinates.memory import MemoryReader
 from MDAnalysis.core.topology import Topology
 from MDAnalysis.core.topologyattrs import (
     Atomnames,
+    Atomtypes,
     Bonds,
     Charges,
     Elements,
     Masses,
     Resnames,
     TopologyAttr,
-    Atomtypes,
 )
 from narupa.trajectory import FrameData
 

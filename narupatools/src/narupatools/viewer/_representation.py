@@ -1,22 +1,22 @@
 import numpy as np
 from narupa.trajectory import FrameData
 from pythreejs import (
-    Mesh,
-    SphereGeometry,
-    MeshLambertMaterial,
     CylinderGeometry,
+    Mesh,
+    MeshLambertMaterial,
     Object3D,
+    SphereGeometry,
 )
 from scipy.spatial.transform import Rotation
 
-from narupatools.frame.fields import ParticlePositions, ParticleElements, BondPairs
+from narupatools.frame.fields import BondPairs, ParticleElements, ParticlePositions
 from narupatools.physics.atomic import vdw_radius
 from narupatools.physics.vector import (
-    magnitude,
-    vector,
     angle,
     cross_product,
+    magnitude,
     normalized,
+    vector,
 )
 
 colors = {1: "#ffffff", 6: "#7c7582", 7: "#16a1f2", 8: "#f22958", 14: "#F0C8A0"}

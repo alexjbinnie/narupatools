@@ -17,7 +17,7 @@
 """Utility methods for using vectors."""
 
 import math
-from typing import Union, overload, Optional
+from typing import Optional, Union, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -183,10 +183,13 @@ def distance(vector1: Vector3Like, vector2: Optional[Vector3Like] = None, /) -> 
     :param vector2: Point :math:`b`.
     :return: Distance between the two points.
     """
+    vector1 = np.asfarray(vector1)
     if vector2 is None:
         if vector1.shape[-2] != 2:
-            raise ValueError("Cannot take distances of array without second last axes being shape 2.")
-        return np.linalg.norm(vector1[..., 1, :] - vector1[..., 0, :], axis=-1)
+            raise ValueError(
+                "Cannot take distances of array without second last axes being shape 2."
+            )
+        return np.linalg.norm(vector1[..., 1, :] - vector1[..., 0, :], axis=-1)  # type: ignore
     return np.linalg.norm(np.subtract(vector1, vector2))  # type: ignore
 
 

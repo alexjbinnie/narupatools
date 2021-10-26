@@ -38,13 +38,13 @@ from narupatools.imd.interactions import InteractionParameters
 from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 from narupatools.physics.units import UnitsNarupa
+
 from ..frame import (
-    DynamicStructureProperties,
     DynamicStructureMethods,
+    DynamicStructureProperties,
     ParticlePositions,
     ParticleVelocities,
 )
-
 from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (

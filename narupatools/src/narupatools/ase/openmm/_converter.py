@@ -17,7 +17,6 @@ import functools
 import logging
 from collections import Callable
 
-import numpy as np
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
@@ -29,7 +28,6 @@ import narupatools.ase.openmm._calculator as omm_calculator
 from narupatools.ase import UnitsASE
 from narupatools.frame import convert
 from narupatools.openmm import UnitsOpenMM
-from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
 from narupatools.physics.units import UnitsNarupa, pico, second
 
 _OpenMMToASE = UnitsOpenMM >> UnitsASE

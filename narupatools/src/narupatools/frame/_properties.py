@@ -8,15 +8,21 @@ from scipy.spatial.transform import Rotation
 
 from narupatools.physics import quaternion
 from narupatools.physics.rigidbody import (
+    angular_velocity,
     center_of_mass,
     center_of_mass_velocity,
     moment_of_inertia_tensor,
-    angular_velocity,
     principal_axes,
 )
-from narupatools.physics.typing import Vector3Array, ScalarArray, Vector3
-from ._select import select
+from narupatools.physics.typing import (
+    ScalarArray,
+    Vector3,
+    Vector3Array,
+    Vector3ArrayLike,
+)
+
 from ..physics.thermodynamics import maxwell_boltzmann_velocities
+from ._select import select
 
 
 class StaticStructureProperties(Protocol):
@@ -48,41 +54,63 @@ class StaticStructureProperties(Protocol):
         raise AttributeError
 
 
+class WritableStaticStructureProperties(StaticStructureProperties, Protocol):
+    """Base protocol for an object which represents a static system of particles."""
+
+    @property
+    def positions(self) -> Vector3Array:
+        raise AttributeError
+
+    @positions.setter
+    def positions(self, value: Vector3ArrayLike) -> None:
+        ...
+
+
 class DynamicStructureMethods:
-    def center_of_mass_velocity(self) -> Vector3:
+    def center_of_mass_velocity(self: DynamicStructureProperties) -> Vector3:
         return center_of_mass_velocity(velocities=self.velocities, masses=self.masses)
 
-    def angular_velocity(self) -> Vector3:
+    def angular_velocity(self: DynamicStructureProperties) -> Vector3:
         return angular_velocity(
             positions=self.positions, velocities=self.velocities, masses=self.masses
         )
 
-    def select(self, selection: Union[str, np.ndarray]) -> SelectionView:
+    def select(
+        self: DynamicStructureProperties, selection: Union[str, np.ndarray]
+    ) -> SelectionView:
         return SelectionView(self, selection)
 
-    def center_of_mass(self) -> Vector3:
+    def center_of_mass(self: StaticStructureProperties) -> Vector3:
         return center_of_mass(positions=self.positions, masses=self.masses)
 
-    def moment_of_inertia_tensor(self) -> np.ndarray:
+    def moment_of_inertia_tensor(self: StaticStructureProperties) -> np.ndarray:
         return moment_of_inertia_tensor(positions=self.positions, masses=self.masses)
 
-    def principal_axes(self) -> Vector3Array:
+    def principal_axes(self: StaticStructureProperties) -> Vector3Array:
         return principal_axes(positions=self.positions, masses=self.masses)
 
-    def translate_to(self, position: Vector3):
+    def translate_to(
+        self: WritableStaticStructureProperties, position: Vector3
+    ) -> None:
         com = self.center_of_mass()
         self.positions += position - com
 
-    def randomly_orient(self):
+    def randomly_orient(self: WritableStaticStructureProperties) -> None:
         """Randomly orientate the object around its center of mass."""
         com = self.center_of_mass()
         rot = Rotation.random()
         self.positions = com + rot.apply(self.positions - com)
 
-    def distribute_velocities(self, temperature):
-        """Distribute velocities using the Maxwell-Boltzmann distribution"""
+    def distribute_velocities(
+        self: WritableDynamicStructureProperties, temperature: float
+    ) -> None:
+        """
+        Distribute velocities using the Maxwell-Boltzmann distribution.
+
+        :param temperature: Temperature of the Maxwell-Boltzmann distribution in Kelvin.
+        """
         self.velocities = maxwell_boltzmann_velocities(
-            masses=self.masses, temperature=300
+            masses=self.masses, temperature=temperature
         )
 
 
@@ -143,6 +171,18 @@ class DynamicStructureProperties(StaticStructureProperties, Protocol):
         raise AttributeError
 
 
+class WritableDynamicStructureProperties(StaticStructureProperties, Protocol):
+    """Base protocol for an object which represents a dynamic system of particles."""
+
+    @property
+    def velocities(self) -> Vector3Array:
+        raise AttributeError
+
+    @velocities.setter
+    def velocities(self, value: Vector3ArrayLike) -> None:
+        ...
+
+
 class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
     """View to a subset of a system, such as a FrameData or dynamics."""
 
@@ -160,33 +200,33 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
 
     @property
     def masses(self) -> ScalarArray:
-        return self._source.masses[self._selection]
+        return self._source.masses[self._selection]  # type: ignore
 
     @masses.setter
     def masses(self, value):
         masses = self._source.masses
         masses[self._selection] = value
-        self._source.masses = masses
+        self._source.masses = masses  # type: ignore
 
     @property
     def positions(self) -> Vector3Array:
-        return self._source.positions[self._selection]
+        return self._source.positions[self._selection]  # type: ignore
 
     @positions.setter
     def positions(self, value):
         positions = self._source.positions
         positions[self._selection] = value
-        self._source.positions = positions
+        self._source.positions = positions  # type: ignore
 
     @property
     def velocities(self) -> Vector3Array:
-        return self._source.velocities[self._selection]
+        return self._source.velocities[self._selection]  # type: ignore
 
     @velocities.setter
     def velocities(self, value):
         velocities = self._source.velocities
         velocities[self._selection] = value
-        self._source.velocities = velocities
+        self._source.velocities = velocities  # type: ignore
 
     @property
     def orientations(self) -> npt.NDArray[quaternion]:

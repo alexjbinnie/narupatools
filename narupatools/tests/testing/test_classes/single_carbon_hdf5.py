@@ -6,7 +6,7 @@ import mdtraj
 import numpy as np
 import pytest
 
-from narupatools.frame.hdf5 import HDF5Trajectory, record_hdf5
+from narupatools.frame.hdf5 import HDF5Trajectory
 from narupatools.imd import InteractiveSimulationDynamics, constant_interaction
 from narupatools.physics.vector import vector
 
@@ -34,13 +34,9 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         raise NotImplementedError
 
     def test_hdf5_writer(self, dynamics, hdf5_filename):
-        writer = record_hdf5(
-            dynamics=dynamics, filename=hdf5_filename, title="Test Trajectory"
-        )
-        dynamics.run(100)
-        writer.close()
+        with HDF5Trajectory.record(dynamics) as traj:
+            dynamics.run(100)
 
-        traj = mdtraj.load_hdf5(hdf5_filename)
         assert traj.n_frames == 101
         assert traj.n_atoms == 1
         assert traj.timestep == pytest.approx(0.01)

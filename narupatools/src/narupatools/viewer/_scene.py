@@ -3,19 +3,19 @@ from typing import Any
 from IPython.core.display import display
 from narupa.trajectory import FrameData
 from pythreejs import (
-    DirectionalLight,
-    PerspectiveCamera,
     AmbientLight,
-    Scene,
-    OrbitControls,
-    Renderer,
-    Object3D,
     ArrowHelper,
+    DirectionalLight,
+    Object3D,
+    OrbitControls,
+    PerspectiveCamera,
+    Renderer,
+    Scene,
 )
 
 from narupatools.frame import convert
-from narupatools.frame.fields import ParticleVelocities, ParticlePositions
-from narupatools.physics.vector import normalized, magnitude
+from narupatools.frame.fields import ParticlePositions, ParticleVelocities
+from narupatools.physics.vector import magnitude, normalized
 from narupatools.viewer._representation import ball_and_stick
 
 

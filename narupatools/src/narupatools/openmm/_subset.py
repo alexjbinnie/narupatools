@@ -2,16 +2,26 @@ import copy
 from typing import Dict
 
 import numpy as np
-from simtk.openmm import CustomBondForce, CustomExternalForce, CustomAngleForce, CustomNonbondedForce, System
-from simtk.openmm.app import Topology, Simulation
+from simtk.openmm import (
+    CustomAngleForce,
+    CustomBondForce,
+    CustomExternalForce,
+    CustomNonbondedForce,
+    System,
+)
+from simtk.openmm.app import Simulation, Topology
 
 from narupatools.frame import select
 
 
-def _copy_custombondforce(force: CustomBondForce, indices: np.ndarray, index_map: Dict[int, int]):
+def _copy_custombondforce(
+    force: CustomBondForce, indices: np.ndarray, index_map: Dict[int, int]
+):
     new_force = CustomBondForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
-        new_force.addGlobalParameter(force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi))
+        new_force.addGlobalParameter(
+            force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi)
+        )
     for pi in range(force.getNumPerBondParameters()):
         new_force.addPerBondParameter(force.getPerBondParameterName(pi))
     for bi in range(force.getNumBonds()):
@@ -21,10 +31,14 @@ def _copy_custombondforce(force: CustomBondForce, indices: np.ndarray, index_map
     return new_force
 
 
-def _copy_customangleforce(force: CustomAngleForce, indices: np.ndarray, index_map: Dict[int, int]):
+def _copy_customangleforce(
+    force: CustomAngleForce, indices: np.ndarray, index_map: Dict[int, int]
+):
     new_force = CustomAngleForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
-        new_force.addGlobalParameter(force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi))
+        new_force.addGlobalParameter(
+            force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi)
+        )
     for pi in range(force.getNumPerAngleParameters()):
         new_force.addPerAngleParameter(force.getPerAngleParameterName(pi))
     for ai in range(force.getNumAngles()):
@@ -34,10 +48,14 @@ def _copy_customangleforce(force: CustomAngleForce, indices: np.ndarray, index_m
     return new_force
 
 
-def _copy_customexternalforce(force: CustomExternalForce, indices: np.ndarray, index_map: Dict[int, int]):
+def _copy_customexternalforce(
+    force: CustomExternalForce, indices: np.ndarray, index_map: Dict[int, int]
+):
     new_force = CustomExternalForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
-        new_force.addGlobalParameter(force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi))
+        new_force.addGlobalParameter(
+            force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi)
+        )
     for pi in range(force.getNumPerParticleParameters()):
         new_force.addPerParticleParameter(force.getPerParticleParameterName(pi))
     for pi in range(force.getNumParticles()):
@@ -47,10 +65,14 @@ def _copy_customexternalforce(force: CustomExternalForce, indices: np.ndarray, i
     return new_force
 
 
-def _copy_customnonbondedforce(force: CustomNonbondedForce, indices: np.ndarray, index_map: Dict[int, int]):
+def _copy_customnonbondedforce(
+    force: CustomNonbondedForce, indices: np.ndarray, index_map: Dict[int, int]
+):
     new_force = CustomNonbondedForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
-        new_force.addGlobalParameter(force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi))
+        new_force.addGlobalParameter(
+            force.getGlobalParameterName(pi), force.getGlobalParameterDefaultValue(pi)
+        )
     for pi in range(force.getNumPerParticleParameters()):
         new_force.addPerParticleParameter(force.getPerParticleParameterName(pi))
     if force.getNumTabulatedFunctions() > 0:
@@ -144,17 +166,27 @@ def topology_subset(topology: Topology, indices: np.ndarray) -> Topology:
     for residue in topology.residues():
         if residue.index in residue_map:
             chain = chains[chain_map[residue.chain.index]]
-            residues.append(new_topology.addResidue(residue.name, chain, residue.id, residue.insertionCode))
+            residues.append(
+                new_topology.addResidue(
+                    residue.name, chain, residue.id, residue.insertionCode
+                )
+            )
 
     for atom in topology.atoms():
         if atom.index in atom_map:
             residue = residues[residue_map[atom.residue.index]]
-            atoms.append(new_topology.addAtom(atom.name, atom.element, residue, atom.id))
+            atoms.append(
+                new_topology.addAtom(atom.name, atom.element, residue, atom.id)
+            )
 
     for bond in topology.bonds():
         if bond.atom1.index in indices and bond.atom2.index in indices:
-            new_topology.addBond(atoms[atom_map[bond.atom1.index]], atoms[atom_map[bond.atom2.index]], bond.type,
-                                 bond.order)
+            new_topology.addBond(
+                atoms[atom_map[bond.atom1.index]],
+                atoms[atom_map[bond.atom2.index]],
+                bond.type,
+                bond.order,
+            )
 
     new_topology.setPeriodicBoxVectors(topology.getPeriodicBoxVectors())
     new_topology.setUnitCellDimensions(topology.getUnitCellDimensions())
@@ -171,9 +203,12 @@ def simulation_subset(simulation: Simulation, indices: np.ndarray) -> Simulation
 
     platform = simulation.context.getPlatform()
 
-    new_simulation = Simulation(topology=topology_subset(simulation.topology, indices),
-                                system=system_subset(simulation.system, indices),
-                                integrator=copy.deepcopy(simulation.integrator), platform=platform)
+    new_simulation = Simulation(
+        topology=topology_subset(simulation.topology, indices),
+        system=system_subset(simulation.system, indices),
+        integrator=copy.deepcopy(simulation.integrator),
+        platform=platform,
+    )
 
     state = simulation.context.getState(getPositions=True, getVelocities=True)
     new_simulation.context.setPositions(state.getPositions(asNumpy=True)[indices])

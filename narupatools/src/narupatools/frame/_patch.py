@@ -15,42 +15,42 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Patch to FrameData that allows copy() to work with empty arrays."""
-from typing import Any, Generator, Tuple, Union, Protocol
+from typing import Any, Generator, Protocol, Tuple, Union
 
 import numpy as np
 from narupa.trajectory import FrameData
 from narupa.trajectory.frame_data import _FrameDataMeta
 from narupa.utilities.protobuf_utilities import value_to_object
 
-from ._properties import DynamicStructureProperties, DynamicStructureMethods
+from ..physics.typing import ScalarArray, Vector3Array
+from ..util import monkeypatch
+from ._properties import DynamicStructureMethods, DynamicStructureProperties
 from .fields import (
-    FrameKey,
-    get_frame_key,
-    BondPairs,
-    BondOrders,
     BondCount,
+    BondOrders,
+    BondPairs,
     BondTypes,
-    ParticlePositions,
-    ParticleElements,
-    ParticleTypes,
-    ParticleNames,
-    ParticleMasses,
-    ParticleResidues,
-    ParticleVelocities,
-    ParticleForces,
+    BoxVectors,
+    ChainCount,
+    ChainNames,
+    FrameKey,
+    KineticEnergy,
     ParticleCount,
-    ResidueNames,
-    ResidueIds,
+    ParticleElements,
+    ParticleForces,
+    ParticleMasses,
+    ParticleNames,
+    ParticlePositions,
+    ParticleResidues,
+    ParticleTypes,
+    ParticleVelocities,
+    PotentialEnergy,
     ResidueChains,
     ResidueCount,
-    ChainNames,
-    ChainCount,
-    KineticEnergy,
-    PotentialEnergy,
-    BoxVectors,
+    ResidueIds,
+    ResidueNames,
+    get_frame_key,
 )
-from ..physics.typing import Vector3Array, ScalarArray
-from ..util import monkeypatch
 
 
 @monkeypatch(FrameData)

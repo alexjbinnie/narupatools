@@ -2,26 +2,31 @@ from __future__ import annotations
 
 import contextlib
 import os
-import re
 from abc import abstractmethod
 from tempfile import NamedTemporaryFile
 from time import monotonic
-from typing import Optional, Tuple, Mapping, Iterator, Protocol, Any
+from typing import Any, Iterator, Mapping, Optional, Protocol, Tuple, Generator
 
 import numpy as np
 import tables
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
-from tables import File, EArray, Float32Atom, Group
+from tables import EArray, File, Float32Atom, Group, NoSuchNodeError
 
 import narupatools
-from narupatools.core.dynamics import SimulationDynamics
-from narupatools.frame import ParticlePositions, ParticleVelocities, ParticleForces, PotentialEnergy, \
-    KineticEnergy, DynamicStructureMethods, TrajectorySource
-from narupatools.frame.hdf5._topology import HDF5Topology
-from narupatools.frame.hdf5._utils import generate_topology
+from narupatools.frame import (
+    DynamicStructureMethods,
+    KineticEnergy,
+    ParticleForces,
+    ParticlePositions,
+    ParticleVelocities,
+    PotentialEnergy,
+    TrajectorySource,
+)
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
-from narupatools.physics.typing import Vector3Array, ScalarArray
+from narupatools.physics.typing import ScalarArray, Vector3Array
+from ._topology import HDF5Topology
+from ._utils import generate_topology
 
 
 class _HDF5EditableObject(Protocol):
@@ -59,7 +64,6 @@ class _HDF5EditableObject(Protocol):
 
 
 class HDF5Attribute:
-
     def __init__(self, name: str):
         self._name = name
 
@@ -75,8 +79,6 @@ class HDF5Attribute:
         instance.hdf5_group._v_attrs[self._name] = value
 
 
-
-
 class HDF5AppendableArray:
     """
     Descriptor representing a HDF5 array that can be appended to.
@@ -86,12 +88,13 @@ class HDF5AppendableArray:
     * If the array exists (due to being read from an existing file), it is returned.
     * If
     """
+
     def __init__(
             self,
             *,
             h5_name: str,
             title: str,
-            shape: Tuple[int],
+            shape: Tuple[int, ...],
             per_atom: bool = False,
             units: str,
     ):
@@ -137,7 +140,6 @@ class HDF5AppendableArray:
 
 
 class HDF5InteractionParameters(_HDF5EditableObject):
-
     def __init__(self, interaction_view: HDF5Interaction):
         self._interaction = interaction_view
 
@@ -149,13 +151,22 @@ class HDF5InteractionParameters(_HDF5EditableObject):
     def hdf5_group(self) -> Group:
         return self._interaction.hdf5_group
 
-    _position = HDF5AppendableArray(h5_name="position", title="Interaction Position", shape=(3,), units="nanometers")
+    _position = HDF5AppendableArray(
+        h5_name="position", title="Interaction Position", shape=(3,), units="nanometers"
+    )
     position = _position.as_numpy()
 
-    _scale = HDF5AppendableArray(h5_name="scale", title="Interaction Scale", shape=(), units=None)
+    _scale = HDF5AppendableArray(
+        h5_name="scale", title="Interaction Scale", shape=(), units=None
+    )
     scale = _scale.as_numpy()
 
-    _force = HDF5AppendableArray(h5_name="force", title="Interaction Force", shape=(3,), units="kilojoules/mole/angstrom")
+    _force = HDF5AppendableArray(
+        h5_name="force",
+        title="Interaction Force",
+        shape=(3,),
+        units="kilojoules/mole/angstrom",
+    )
     force = _force.as_numpy()
 
     def save_interaction(self, *, interaction: Interaction):
@@ -196,8 +207,15 @@ class HDF5Interaction(_HDF5EditableObject):
         return self._group
 
     @classmethod
-    def create(cls, *, key: str, trajectory: HDF5Trajectory, interaction_group: Group, interaction: Interaction,
-               frame_index: int):
+    def create(
+            cls,
+            *,
+            key: str,
+            trajectory: HDF5Trajectory,
+            interaction_group: Group,
+            interaction: Interaction,
+            frame_index: int,
+    ):
 
         group = trajectory._file.create_group(
             where=interaction_group, name=key, title="Interaction"
@@ -218,18 +236,29 @@ class HDF5Interaction(_HDF5EditableObject):
         except KeyError:
             return int(self.frame_indices[-1])
 
-    _forces = HDF5AppendableArray(h5_name="forces", title="Interactive Forces", per_atom=True, shape=(3,),
-                                  units="kilojoules/(mole * nanometer")
+    _forces = HDF5AppendableArray(
+        h5_name="forces",
+        title="Interactive Forces",
+        per_atom=True,
+        shape=(3,),
+        units="kilojoules/(mole * nanometer",
+    )
     forces = _forces.as_numpy()
 
-    _potential_energies = HDF5AppendableArray(h5_name="potentialEnergy", title="Interactive Potential Energy", shape=(),
-                                              units="kilojoules/mole")
+    _potential_energies = HDF5AppendableArray(
+        h5_name="potentialEnergy",
+        title="Interactive Potential Energy",
+        shape=(),
+        units="kilojoules/mole",
+    )
     potential_energies = _potential_energies.as_numpy()
 
-    _frame_indices = HDF5AppendableArray(h5_name="frameIndex", title="Frame Index", shape=(), units=None)
+    _frame_indices = HDF5AppendableArray(
+        h5_name="frameIndex", title="Frame Index", shape=(), units=None
+    )
     frame_indices = _frame_indices.as_numpy(dtype=int)
 
-    def _set_particle_indices(self, particle_indices):
+    def _set_particle_indices(self, particle_indices: np.ndarray):
         if not self.writable:
             raise ValueError("Trajectory is not writable")
         self._trajectory._file.create_array(
@@ -301,44 +330,50 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
 
     def __init__(self, trajectory: HDF5Trajectory):
         self._trajectory = trajectory
-        self._interactions_group = None
+        self._interactions_group: Optional[Group] = None
 
     @property
-    def writable(self):
+    def writable(self) -> bool:
         return self._trajectory.writable
 
     @property
-    def _interactions(self):
+    def _interactions(self) -> Group:
         if self._interactions_group is None:
-            if hasattr(self._trajectory._file.root, 'interactions'):
+            if hasattr(self._trajectory._file.root, "interactions"):
                 self._interactions_group = self._trajectory._file.root.interactions
             elif self.writable:
                 self._interactions_group = self._trajectory._file.create_group(
-                    where=self._trajectory._file.root, name="interactions", title="Interactions"
+                    where=self._trajectory._file.root,
+                    name="interactions",
+                    title="Interactions",
                 )
             else:
                 raise AttributeError
         return self._interactions_group
 
     def __len__(self) -> int:
-        if self._interactions is None:
+        try:
+            return self._interactions._v_nchildren
+        except AttributeError:
             return 0
-        return self._interactions._v_nchildren
 
     def __getitem__(self, item: str) -> HDF5Interaction:
-        if self._interactions is None:
+        try:
+            interactions = self._interactions
+        except AttributeError:
             raise KeyError
-        if hasattr(self._interactions, item):
-            return HDF5Interaction(self._trajectory, getattr(self._interactions, item))
-        else:
+        try:
+            return HDF5Interaction(self._trajectory, interactions._f_get_child(item))
+        except NoSuchNodeError:
             raise KeyError
 
     def __iter__(self) -> Iterator[str]:
-        if self._interactions is None:
+        try:
+            for child in self._interactions._f_iter_nodes():
+                yield child._v_name
+        except AttributeError:
             yield from ()
             return
-        for child in self._interactions._f_iter_nodes():
-            yield child._v_name
 
     def save_interaction(
             self,
@@ -358,7 +393,13 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
         if not self.writable:
             raise ValueError("Not writable")
         if key not in self:
-            HDF5Interaction.create(key=key, trajectory=self._trajectory, interaction_group=self._interactions_group, interaction=interaction, frame_index=frame_index)
+            HDF5Interaction.create(
+                key=key,
+                trajectory=self._trajectory,
+                interaction_group=self._interactions,
+                interaction=interaction,
+                frame_index=frame_index,
+            )
         self[key].save_interaction(interaction=interaction, frame_index=frame_index)
 
     def end_interaction(self, *, key: str, frame_index: int) -> None:
@@ -395,7 +436,9 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
         """
         forces = np.zeros((self._trajectory.n_frames, self._trajectory.n_atoms, 3))
         for interaction in self.values():
-            forces[interaction.frame_slice, interaction.particle_indices] += interaction.forces
+            forces[
+                interaction.frame_slice, interaction.particle_indices
+            ] += interaction.forces
         return forces
 
     def __repr__(self) -> str:
@@ -403,7 +446,6 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
 
 
 class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObject):
-
     def __len__(self) -> int:
         return self.n_frames
 
@@ -458,7 +500,9 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
     )
     potential_energies = _potential_energies.as_numpy()
 
-    _times = HDF5AppendableArray(h5_name="time", title="Time", shape=(), units="picoseconds")
+    _times = HDF5AppendableArray(
+        h5_name="time", title="Time", shape=(), units="picoseconds"
+    )
     times = _times.as_numpy()
 
     _realtimes = HDF5AppendableArray(
@@ -467,7 +511,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
     realtimes = _realtimes.as_numpy()
 
     @classmethod
-    def load_file(cls, filename: str):
+    def load_file(cls, filename: str) -> HDF5Trajectory:
         file = tables.open_file(filename, mode="r")
         obj = cls(file, False)
 
@@ -496,7 +540,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             title: Optional[str] = None,
             author: Optional[str] = None,
             overwrite_existing: bool = False,
-    ):
+    ) -> HDF5Trajectory:
         if not overwrite_existing and os.path.exists(filename):
             raise FileExistsError(filename)
         file = tables.open_file(filename, mode="w", title=title or "")
@@ -518,11 +562,16 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             *,
             title: Optional[str] = None,
             author: Optional[str] = None,
-    ):
+    ) -> HDF5Trajectory:
         with NamedTemporaryFile() as tmp:
             filename = tmp.name + ".h5"
-        file = tables.open_file(filename, mode="w", title=title or "", driver="H5FD_CORE",
-                                driver_core_backing_store=0)
+        file = tables.open_file(
+            filename,
+            mode="w",
+            title=title or "",
+            driver="H5FD_CORE",
+            driver_core_backing_store=0,
+        )
 
         obj = cls(file, True)
 
@@ -533,7 +582,6 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         obj.program = "narupatools"
         obj.conventions = "Pande,NarupaTools"
         obj.program_version = narupatools.__version__
-
 
         return obj
 
@@ -553,15 +601,15 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         return self._file.root
 
     @property
-    def n_atoms(self):
+    def n_atoms(self) -> int:
         if hasattr(self, "_n_atoms"):
-            return self._n_atoms
+            return self._n_atoms  # type: ignore
         self._n_atoms = int(self._positions.shape[1])
         return self._n_atoms
 
     @property
-    def n_frames(self):
-        return self.positions.shape[0]
+    def n_frames(self) -> int:
+        return self.positions.shape[0]  # type: ignore
 
     def save_frame(
             self,
@@ -624,8 +672,10 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
     @property
     def topology(self) -> HDF5Topology:
         if self._topology is None:
-            if 'topology' in self._file.root:
-                self._topology = HDF5Topology.from_string(self._file.root.topology[0].decode("ascii"))
+            if "topology" in self._file.root:
+                self._topology = HDF5Topology.from_string(
+                    self._file.root.topology[0].decode("ascii")
+                )
             else:
                 raise AttributeError
         return self._topology
@@ -656,12 +706,15 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
                 frame[KineticEnergy] = self._kinetic_energies[index]
         return frame
 
-    def save_to_file(self, filename: str, overwrite_existing=False):
+    def save_to_file(self, filename: str, overwrite_existing: bool = False) -> None:
+        """Save the trajectory to the given filename"""
         self._file.copy_file(filename, overwrite_existing)
 
     @classmethod
     @contextlib.contextmanager
-    def record(cls, dynamics: InteractiveSimulationDynamics, *, filename: Optional[str] = None) -> HDF5Trajectory:
+    def record(
+            cls, dynamics: InteractiveSimulationDynamics, *, filename: Optional[str] = None
+    ) -> Generator[HDF5Trajectory, None, None]:
         """Record dynamics to a single trajectory, stopping if it is reset."""
         if filename is not None:
             traj = cls.new_file(filename=filename)
@@ -707,7 +760,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             nonlocal traj
             nonlocal frame_index
 
-            traj.interactions.end_interaction(key=key, frame_index=frame_index+1)
+            traj.interactions.end_interaction(key=key, frame_index=frame_index + 1)
 
         dynamics.on_pre_step.add_callback(log_initial, priority=-1000)
         dynamics.on_post_step.add_callback(log_step, priority=-1000)
@@ -721,7 +774,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             dynamics.imd.on_end_interaction.remove_callback(log_end_interaction)
             traj._writable = False
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = "<HDF5Trajectory"
         if not self._writable:
             s += " read-only"

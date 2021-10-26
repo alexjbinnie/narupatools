@@ -21,14 +21,7 @@ from __future__ import annotations
 import time
 from contextlib import contextmanager
 from types import TracebackType
-from typing import (
-    Any,
-    Generator,
-    Optional,
-    Protocol,
-    Type,
-    runtime_checkable,
-)
+from typing import Any, Generator, Optional, Protocol, Type, runtime_checkable
 
 from infinite_sets import InfiniteSet, everything
 from narupa.app import NarupaImdApplication

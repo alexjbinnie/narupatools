@@ -4,12 +4,26 @@ import json
 from dataclasses import dataclass
 from typing import List, Optional
 
-from MDAnalysis.topology.tables import SYMB2Z
+import numpy as np
 from infinite_sets import InfiniteSet
+from MDAnalysis.topology.tables import SYMB2Z
 from narupa.trajectory import FrameData
 
-from narupatools.frame import FrameSource, ParticleNames, ParticleElements, ParticleResidues, ParticleCount, \
-    ResidueNames, ResidueChains, ResidueCount, ChainNames, ChainCount, BondCount, BondPairs
+from narupatools.frame import (
+    BondCount,
+    BondPairs,
+    ChainCount,
+    ChainNames,
+    FrameSource,
+    ParticleCount,
+    ParticleElements,
+    ParticleNames,
+    ParticleResidues,
+    ResidueChains,
+    ResidueCount,
+    ResidueNames,
+)
+from narupatools.util import atomic_numbers_to_masses
 
 
 @dataclass
@@ -28,6 +42,14 @@ class HDF5Atom:
             return SYMB2Z[self.element]
         return None
 
+    @property
+    def mass(self) -> Optional[float]:
+        """Atomic number of the atom."""
+        if self.element is not None:
+            return atomic_numbers_to_masses(self.atomic_number)  # type: ignore
+        return None
+
+
 @dataclass
 class HDF5Residue:
     """Residue in a HDF5 topology."""
@@ -35,6 +57,7 @@ class HDF5Residue:
     index: int
     chain: HDF5Chain
     name: Optional[str] = None
+
 
 @dataclass
 class HDF5Chain:
@@ -67,6 +90,10 @@ class HDF5Topology(FrameSource):
         atom = HDF5Atom(len(self.atoms), residue)
         self.atoms.append(atom)
         return atom
+
+    @property
+    def masses(self) -> np.ndarray:
+        return np.array([atom.mass for atom in self.atoms])
 
     @classmethod
     def from_string(cls, string: str) -> HDF5Topology:
