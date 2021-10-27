@@ -230,7 +230,7 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
 
     @property
     def orientations(self) -> npt.NDArray[quaternion]:
-        return self._source.orientations[self._selection]
+        return self._source.orientations[self._selection]  # type: ignore
 
     @property
     def moments_of_inertia(self) -> Vector3Array:
@@ -245,7 +245,7 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
     def __repr__(self) -> str:
         return f'<SelectionView selection="{self._selection}" of {self._source}>'
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype: npt.DTypeLike = None) -> np.ndarray:
         if dtype == None:
             return self.indices.copy()
         else:

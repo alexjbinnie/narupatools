@@ -38,7 +38,7 @@ from ._show import show_ase, show_narupa, show_trajectory
 from ._structure import ASEStructure, FrameDataStructure, FrameDataTrajectory
 
 
-def show(obj: Any):
+def show(obj: Any) -> NGLWidget:
     if isinstance(obj, Atoms):
         return show_ase(obj)
     if isinstance(obj, Client):

@@ -1,4 +1,4 @@
-from typing import Union, Any
+from typing import Any, Dict, Union
 
 from narupatools.frame import FrameKey, get_frame_key
 
@@ -7,9 +7,9 @@ class StateData:
     """Similar to a Narupa frame, but not stored as protobuf."""
 
     def __init__(self) -> None:
-        self._dict = dict()
+        self._dict: Dict[Union[str, FrameKey], Any] = dict()
 
-    def __getitem__(self, key: Union[str, FrameKey]):
+    def __getitem__(self, key: Union[str, FrameKey]) -> Any:
         if isinstance(key, FrameKey):
             return self._dict[key]
         try:

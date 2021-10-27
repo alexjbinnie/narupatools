@@ -14,28 +14,31 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import annotations
+from openmm.unit.unit import Unit
 
-from typing import TypeVar, overload
+meter: Unit
+meters: Unit
 
-import numpy as np
-from simtk.unit.quantity import Quantity
+angstrom: Unit
+angstroms: Unit
 
-_T = TypeVar("_T")
+gram: Unit
+grams: Unit
 
-class Unit:
-    def __truediv__(self, other: Unit) -> Unit: ...
-    def __rtruediv__(self, other: _T) -> Quantity[_T]: ...
-    def __pow__(self, power: int) -> Unit: ...
-    @overload
-    def __mul__(self, other: np.ndarray) -> Quantity[np.ndarray]: ...
-    @overload
-    def __mul__(self, other: float) -> Quantity[float]: ...
-    @overload
-    def __mul__(self, other: Unit) -> Unit: ...
-    @overload
-    def __rmul__(self, other: float) -> Quantity[float]: ...
-    @overload
-    def __rmul__(self, other: np.ndarray) -> Quantity[np.ndarray]: ...
-    @overload
-    def __rmul__(self, other: Unit) -> Unit: ...
+second: Unit
+seconds: Unit
+
+kilojoule_per_mole: Unit
+kilojoules_per_mole: Unit
+
+picosecond: Unit
+picoseconds: Unit
+
+nanometer: Unit
+nanometers: Unit
+
+amu: Unit
+amus: Unit
+
+kelvin: Unit
+kelvins: Unit

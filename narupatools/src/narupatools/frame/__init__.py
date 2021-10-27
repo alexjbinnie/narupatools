@@ -30,8 +30,8 @@ from ._patch import *  # noqa: F401, F403
 from ._pdb import frame_to_pdb_string
 from ._properties import DynamicStructureProperties, StaticStructureProperties
 from ._select import select
-from ._trajectory_playback import TrajectoryPlayback
 from ._state import StateData
+from ._trajectory_playback import TrajectoryPlayback
 
 __all__ = [
     "convert",

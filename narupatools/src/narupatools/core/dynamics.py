@@ -152,7 +152,8 @@ class SimulationDynamics(
         self._on_reset.invoke()
         self._on_fields_changed.invoke(fields=everything())
 
-    def reset_time(self):
+    def reset_time(self) -> None:
+        """Reset the timer such that the elapsed time and steps is zero."""
         self._previous_total_time += self.elapsed_time
         self._previous_total_steps += self.elapsed_steps
         self._elapsed_time = 0

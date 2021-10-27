@@ -22,7 +22,7 @@ import warnings
 from io import BytesIO
 from os import PathLike
 from threading import Lock
-from typing import AbstractSet, Any, Dict, List, Union, Optional
+from typing import AbstractSet, Any, Dict, List, Optional, Union
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
@@ -128,9 +128,9 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
             interaction.mark_positions_dirty()
         self._on_fields_changed.invoke(fields={ParticlePositions})
 
-    @property
+    @property  # type: ignore
     @override(InteractiveSimulationDynamics.velocities)
-    def velocities(self) -> Vector3Array:  # noqa: D102
+    def velocities(self) -> Vector3Array:  # type: ignore  # noqa: D102
         with self._simulation_lock:
             state = self._simulation.context.getState(getVelocities=True)
         return state.getVelocities(asNumpy=True)._value
@@ -175,7 +175,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         with open(path) as infile:
             return OpenMMDynamics.from_xml_string(infile.read())
 
-    def minimize(self, tolerance, max_iterations=None):
+    def minimize(self, tolerance: float, max_iterations: Optional[int] = None) -> None:
         with self._simulation_lock:
             if not max_iterations:
                 max_iterations = 0
@@ -244,7 +244,7 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
     @override(SetAndClearInteractionFeature._set_forces)
     def _set_forces(self, forces: Dict[int, Vector3]) -> None:
         for index, force in forces.items():
-            self.imd_force.setParticleParameters(int(index), int(index), force)
+            self.imd_force.setParticleParameters(int(index), int(index), force)  # type: ignore
             self._forces_dirty = True
 
     @override(SetAndClearInteractionFeature._clear_forces)
@@ -261,7 +261,7 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
     def _system_size(self) -> int:
         return len(self.dynamics.masses)
 
-    def _on_post_step(self, **kwargs):
+    def _on_post_step(self, **kwargs: Any) -> None:
         for interaction in self.current_interactions.values():
             interaction.mark_positions_dirty()
             interaction.mark_velocities_dirty()

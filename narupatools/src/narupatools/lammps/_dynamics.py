@@ -77,8 +77,10 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         # Allow subclasses to override behaviour on reset
         pass
 
-    def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
-        return self._simulation.get_frame(fields=fields)
+    def _get_frame(
+        self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:
+        return self._simulation.get_frame(fields=fields, existing=existing)
 
     @property
     def timestep(self) -> float:  # noqa: D102

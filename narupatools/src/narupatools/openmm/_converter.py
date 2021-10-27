@@ -36,6 +36,7 @@ from narupatools.frame.fields import (
     BoxVectors,
     ChainCount,
     ChainNames,
+    KineticEnergy,
     ParticleCount,
     ParticleElements,
     ParticleForces,
@@ -49,7 +50,6 @@ from narupatools.frame.fields import (
     ResidueCount,
     ResidueIds,
     ResidueNames,
-    KineticEnergy,
 )
 from narupatools.openmm._units import UnitsOpenMM
 from narupatools.override import override

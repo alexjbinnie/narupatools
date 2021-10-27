@@ -103,7 +103,7 @@ def openmm_simulation_to_ase_molecular_dynamics(
         integrator: Callable[..., MolecularDynamics] = functools.partial(
             Langevin,
             timestep=timestep * _OpenMMToASE.time,
-            temperature_K=simulation.integrator.getTemperature()._value,  # type: ignore
+            temperature_K=simulation.integrator.getTemperature()._value,
             friction=simulation.integrator.getFriction().value_in_unit(
                 picoseconds ** (-1)
             )
