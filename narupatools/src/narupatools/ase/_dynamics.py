@@ -26,6 +26,7 @@ import numpy.typing as npt
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
+from ase.optimize import LBFGS
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
@@ -44,6 +45,7 @@ from ..frame import (
     DynamicStructureProperties,
     ParticlePositions,
     ParticleVelocities,
+    PotentialEnergy,
 )
 from ..override import override
 from ._converter import ase_atoms_to_frame
@@ -320,6 +322,11 @@ class ASEDynamics(
         if isinstance(obj, MolecularDynamics):
             return ASEDynamics.from_ase_dynamics(obj)
         raise NotImplementedError
+
+    def minimize(self) -> None:
+        minimizer = LBFGS(atoms=self.atoms, logfile=None)
+        minimizer.run(fmax=0.05)
+        self._on_fields_changed.invoke(fields={ParticlePositions})
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):

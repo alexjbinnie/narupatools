@@ -149,6 +149,13 @@ class OpenMMSimulation:
         """View of the global parameters of the system."""
         return OpenMMParametersView(self)
 
+    def create_checkpoint(self) -> str:
+        return self._context.createCheckpoint()
+
+    def load_checkpoint(self, checkpoint: str) -> None:
+        self._context.loadCheckpoint(checkpoint)
+        self._context.reinitialize(preserveState=False)
+
 
 class OpenMMParametersView(MutableMapping[str, float]):
     """

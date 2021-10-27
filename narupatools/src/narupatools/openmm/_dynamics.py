@@ -19,10 +19,11 @@
 from __future__ import annotations
 
 import warnings
+from contextlib import contextmanager
 from io import BytesIO
 from os import PathLike
 from threading import Lock
-from typing import AbstractSet, Any, Dict, List, Optional, Union
+from typing import AbstractSet, Any, Dict, List, Optional, Union, Generator
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
@@ -46,6 +47,7 @@ from ._converter import (
     openmm_topology_to_frame,
 )
 from ._serializer import deserialize_simulation
+from ._simulation import OpenMMSimulation
 
 
 class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
@@ -54,13 +56,12 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     @override(InteractiveSimulationDynamics._step_internal)
     def _step_internal(self) -> None:
         with self._simulation_lock:
-            self._simulation.step(steps=1)
+            self._simulation.run(steps=1)
 
     @override(InteractiveSimulationDynamics._reset_internal)
     def _reset_internal(self) -> None:
-        with self._simulation_lock, BytesIO(self._checkpoint) as bytesio:
-            self._simulation.loadCheckpoint(bytesio)
-            self._simulation.context.reinitialize(preserveState=True)
+        with self._simulation_lock:
+            self._simulation.load_checkpoint(self._checkpoint)
 
     @override(InteractiveSimulationDynamics._get_frame)
     def _get_frame(
@@ -78,17 +79,28 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
             )
         return frame
 
-    def __init__(self, simulation: Simulation, playback_interval: float = 0.0):
+    def __init__(self, simulation: OpenMMSimulation, playback_interval: float = 0.0):
         super().__init__(playback_interval=playback_interval)
         self._simulation = simulation
-        self._masses = get_openmm_masses(simulation)
+        self._masses = get_openmm_masses(self._simulation.system)
 
         self._imd = OpenMMIMDFeature(self)
         self._simulation_lock = Lock()
 
-        with BytesIO() as bytesio:
-            self._simulation.saveCheckpoint(bytesio)
-            self._checkpoint = bytesio.getvalue()
+        self._checkpoint = self._simulation.create_checkpoint()
+
+    def set_reset_state(self) -> None:
+        """Set the current state as the state that will be returned to on reset."""
+        self._checkpoint = self._simulation.create_checkpoint()
+
+    @contextmanager
+    def modify_simulation(self) -> Generator[OpenMMSimulation, None, None]:
+        with self._simulation.modify():
+            yield self._simulation
+
+    @property
+    def simulation(self) -> OpenMMSimulation:
+        return self._simulation
 
     @property
     @override(InteractiveSimulationDynamics.imd)
@@ -165,7 +177,9 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         return state.getPotentialEnergy()._value
 
     @staticmethod
-    def from_xml_file(path: Union[str, bytes, PathLike], /) -> OpenMMDynamics:
+    def from_xml_file(
+        path: Union[str, bytes, PathLike], /, *, platform: Optional[str] = None
+    ) -> OpenMMDynamics:
         """
         Create OpenMM dynamics from an XML file path.
 
@@ -173,34 +187,40 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         :return: A dynamics object that can be broadcast on a Narupa session.
         """
         with open(path) as infile:
-            return OpenMMDynamics.from_xml_string(infile.read())
+            return OpenMMDynamics.from_xml_string(infile.read(), platform=platform)
 
     def minimize(self, tolerance: float, max_iterations: Optional[int] = None) -> None:
         with self._simulation_lock:
             if not max_iterations:
                 max_iterations = 0
-            self._simulation.minimizeEnergy(tolerance, max_iterations)
+            self._simulation.minimize(tolerance, max_iterations)
             self._on_fields_changed.invoke(fields={ParticlePositions})
 
     @staticmethod
-    def from_xml_string(string: str, /) -> OpenMMDynamics:
+    def from_xml_string(
+        string: str, /, *, platform: Optional[str] = None
+    ) -> OpenMMDynamics:
         """
         Create OpenMM dynamics from the contents of an XML file.
 
         :param string: Contents of an XML file of a serialized OpenMM simulation.
         :return: A dynamics object that can be broadcast on a Narupa session.
         """
-        simulation = deserialize_simulation(string)
+        simulation = deserialize_simulation(string, platform=platform)
         return OpenMMDynamics.from_simulation(simulation)
 
     @staticmethod
-    def from_simulation(simulation: Simulation, /) -> OpenMMDynamics:
+    def from_simulation(
+        simulation: Union[OpenMMSimulation, Simulation], /
+    ) -> OpenMMDynamics:
         """
         Create OpenMM dynamics from a simulation.
 
         :param simulation: OpenMM simulation to wrap.
         :return: Dynamics object that can be broadcast on a Narupa session.
         """
+        if isinstance(simulation, Simulation):
+            simulation = OpenMMSimulation.from_simulation(simulation)
         return OpenMMDynamics(simulation)
 
     @classmethod
@@ -210,13 +230,13 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         raise NotImplementedError
 
 
-def _get_or_create_imd_force(simulation: Simulation) -> CustomExternalForce:
+def _get_or_create_imd_force(simulation: OpenMMSimulation) -> CustomExternalForce:
     """Get a suitable force in an OpenMM simulation for IMD."""
     potential_imd_forces = get_imd_forces_from_system(simulation.system)
     if len(potential_imd_forces) == 0:
-        force = add_imd_force_to_system(simulation.system)
-        simulation.context.reinitialize(True)
-        return force
+        with simulation.modify():
+            force = add_imd_force_to_system(simulation.system)
+            return force
     if len(potential_imd_forces) > 1:
         warnings.warn(
             "Simulation contains multiple forces suitable for IMD. "
