@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from os import PathLike
-from typing import Union
+from typing import Union, Optional
 
 from ase.md.md import MolecularDynamics
 from simtk.openmm.app import Simulation
@@ -48,7 +48,7 @@ class ASEOpenMMDynamics(ASEDynamics):
         return self._simulation
 
     @staticmethod
-    def from_xml_file(path: Union[str, bytes, PathLike], /) -> ASEOpenMMDynamics:
+    def from_xml_file(path: Union[str, bytes, PathLike], /, *, platform: Optional[str] = None) -> ASEOpenMMDynamics:
         """
         Create ASE dynamics using an OpenMM simulation as a calculator.
 
@@ -56,17 +56,17 @@ class ASEOpenMMDynamics(ASEDynamics):
         :return: A dynamics object that can be broadcast on a Narupa session.
         """
         with open(path) as file:
-            return ASEOpenMMDynamics.from_xml_string(file.read())
+            return ASEOpenMMDynamics.from_xml_string(file.read(), platform=platform)
 
     @staticmethod
-    def from_xml_string(string: str, /) -> ASEOpenMMDynamics:
+    def from_xml_string(string: str, /, *, platform: Optional[str] = None) -> ASEOpenMMDynamics:
         """
         Create ASE dynamics using an OpenMM simulation as a calculator.
 
         :param string: Contents of an XML file of a serialized OpenMM simulation.
         :return: A dynamics object that can be broadcast on a Narupa session.
         """
-        simulation = deserialize_simulation(string)
+        simulation = deserialize_simulation(string, platform=platform)
         return ASEOpenMMDynamics.from_simulation(simulation)
 
     @staticmethod

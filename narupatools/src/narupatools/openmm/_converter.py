@@ -416,12 +416,11 @@ def _get_openmm_topology_residue_info(
         frame[ResidueCount] = topology.getNumResidues()
 
 
-def get_openmm_masses(simulation: Simulation) -> ScalarArray:
+def get_openmm_masses(system: System) -> ScalarArray:
     """
     Get the masses defined in an OpenMM in daltons.
 
     :param simulation: OpenMM simulation to extract masses from.
     """
-    system = simulation.context.getSystem()
     n = system.getNumParticles()
     return np.array([system.getParticleMass(i)._value for i in range(n)], dtype=float)

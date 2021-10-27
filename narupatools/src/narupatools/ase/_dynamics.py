@@ -18,8 +18,9 @@
 
 from __future__ import annotations
 
+from ase.optimize import LBFGS
 from threading import Lock
-from typing import Any, Dict, Generic, TypeVar
+from typing import Any, Dict, Generic, TypeVar, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -43,7 +44,7 @@ from ..frame import (
     DynamicStructureMethods,
     DynamicStructureProperties,
     ParticlePositions,
-    ParticleVelocities,
+    ParticleVelocities, PotentialEnergy,
 )
 from ..override import override
 from ._converter import ase_atoms_to_frame
@@ -218,8 +219,11 @@ class ASEDynamics(
         self.molecular_dynamics.dt = value * _NarupaToASE.time
 
     @override(InteractiveSimulationDynamics._get_frame)
-    def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
-        frame = FrameData()
+    def _get_frame(self, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
+        if existing is not None:
+            frame = existing
+        else:
+            frame = FrameData()
         with self._atom_lock:
             ase_atoms_to_frame(self.atoms, fields=fields, frame=frame)
         return frame
@@ -315,6 +319,11 @@ class ASEDynamics(
         if isinstance(obj, MolecularDynamics):
             return ASEDynamics.from_ase_dynamics(obj)
         raise NotImplementedError
+
+    def minimize(self):
+        minimizer = LBFGS(atoms=self.atoms, logfile=None)
+        minimizer.run(fmax=0.05)
+        self._on_fields_changed.invoke(fields={ParticlePositions})
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):
