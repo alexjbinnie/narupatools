@@ -71,7 +71,7 @@ def serialize_simulation(simulation: Simulation) -> str:
     return etree.tostring(root, encoding="unicode", pretty_print=True)
 
 
-def deserialize_simulation(contents: str, platform: Optional[str]=None) -> Simulation:
+def deserialize_simulation(contents: str, platform: Optional[str] = None) -> Simulation:
     """
     Deserialize an XML string to an OpenMM simulation.
 
@@ -103,10 +103,7 @@ def deserialize_simulation(contents: str, platform: Optional[str]=None) -> Simul
         platform = Platform.getPlatformByName(platform)
 
     simulation = Simulation(
-        topology=pdb.topology,
-        system=system,
-        integrator=integrator,
-        platform=platform
+        topology=pdb.topology, system=system, integrator=integrator, platform=platform
     )
     simulation.context.setPositions(pdb.positions)
     return simulation

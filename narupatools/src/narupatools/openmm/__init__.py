@@ -22,7 +22,8 @@ from ._integrators import VelocityVerletIntegrator
 from ._serializer import deserialize_simulation, serialize_simulation
 from ._subset import simulation_subset
 from ._units import UnitsOpenMM
-from ._replace import replace_integrator, recreate_simulation
+from ._simulation import OpenMMSimulation
+
 __all__ = [
     "openmm_state_to_frame",
     "openmm_topology_to_frame",
@@ -32,6 +33,5 @@ __all__ = [
     "OpenMMDynamics",
     "VelocityVerletIntegrator",
     "simulation_subset",
-    "replace_integrator",
-    "recreate_simulation"
+    "OpenMMSimulation",
 ]

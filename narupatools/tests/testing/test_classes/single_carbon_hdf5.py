@@ -54,7 +54,9 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         assert len(traj2.interactions) == 0
 
     def test_hdf5_writer_imd(self, dynamics, hdf5_filename):
-        with HDF5Trajectory.record(dynamics, filename=hdf5_filename, title="Test Trajectory"):
+        with HDF5Trajectory.record(
+            dynamics, filename=hdf5_filename, title="Test Trajectory"
+        ):
             dynamics.run(20)
 
             key = dynamics.imd.add_interaction(

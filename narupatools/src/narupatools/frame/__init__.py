@@ -47,5 +47,5 @@ __all__ = [
     "frame_to_pdb_string",
     "StaticStructureProperties",
     "DynamicStructureProperties",
-    "StateData"
+    "StateData",
 ]

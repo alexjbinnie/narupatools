@@ -2,7 +2,6 @@ from typing import Any, Iterator
 
 from tables.node import Node
 
-
 class Group:
     def __getattr__(self, name: str) -> Any: ...
     @property

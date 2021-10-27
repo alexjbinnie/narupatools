@@ -261,11 +261,17 @@ class SimulationDynamics(
         raise AttributeError
 
     @abstractmethod
-    def _get_frame(self, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
+    def _get_frame(
+        self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:
         pass
 
     @override(FrameSourceWithNotify.get_frame)
-    def get_frame(self, fields: InfiniteSet[str] = everything(), existing: Optional[FrameData] = None) -> FrameData:
+    def get_frame(
+        self,
+        fields: InfiniteSet[str] = everything(),
+        existing: Optional[FrameData] = None,
+    ) -> FrameData:
         """
         Get the current state of the system as a Narupa `FrameData`.
 

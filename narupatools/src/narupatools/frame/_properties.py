@@ -92,12 +92,12 @@ class DynamicStructureMethods:
     def translate_to(
         self: WritableStaticStructureProperties, position: Vector3
     ) -> None:
-        com = self.center_of_mass()
+        com = self.center_of_mass()  # type: ignore
         self.positions += position - com
 
     def randomly_orient(self: WritableStaticStructureProperties) -> None:
         """Randomly orientate the object around its center of mass."""
-        com = self.center_of_mass()
+        com = self.center_of_mass()  # type: ignore
         rot = Rotation.random()
         self.positions = com + rot.apply(self.positions - com)
 
@@ -203,7 +203,7 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
         return self._source.masses[self._selection]  # type: ignore
 
     @masses.setter
-    def masses(self, value):
+    def masses(self, value: ScalarArray) -> None:
         masses = self._source.masses
         masses[self._selection] = value
         self._source.masses = masses  # type: ignore
@@ -213,17 +213,17 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
         return self._source.positions[self._selection]  # type: ignore
 
     @positions.setter
-    def positions(self, value):
+    def positions(self, value: Vector3Array) -> None:
         positions = self._source.positions
         positions[self._selection] = value
         self._source.positions = positions  # type: ignore
 
-    @property
-    def velocities(self) -> Vector3Array:
+    @property  # type: ignore
+    def velocities(self) -> Vector3Array:  # type: ignore
         return self._source.velocities[self._selection]  # type: ignore
 
     @velocities.setter
-    def velocities(self, value):
+    def velocities(self, value: Vector3Array) -> None:
         velocities = self._source.velocities
         velocities[self._selection] = value
         self._source.velocities = velocities  # type: ignore
@@ -242,7 +242,7 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
         """
         raise AttributeError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<SelectionView selection="{self._selection}" of {self._source}>'
 
     def __array__(self, dtype=None):

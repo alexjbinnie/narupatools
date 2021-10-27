@@ -172,7 +172,7 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
         return self.particle_masses
 
     @property
-    def velocities(self) -> Vector3Array:
+    def velocities(self) -> Vector3Array:  # type: ignore
         return self.particle_velocities
 
 

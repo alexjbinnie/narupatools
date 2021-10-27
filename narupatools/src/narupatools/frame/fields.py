@@ -213,8 +213,8 @@ class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
         frame_data.set_float_array(self.key, value)
 
     @override(FrameKey.convert)
-    def convert(self, value: AssignableToFloatArray):
-        return np.asfarray(value)
+    def convert(self, value: AssignableToFloatArray) -> np.ndarray:
+        return np.asfarray(value)  # type: ignore
 
     @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
@@ -289,7 +289,7 @@ class _StringArrayKey(FrameKey[AssignableToStringArray, np.ndarray]):
         return np.array(frame_data.raw.arrays[self.key].string_values.values)
 
     @override(FrameKey.convert)
-    def convert(self, value: AssignableToIndexArray) -> np.ndarray:
+    def convert(self, value: AssignableToStringArray) -> np.ndarray:
         return np.array(value)
 
 

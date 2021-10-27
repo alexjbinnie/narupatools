@@ -63,7 +63,9 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
             self._simulation.context.reinitialize(preserveState=True)
 
     @override(InteractiveSimulationDynamics._get_frame)
-    def _get_frame(self, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
+    def _get_frame(
+        self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:
         frame = existing
         if not frame:
             frame = FrameData()
@@ -173,7 +175,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         with open(path) as infile:
             return OpenMMDynamics.from_xml_string(infile.read())
 
-    def minimize(self, tolerance, max_iterations = None):
+    def minimize(self, tolerance, max_iterations=None):
         with self._simulation_lock:
             if not max_iterations:
                 max_iterations = 0
