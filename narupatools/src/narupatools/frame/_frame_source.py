@@ -34,8 +34,7 @@ class OnFieldsChangedCallback(Protocol):
         pass
 
 
-@runtime_checkable
-class FrameSource(Protocol, metaclass=ABCMeta):
+class FrameSource(metaclass=ABCMeta):
     """Base class for object which can create a FrameData."""
 
     @abstractmethod

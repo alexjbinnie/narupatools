@@ -136,7 +136,7 @@ class SessionSharedState(SharedStateDictionaryView):
                 )
 
 
-class SharedStateMixin(FrameSource, Protocol):
+class SharedStateMixin(FrameSource):
     """Mixin that adds common shared state operations to clients and sessions."""
 
     @property

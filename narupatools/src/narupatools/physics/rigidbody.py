@@ -26,6 +26,7 @@ from typing import Optional, Tuple
 import numpy as np
 from numpy.linalg import inv
 
+from .matrix import transpose
 from .typing import (
     Matrix3x3,
     ScalarArray,
@@ -305,8 +306,8 @@ def principal_moments_and_axes(
     positions = np.asfarray(positions)
     inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
     eigvals, eigvecs = np.linalg.eig(inertia)
-    idx = eigvals.argsort()[::-1]
-    return eigvals[idx], eigvecs.T[idx]
+    idx = eigvals.argsort()[..., ::-1]
+    return eigvals[idx], np.take_along_axis(transpose(eigvecs), idx[..., np.newaxis], axis=-2)
 
 
 def principal_axes(

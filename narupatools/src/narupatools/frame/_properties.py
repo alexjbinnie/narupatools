@@ -20,6 +20,7 @@ from narupatools.physics.typing import (
     Vector3Array,
     Vector3ArrayLike,
 )
+from . import TrajectorySource
 
 from ..physics.thermodynamics import maxwell_boltzmann_velocities
 from ._select import select
@@ -200,37 +201,37 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
 
     @property
     def masses(self) -> ScalarArray:
-        return self._source.masses[self._selection]  # type: ignore
+        return self._source.masses[..., self._selection]  # type: ignore
 
     @masses.setter
     def masses(self, value: ScalarArray) -> None:
         masses = self._source.masses
-        masses[self._selection] = value
+        masses[..., self._selection] = value
         self._source.masses = masses  # type: ignore
 
     @property
     def positions(self) -> Vector3Array:
-        return self._source.positions[self._selection]  # type: ignore
+        return self._source.positions[..., self._selection, :]  # type: ignore
 
     @positions.setter
     def positions(self, value: Vector3Array) -> None:
         positions = self._source.positions
-        positions[self._selection] = value
+        positions[..., self._selection, :] = value
         self._source.positions = positions  # type: ignore
 
     @property  # type: ignore
     def velocities(self) -> Vector3Array:  # type: ignore
-        return self._source.velocities[self._selection]  # type: ignore
+        return self._source.velocities[..., self._selection, :]  # type: ignore
 
     @velocities.setter
     def velocities(self, value: Vector3Array) -> None:
         velocities = self._source.velocities
-        velocities[self._selection] = value
+        velocities[..., self._selection, :] = value
         self._source.velocities = velocities  # type: ignore
 
     @property
     def orientations(self) -> npt.NDArray[quaternion]:
-        return self._source.orientations[self._selection]
+        return self._source.orientations[..., self._selection, :]
 
     @property
     def moments_of_inertia(self) -> Vector3Array:

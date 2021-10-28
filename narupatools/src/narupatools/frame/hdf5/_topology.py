@@ -23,8 +23,7 @@ from narupatools.frame import (
     ResidueCount,
     ResidueNames,
 )
-from narupatools.util import atomic_numbers_to_masses
-
+from MDAnalysis.topology.tables import Z2SYMB, masses
 
 @dataclass
 class HDF5Atom:
@@ -34,19 +33,13 @@ class HDF5Atom:
     residue: HDF5Residue
     name: Optional[str] = None
     element: Optional[str] = None
+    mass: Optional[float] = None
 
     @property
     def atomic_number(self) -> Optional[int]:
         """Atomic number of the atom."""
         if self.element is not None:
             return SYMB2Z[self.element]
-        return None
-
-    @property
-    def mass(self) -> Optional[float]:
-        """Atomic number of the atom."""
-        if self.element is not None:
-            return atomic_numbers_to_masses(self.atomic_number)  # type: ignore
         return None
 
 
@@ -119,6 +112,10 @@ class HDF5Topology(FrameSource):
                                     atom.element = atom_json["element"]
                                 if "name" in atom_json:
                                     atom.name = atom_json["name"]
+                                if "mass" in atom_json:
+                                    atom.mass = atom_json["mass"]
+                                else:
+                                    atom.mass = masses[Z2SYMB[atom.atomic_number]]
         return topology
 
     def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
@@ -132,7 +129,7 @@ class HDF5Topology(FrameSource):
         if ParticleResidues in fields:
             frame[ParticleResidues] = [atom.residue.index for atom in self.atoms]
         if ParticleCount in fields:
-            frame[ParticleCount] = len(self.residues)
+            frame[ParticleCount] = len(self.atoms)
         if ResidueNames in fields:
             frame[ResidueNames] = [residue.name or "" for residue in self.residues]
         if ResidueChains in fields:

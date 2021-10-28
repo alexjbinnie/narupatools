@@ -75,4 +75,4 @@ class OpenMMSimulation:
 
     def load_checkpoint(self, checkpoint):
         self._context.loadCheckpoint(checkpoint)
-        self._context.reinitialize(preserveState=False)
+        self._context.reinitialize(preserveState=True)

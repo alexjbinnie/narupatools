@@ -63,6 +63,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def _reset_internal(self) -> None:
         with self._simulation_lock:
             self._simulation.load_checkpoint(self._checkpoint)
+            self._simulation.context.reinitialize(preserveState=True)
 
     @override(InteractiveSimulationDynamics._get_frame)
     def _get_frame(
@@ -98,6 +99,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def modify_simulation(self):
         with self._simulation.modify():
             yield self._simulation
+        self._checkpoint = self._simulation.create_checkpoint()
 
     @property
     def simulation(self) -> OpenMMSimulation:

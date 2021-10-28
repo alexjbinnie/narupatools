@@ -92,7 +92,7 @@ def zero_vector() -> Vector3:
 
 def sqr_magnitude(vector: VectorNLike, /) -> float:
     """Get the square magnitude of a n-dimensional vector."""
-    return np.dot(vector, vector)  # type: ignore
+    return (vector * vector).sum(axis=-1)  # type: ignore
 
 
 def magnitude(vector: VectorNLike, /) -> float:

@@ -18,7 +18,7 @@ from narupatools.frame.fields import (
 )
 
 from ._converter import convert
-from ._frame_source import FrameSource
+from ._frame_source import FrameSource, TrajectorySource
 
 
 def _get_selection_fields(selection: str, /) -> Set[str]:
@@ -59,6 +59,8 @@ def select(frame: Any, /, selection: str) -> np.ndarray:
 
     if isinstance(frame, FrameSource):
         frame = frame.get_frame(fields=fields)
+    elif isinstance(frame, TrajectorySource):
+        frame = frame.get_frame(fields=fields, index=0)
     elif not isinstance(frame, FrameData):
         frame = convert(frame, FrameData, fields=fields)
 
