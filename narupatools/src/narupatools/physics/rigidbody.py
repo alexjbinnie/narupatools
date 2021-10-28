@@ -55,7 +55,7 @@ def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> V
     """
     masses = np.asfarray(masses)
     positions = np.asfarray(positions)
-    return (positions * masses[..., np.newaxis]).sum(axis=-2) / masses.sum()  # type: ignore
+    return (positions * masses[..., np.newaxis]).sum(axis=-2) / masses[..., np.newaxis].sum(axis=-2)  # type: ignore
 
 
 def center_of_mass_velocity(

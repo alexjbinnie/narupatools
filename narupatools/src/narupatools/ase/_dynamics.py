@@ -18,15 +18,15 @@
 
 from __future__ import annotations
 
-from ase.optimize import LBFGS
 from threading import Lock
-from typing import Any, Dict, Generic, TypeVar, Optional
+from typing import Any, Dict, Generic, Optional, TypeVar
 
 import numpy as np
 import numpy.typing as npt
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
+from ase.optimize import LBFGS
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
@@ -44,7 +44,8 @@ from ..frame import (
     DynamicStructureMethods,
     DynamicStructureProperties,
     ParticlePositions,
-    ParticleVelocities, PotentialEnergy,
+    ParticleVelocities,
+    PotentialEnergy,
 )
 from ..override import override
 from ._converter import ase_atoms_to_frame
@@ -219,7 +220,9 @@ class ASEDynamics(
         self.molecular_dynamics.dt = value * _NarupaToASE.time
 
     @override(InteractiveSimulationDynamics._get_frame)
-    def _get_frame(self, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
+    def _get_frame(
+        self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:
         if existing is not None:
             frame = existing
         else:
@@ -238,9 +241,9 @@ class ASEDynamics(
         self.atoms.set_positions(np.asfarray(value) * _NarupaToASE.length)
         self._on_fields_changed.invoke(fields={ParticlePositions})
 
-    @override(InteractiveSimulationDynamics.velocities)
+    @override(InteractiveSimulationDynamics.velocities)  # type: ignore
     @property
-    def velocities(self) -> Vector3Array:  # noqa: D102
+    def velocities(self) -> Vector3Array:  # type: ignore  # noqa: D102
         return self.atoms.get_velocities() * _ASEToNarupa.velocity  # type: ignore
 
     @velocities.setter
@@ -320,7 +323,7 @@ class ASEDynamics(
             return ASEDynamics.from_ase_dynamics(obj)
         raise NotImplementedError
 
-    def minimize(self):
+    def minimize(self) -> None:
         minimizer = LBFGS(atoms=self.atoms, logfile=None)
         minimizer.run(fmax=0.05)
         self._on_fields_changed.invoke(fields={ParticlePositions})

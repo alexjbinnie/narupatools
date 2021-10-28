@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from os import PathLike
-from typing import Union, Optional
+from typing import Optional, Union
 
 from ase.md.md import MolecularDynamics
 from simtk.openmm.app import Simulation
@@ -48,7 +48,9 @@ class ASEOpenMMDynamics(ASEDynamics):
         return self._simulation
 
     @staticmethod
-    def from_xml_file(path: Union[str, bytes, PathLike], /, *, platform: Optional[str] = None) -> ASEOpenMMDynamics:
+    def from_xml_file(
+        path: Union[str, bytes, PathLike], /, *, platform: Optional[str] = None
+    ) -> ASEOpenMMDynamics:
         """
         Create ASE dynamics using an OpenMM simulation as a calculator.
 
@@ -59,7 +61,9 @@ class ASEOpenMMDynamics(ASEDynamics):
             return ASEOpenMMDynamics.from_xml_string(file.read(), platform=platform)
 
     @staticmethod
-    def from_xml_string(string: str, /, *, platform: Optional[str] = None) -> ASEOpenMMDynamics:
+    def from_xml_string(
+        string: str, /, *, platform: Optional[str] = None
+    ) -> ASEOpenMMDynamics:
         """
         Create ASE dynamics using an OpenMM simulation as a calculator.
 

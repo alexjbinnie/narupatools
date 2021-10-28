@@ -5,9 +5,10 @@ import os
 from abc import abstractmethod
 from tempfile import NamedTemporaryFile
 from time import monotonic
-from typing import Any, Iterator, Mapping, Optional, Protocol, Tuple, Generator
+from typing import Any, Generator, Iterator, Mapping, Optional, Protocol, Tuple, Type
 
 import numpy as np
+import numpy.typing as npt
 import tables
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
@@ -21,11 +22,12 @@ from narupatools.frame import (
     ParticlePositions,
     ParticleVelocities,
     PotentialEnergy,
-    TrajectorySource,
     StateData,
+    TrajectorySource,
 )
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.physics.typing import ScalarArray, Vector3Array
+
 from ._topology import HDF5Topology
 from ._utils import generate_topology
 
@@ -43,6 +45,11 @@ class _HDF5EditableObject(Protocol):
     def writable(self) -> bool:
         pass
 
+    @property
+    @abstractmethod
+    def n_atoms(self) -> int:
+        pass
+
     def create_earray(
         self,
         *,
@@ -52,7 +59,7 @@ class _HDF5EditableObject(Protocol):
         units: Optional[str] = None,
     ) -> EArray:
         if hasattr(self, "expected_frames"):
-            expected_frames = self.expected_frames
+            expected_frames = self.expected_frames  # type: ignore
         else:
             expected_frames = 1000
         array = self.hdf5_group._v_file.create_earray(
@@ -66,20 +73,20 @@ class _HDF5EditableObject(Protocol):
         )
         if units is not None:
             array._v_attrs["units"] = units
-        return array
+        return array  # type: ignore
 
 
 class HDF5Attribute:
     def __init__(self, name: str):
         self._name = name
 
-    def __get__(self, instance: _HDF5EditableObject, objtype):
+    def __get__(self, instance: _HDF5EditableObject, objtype: Type) -> Any:
         try:
             return instance.hdf5_group._v_attrs[self._name]
         except KeyError as e:
             raise AttributeError(f"Attribute {self._name} is not present.") from e
 
-    def __set__(self, instance, value) -> None:
+    def __set__(self, instance: Any, value: Any) -> None:
         if not instance.writable:
             raise ValueError("Trajectory is not writable.")
         instance.hdf5_group._v_attrs[self._name] = value
@@ -102,7 +109,7 @@ class HDF5AppendableArray:
         title: str,
         shape: Tuple[int, ...],
         per_atom: bool = False,
-        units: str,
+        units: Optional[str],
     ):
         self._h5_name = h5_name
         """Name of the array stored as an HDF5 EArray."""
@@ -117,7 +124,7 @@ class HDF5AppendableArray:
         self._units = units
         """Units of the array."""
 
-    def __get__(self, instance: _HDF5EditableObject, objtype):
+    def __get__(self, instance: _HDF5EditableObject, objtype: Type) -> Any:
         try:
             return getattr(instance, self._array_name)
         except AttributeError:
@@ -138,11 +145,11 @@ class HDF5AppendableArray:
             setattr(instance, self._array_name, value)
             return value
 
-    def as_numpy(self, dtype=float):
-        def get(obj):
+    def as_numpy(self, dtype: npt.DTypeLike = float) -> np.ndarray:
+        def get(obj: Any) -> np.ndarray:
             return np.array(self.__get__(obj, type(obj)), dtype=dtype)
 
-        return property(fget=get)
+        return property(fget=get)  # type: ignore
 
 
 class HDF5InteractionParameters(_HDF5EditableObject):
@@ -156,6 +163,10 @@ class HDF5InteractionParameters(_HDF5EditableObject):
     @property
     def hdf5_group(self) -> Group:
         return self._interaction.hdf5_group
+
+    @property
+    def n_atoms(self) -> int:
+        return self._interaction.n_atoms
 
     _position = HDF5AppendableArray(
         h5_name="position", title="Interaction Position", shape=(3,), units="nanometers"
@@ -175,7 +186,7 @@ class HDF5InteractionParameters(_HDF5EditableObject):
     )
     force = _force.as_numpy()
 
-    def save_interaction(self, *, interaction: Interaction):
+    def save_interaction(self, *, interaction: Interaction) -> None:
         if hasattr(interaction, "position"):
             self._position.append([interaction.position])  # type: ignore[attr-defined]
         if hasattr(interaction, "scale"):
@@ -197,15 +208,15 @@ class HDF5Interaction(_HDF5EditableObject):
         """Trajectory the interaction belongs to."""
         self._group = interaction
         """HDF5 group of this interaction."""
-        self._particle_indices = None
+        self._particle_indices: Optional[np.ndarray] = None
         self.parameters = HDF5InteractionParameters(self)
 
     @property
-    def n_atoms(self):
+    def n_atoms(self) -> int:
         return len(self.particle_indices)
 
     @property
-    def writable(self):
+    def writable(self) -> bool:
         return self._trajectory.writable
 
     @property
@@ -221,7 +232,7 @@ class HDF5Interaction(_HDF5EditableObject):
         interaction_group: Group,
         interaction: Interaction,
         frame_index: int,
-    ):
+    ) -> HDF5Interaction:
 
         group = trajectory._file.create_group(
             where=interaction_group, name=key, title="Interaction"
@@ -264,19 +275,21 @@ class HDF5Interaction(_HDF5EditableObject):
     )
     frame_indices = _frame_indices.as_numpy(dtype=int)
 
-    def _set_particle_indices(self, particle_indices: np.ndarray):
+    def _set_particle_indices(self, particle_indices: npt.ArrayLike) -> None:
         if not self.writable:
             raise ValueError("Trajectory is not writable")
+
+        self._particle_indices = np.asarray(particle_indices, dtype=int)
+
         self._trajectory._file.create_array(
             where=self._group,
             name="indices",
             title="Particle Indices",
-            obj=list(particle_indices),
+            obj=self._particle_indices,
         )
-        self._particle_indices = particle_indices
 
     @property
-    def particle_indices(self):
+    def particle_indices(self) -> npt.NDArray[np.int_]:
         if self._particle_indices is None:
             if hasattr(self._group, "indices"):
                 self._particle_indices = np.array(self._group.indices)
@@ -620,7 +633,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
 
     @property
     def n_frames(self) -> int:
-        return self.positions.shape[0]  # type: ignore
+        return self.positions.shape[0]
 
     def save_frame(self, *, frame: FrameData, time: float) -> None:
         """

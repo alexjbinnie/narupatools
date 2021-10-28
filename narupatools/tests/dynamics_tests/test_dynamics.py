@@ -15,6 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
+from typing import Optional
 
 import pytest
 from infinite_sets import InfiniteSet
@@ -25,7 +26,9 @@ from narupatools.core.dynamics import SimulationDynamics
 
 
 class ExampleDynamics(SimulationDynamics):
-    def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
+    def _get_frame(
+        self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:
         return FrameData()
 
     def __init__(self, *, playback_interval: float = 0.0):

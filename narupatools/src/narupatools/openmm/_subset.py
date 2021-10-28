@@ -1,7 +1,8 @@
 import copy
-from typing import Dict
+from typing import Dict, Union
 
 import numpy as np
+from openmm import Force
 from simtk.openmm import (
     CustomAngleForce,
     CustomBondForce,
@@ -16,7 +17,7 @@ from narupatools.frame import select
 
 def _copy_custombondforce(
     force: CustomBondForce, indices: np.ndarray, index_map: Dict[int, int]
-):
+) -> CustomBondForce:
     new_force = CustomBondForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
         new_force.addGlobalParameter(
@@ -33,7 +34,7 @@ def _copy_custombondforce(
 
 def _copy_customangleforce(
     force: CustomAngleForce, indices: np.ndarray, index_map: Dict[int, int]
-):
+) -> CustomAngleForce:
     new_force = CustomAngleForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
         new_force.addGlobalParameter(
@@ -50,7 +51,7 @@ def _copy_customangleforce(
 
 def _copy_customexternalforce(
     force: CustomExternalForce, indices: np.ndarray, index_map: Dict[int, int]
-):
+) -> CustomExternalForce:
     new_force = CustomExternalForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
         new_force.addGlobalParameter(
@@ -67,7 +68,7 @@ def _copy_customexternalforce(
 
 def _copy_customnonbondedforce(
     force: CustomNonbondedForce, indices: np.ndarray, index_map: Dict[int, int]
-):
+) -> CustomNonbondedForce:
     new_force = CustomNonbondedForce(force.getEnergyFunction())
     for pi in range(force.getNumGlobalParameters()):
         new_force.addGlobalParameter(
@@ -114,7 +115,7 @@ def system_subset(system: System, indices: np.ndarray) -> System:
     for fi in range(system.getNumForces()):
         force = system.getForce(fi)
         if isinstance(force, CustomBondForce):
-            new_force = _copy_custombondforce(force, indices, index_map)
+            new_force: Force = _copy_custombondforce(force, indices, index_map)
         elif isinstance(force, CustomAngleForce):
             new_force = _copy_customangleforce(force, indices, index_map)
         elif isinstance(force, CustomExternalForce):
@@ -194,7 +195,9 @@ def topology_subset(topology: Topology, indices: np.ndarray) -> Topology:
     return new_topology
 
 
-def simulation_subset(simulation: Simulation, indices: np.ndarray) -> Simulation:
+def simulation_subset(
+    simulation: Simulation, indices: Union[str, np.ndarray]
+) -> Simulation:
 
     if isinstance(indices, str):
         indices = select(simulation, indices)

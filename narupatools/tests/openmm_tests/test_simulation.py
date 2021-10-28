@@ -1,7 +1,7 @@
 import pytest
-from simtk.openmm import VerletIntegrator, LangevinIntegrator
+from simtk.openmm import LangevinIntegrator, VerletIntegrator
 
-from narupatools.openmm import deserialize_simulation, OpenMMSimulation
+from narupatools.openmm import OpenMMSimulation, deserialize_simulation
 
 
 @pytest.fixture

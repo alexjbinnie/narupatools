@@ -76,13 +76,16 @@ def cross_product(a: Vector3Like, b: Vector3Like, /) -> Vector3:
     :param b: Vector :math:`b`.
     :return: Cross product :math:`a \times b` of the vectors :math:`a` and :math:`b`.
     """
-    return np.array(
-        [
-            a[1] * b[2] - b[1] * a[2],
-            a[2] * b[0] - b[2] * a[0],
-            a[0] * b[1] - b[0] * a[1],
-        ]
-    )
+    if a.shape == (3,) and b.shape == (3,):
+        return np.array(
+            [
+                a[1] * b[2] - b[1] * a[2],
+                a[2] * b[0] - b[2] * a[0],
+                a[0] * b[1] - b[0] * a[1],
+            ]
+        )
+    else:
+        return np.cross(a, b)
 
 
 def zero_vector() -> Vector3:

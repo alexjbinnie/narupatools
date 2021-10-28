@@ -36,6 +36,7 @@ from narupatools.frame.fields import (
     BoxVectors,
     ChainCount,
     ChainNames,
+    KineticEnergy,
     ParticleCount,
     ParticleElements,
     ParticleForces,
@@ -49,7 +50,6 @@ from narupatools.frame.fields import (
     ResidueCount,
     ResidueIds,
     ResidueNames,
-    KineticEnergy,
 )
 from narupatools.openmm._units import UnitsOpenMM
 from narupatools.override import override
@@ -221,7 +221,7 @@ def openmm_simulation_to_frame(
         frame = existing
 
     if ParticleMasses in fields:
-        frame[ParticleMasses] = get_openmm_masses(simulation)
+        frame[ParticleMasses] = get_openmm_masses(simulation.system)
 
     openmm_topology_to_frame(simulation.topology, fields=fields, existing=frame)
     openmm_context_to_frame(simulation.context, fields=fields, existing=frame)
