@@ -34,24 +34,9 @@ if not __has_ngl:
 from ._client import show_client
 from ._dynamics import show_dynamics
 from ._session import show_session
-from ._show import show_ase, show_narupa, show_trajectory
+from ._show import show, show_ase, show_narupa, show_trajectory
 from ._structure import ASEStructure, FrameDataStructure, FrameDataTrajectory
 
-
-def show(obj: Any) -> NGLWidget:
-    if isinstance(obj, Atoms):
-        return show_ase(obj)
-    if isinstance(obj, Client):
-        return show_client(obj)
-    if isinstance(obj, Session):
-        return show_session(obj)
-    if isinstance(obj, SimulationDynamics):
-        return show_dynamics(obj)
-    if isinstance(obj, FrameData):
-        return show_narupa(obj)
-    if isinstance(obj, list) and isinstance(obj[0], FrameData):
-        return NGLWidget(FrameDataTrajectory(obj))
-    raise ValueError(f"Cannot work out how to show object {obj} using nglview")
 
 
 __all__ = [
@@ -64,3 +49,8 @@ __all__ = [
     "ASEStructure",
     "FrameDataStructure",
 ]
+
+
+def load_ipython_extension(ipython):
+    from ._ipython import NGLMagics
+    ipython.register_magics(NGLMagics)

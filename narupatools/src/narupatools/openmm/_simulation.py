@@ -3,6 +3,9 @@ from __future__ import annotations
 import contextlib
 from typing import Generator, Iterator, Mapping, MutableMapping, Optional
 
+from infinite_sets import InfiniteSet, everything
+from narupa.trajectory import FrameData
+
 from simtk.openmm import (
     Context,
     Integrator,
@@ -13,10 +16,12 @@ from simtk.openmm import (
 )
 from simtk.openmm.app import Simulation, Topology
 
-from narupatools.openmm import deserialize_simulation
+from ._converter import openmm_context_to_frame, openmm_topology_to_frame
+from ._serializer import deserialize_simulation
+from narupatools.frame import FrameSource
 
 
-class OpenMMSimulation:
+class OpenMMSimulation(FrameSource):
     """
     Alternative representation of an OpenMM simulation.
 
@@ -28,6 +33,18 @@ class OpenMMSimulation:
     This alternative implementation acts similarly, but allows the system, integrator and topology to
     be easily modified. It also provides some more pythonic ways to interact with your system.
     """
+
+    def get_frame(self, *, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
+        frame = existing
+        if not frame:
+            frame = FrameData()
+        openmm_context_to_frame(
+            self._context, fields=fields, existing=frame
+        )
+        openmm_topology_to_frame(
+            self._topology, fields=fields, existing=frame
+        )
+        return frame
 
     def __init__(
         self,
@@ -50,10 +67,14 @@ class OpenMMSimulation:
         else:
             self._platform = self._context.getPlatform()
 
-    def _reset_context(self) -> None:
-        # state = self._context.getState(getPositions=True, getVelocities=True)
-        # self._context = Context(self.system, self.integrator)
-        self._context.reinitialize(preserveState=True)
+    def _reset_context(self, recreate: bool = False) -> None:
+        if recreate:
+            state = self._context.getState(getPositions=True, getVelocities=True)
+            self._context = Context(self.system, self.integrator)
+            self._context.setPositions(state.getPositions())
+            self._context.setVelocities(state.getVelocities())
+        else:
+            self._context.reinitialize(preserveState=True)
 
     @contextlib.contextmanager
     def modify(self) -> Generator[OpenMMSimulation, None, None]:
@@ -89,7 +110,7 @@ class OpenMMSimulation:
     @integrator.setter
     def integrator(self, value: Integrator) -> None:
         self._integrator = value
-        self._reset_context()
+        self._reset_context(True)
 
     @property
     def topology(self) -> Topology:
@@ -196,4 +217,3 @@ class OpenMMParametersView(MutableMapping[str, float]):
 
     def __str__(self) -> str:
         return f"<OpenMMParametersView {len(self)} parameter(s)>"
->>>>>>> 26c566fddfd3cf89638237b1d0ed6795980690ac

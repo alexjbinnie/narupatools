@@ -44,3 +44,6 @@ with open(__location + "/VERSION") as _version_file:
     __version__ = _version_file.read().strip()
 
 __author__ = "Alex Jamieson-Binnie"
+
+def load_ipython_extension(ipython):
+    nglview.load_ipython_extension(ipython)

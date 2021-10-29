@@ -17,10 +17,10 @@ dependencies:
   - narupa-server=0.1.2085
 # Compatible Packages
   - mdtraj=1.*
-  - openmm>=7.*
+  - openmm>=7.6
   - rdkit=2021.*
 # Packages required to run jupyter notebooks
-  - plotly=4.*
+  - plotly=5.*
   - nglview=3.*
 # Pip install narupatools
   - pip

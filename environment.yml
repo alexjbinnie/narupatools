@@ -24,10 +24,10 @@ dependencies:
 - nbsphinx=0.8.*
 - nglview=3.*
 - numpy>=1.21.*
-- openmm>=7.*
+- openmm>=7.6
 - pip
-- plotly=4.*
-- pytest-timeout=1.4.*
+- plotly=5.*
+- pytest-timeout=2.*
 - pytest-xdist=2.*
 - pytest=6.*
 - python>=3.8
@@ -35,6 +35,9 @@ dependencies:
 - rdkit=2021.*
 - sphinx-autodoc-typehints=1.12.*
 - sphinx=3.5.*
+- plumed=2.*
+- py-plumed=2.*
+- openmm-plumed=1.*
 - pip:
   - ./narupatools
 name: narupatools

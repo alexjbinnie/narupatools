@@ -21,5 +21,5 @@ dependencies:
   - nbsphinx=0.8.*
   - ipykernel
 # Packages required to run jupyter notebooks
-  - plotly=4.*
+  - plotly=5.*
   - nglview=3.*

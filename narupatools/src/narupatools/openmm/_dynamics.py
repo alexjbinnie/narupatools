@@ -68,17 +68,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def _get_frame(
         self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
     ) -> FrameData:
-        frame = existing
-        if not frame:
-            frame = FrameData()
-        with self._simulation_lock:
-            openmm_context_to_frame(
-                self._simulation.context, fields=fields, existing=frame
-            )
-            openmm_topology_to_frame(
-                self._simulation.topology, fields=fields, existing=frame
-            )
-        return frame
+        return self._simulation.get_frame(fields=fields, existing=existing)
 
     def __init__(self, simulation: OpenMMSimulation, playback_interval: float = 0.0):
         super().__init__(playback_interval=playback_interval)
