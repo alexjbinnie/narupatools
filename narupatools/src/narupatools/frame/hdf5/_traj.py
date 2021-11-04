@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import contextlib
 import os
-from abc import abstractmethod
 from tempfile import NamedTemporaryFile
 from time import monotonic
-from typing import Any, Generator, Iterator, Mapping, Optional, Protocol, Tuple, Type
+from typing import Any, Generator, Iterator, Mapping, Optional
 
 import numpy as np
 import numpy.typing as npt
 import tables
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
-from tables import EArray, File, Float32Atom, Group, NoSuchNodeError
+from tables import File, Group, NoSuchNodeError
 
 import narupatools
 from narupatools.frame import (
@@ -27,129 +26,18 @@ from narupatools.frame import (
 )
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.physics.typing import ScalarArray, Vector3Array
+from ._descriptor import HDF5AppendableArray, HDF5Attribute
+from ._object import _HDF5EditableObject
 
 from ._topology import HDF5Topology
 from ._utils import generate_topology
 
 
-class _HDF5EditableObject(Protocol):
-    """Define an object backed by a HDF5 group."""
-
-    @property
-    @abstractmethod
-    def hdf5_group(self) -> Group:
-        pass
-
-    @property
-    @abstractmethod
-    def writable(self) -> bool:
-        pass
-
-    @property
-    @abstractmethod
-    def n_atoms(self) -> int:
-        pass
-
-    def create_earray(
-        self,
-        *,
-        name: str,
-        title: str,
-        shape: Tuple[int, ...],
-        units: Optional[str] = None,
-    ) -> EArray:
-        if hasattr(self, "expected_frames"):
-            expected_frames = self.expected_frames  # type: ignore
-        else:
-            expected_frames = 1000
-        array = self.hdf5_group._v_file.create_earray(
-            self.hdf5_group,
-            name=name,
-            atom=Float32Atom(),
-            shape=(0,) + shape,
-            title=title,
-            filters=tables.Filters(shuffle=True, complib="zlib", complevel=1),
-            expectedrows=expected_frames,
-        )
-        if units is not None:
-            array._v_attrs["units"] = units
-        return array  # type: ignore
 
 
-class HDF5Attribute:
-    def __init__(self, name: str):
-        self._name = name
-
-    def __get__(self, instance: _HDF5EditableObject, objtype: Type) -> Any:
-        try:
-            return instance.hdf5_group._v_attrs[self._name]
-        except KeyError as e:
-            raise AttributeError(f"Attribute {self._name} is not present.") from e
-
-    def __set__(self, instance: Any, value: Any) -> None:
-        if not instance.writable:
-            raise ValueError("Trajectory is not writable.")
-        instance.hdf5_group._v_attrs[self._name] = value
 
 
-class HDF5AppendableArray:
-    """
-    Descriptor representing a HDF5 array that can be appended to.
 
-    When first accessed, the following steps are taken:
-
-    * If the array exists (due to being read from an existing file), it is returned.
-    * If
-    """
-
-    def __init__(
-        self,
-        *,
-        h5_name: str,
-        title: str,
-        shape: Tuple[int, ...],
-        per_atom: bool = False,
-        units: Optional[str],
-    ):
-        self._h5_name = h5_name
-        """Name of the array stored as an HDF5 EArray."""
-        self._array_name = f"_{h5_name}_array"
-        """Name to store the array as a python attribute."""
-        self._title = title
-        """Descriptive title of the array."""
-        self._per_atom = per_atom
-        """Should the size of the array be multiplied by the number of atoms?"""
-        self._shape = shape
-        """Shape of the numpy array."""
-        self._units = units
-        """Units of the array."""
-
-    def __get__(self, instance: _HDF5EditableObject, objtype: Type) -> Any:
-        try:
-            return getattr(instance, self._array_name)
-        except AttributeError:
-            if self._h5_name in instance.hdf5_group:
-                value = getattr(instance.hdf5_group, self._h5_name)
-            elif instance.writable:
-                shape = self._shape
-                if self._per_atom:
-                    shape = (instance.n_atoms, *shape)
-                value = instance.create_earray(
-                    name=self._h5_name,
-                    title=self._title,
-                    shape=shape,
-                    units=self._units,
-                )
-            else:
-                raise AttributeError
-            setattr(instance, self._array_name, value)
-            return value
-
-    def as_numpy(self, dtype: npt.DTypeLike = float) -> np.ndarray:
-        def get(obj: Any) -> np.ndarray:
-            return np.array(self.__get__(obj, type(obj)), dtype=dtype)
-
-        return property(fget=get)  # type: ignore
 
 
 class HDF5InteractionParameters(_HDF5EditableObject):
@@ -379,12 +267,12 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
     def __getitem__(self, item: str) -> HDF5Interaction:
         try:
             interactions = self._interactions
-        except AttributeError:
-            raise KeyError
+        except AttributeError as e:
+            raise KeyError from e
         try:
             return HDF5Interaction(self._trajectory, interactions._f_get_child(item))
-        except NoSuchNodeError:
-            raise KeyError
+        except NoSuchNodeError as e:
+            raise KeyError from e
 
     def __iter__(self) -> Iterator[str]:
         try:
@@ -721,7 +609,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         return frame
 
     def save_to_file(self, filename: str, overwrite_existing: bool = False) -> None:
-        """Save the trajectory to the given filename"""
+        """Save the trajectory to the given filename."""
         self._file.flush()
         self._file.copy_file(filename, overwrite_existing)
 

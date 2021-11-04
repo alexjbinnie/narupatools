@@ -21,9 +21,9 @@ from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
 import numpy as np
 
+from narupatools.frame import DynamicStructureProperties
 from narupatools.physics.typing import Vector3Array
 
-from ...frame import DynamicStructureProperties
 from ._feedback import InteractionFeedback
 from ._parameters import InteractionParameters
 

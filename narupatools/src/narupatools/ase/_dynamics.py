@@ -30,24 +30,23 @@ from ase.optimize import LBFGS
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
+from narupatools.frame import (
+    DynamicStructureMethods,
+    DynamicStructureProperties,
+    ParticlePositions,
+    ParticleVelocities,
+)
 from narupatools.imd import (
     Interaction,
     InteractionFeature,
     InteractiveSimulationDynamics,
 )
 from narupatools.imd.interactions import InteractionParameters
+from narupatools.override import override
 from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 from narupatools.physics.units import UnitsNarupa
 
-from ..frame import (
-    DynamicStructureMethods,
-    DynamicStructureProperties,
-    ParticlePositions,
-    ParticleVelocities,
-    PotentialEnergy,
-)
-from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
     get_angular_momenta,
@@ -324,6 +323,7 @@ class ASEDynamics(
         raise NotImplementedError
 
     def minimize(self) -> None:
+        """Minimize the system using LBFGS."""
         minimizer = LBFGS(atoms=self.atoms, logfile=None)
         minimizer.run(fmax=0.05)
         self._on_fields_changed.invoke(fields={ParticlePositions})

@@ -16,8 +16,8 @@
 
 import pytest
 from ase.md import VelocityVerlet
-from simtk.openmm import System
-from simtk.openmm.app import Element, Simulation, Topology
+from openmm import System
+from openmm.app import Element, Simulation, Topology
 from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE

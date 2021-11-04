@@ -26,9 +26,9 @@ itself.
 
 from typing import Optional, Type, TypeVar, overload
 
+from narupatools.override import override
 from narupatools.state.typing import Serializable, SerializableObject
 
-from ...override import override
 from ._collection_view import SharedStateCollectionView
 from ._reference import SharedStateReference
 from ._view import SharedStateView

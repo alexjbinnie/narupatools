@@ -24,9 +24,9 @@ from typing import Any, Dict, List, Optional, Type, TypeVar, Union, overload
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
+from narupatools.override import override
 from narupatools.state.typing import Serializable
 
-from ..override import override
 from ._frame_source import FrameSource
 
 _T = TypeVar("_T")

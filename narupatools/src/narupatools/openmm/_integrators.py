@@ -19,7 +19,7 @@
 
 """Custom integrators for use with OpenMM."""
 
-from simtk.openmm import CustomIntegrator
+from openmm import CustomIntegrator
 
 
 def VelocityVerletIntegrator(*, timestep: float) -> CustomIntegrator:

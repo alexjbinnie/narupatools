@@ -20,7 +20,6 @@ from typing import (
     Iterable,
     Iterator,
     Optional,
-    Sequence,
     Sized,
     SupportsAbs,
     TypeVar,

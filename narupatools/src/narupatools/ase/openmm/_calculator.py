@@ -24,8 +24,8 @@ from typing import Any, List, Optional, Tuple
 import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.calculator import CalculatorSetupError, all_changes
-from simtk.openmm.app import Simulation
-from simtk.unit import angstrom
+from openmm.app import Simulation
+from openmm.unit import angstrom
 
 from narupatools.ase._units import UnitsASE
 from narupatools.ase.calculators import Calculator

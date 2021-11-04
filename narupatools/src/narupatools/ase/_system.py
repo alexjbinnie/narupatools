@@ -27,11 +27,11 @@ from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.frame import DynamicStructureProperties, FrameSource
+from narupatools.override import override
 from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 from narupatools.physics.units import UnitsNarupa
 
-from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
     get_angular_momenta,

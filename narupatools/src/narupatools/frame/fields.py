@@ -204,6 +204,7 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
 
     @abstractmethod
     def convert(self, value: _TFrom) -> _TTo:
+        """Convert a value that can be stored using this key to the canonical representation."""
         pass
 
 

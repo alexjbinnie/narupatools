@@ -25,8 +25,8 @@ from typing import Optional, Union
 
 from lxml import etree
 from lxml.etree import ElementBase
-from simtk.openmm import Integrator, Platform, System, XmlSerializer
-from simtk.openmm.app import PDBFile, Simulation
+from openmm import Integrator, Platform, System, XmlSerializer
+from openmm.app import PDBFile, Simulation
 
 
 def _get_single_node(document: ElementBase, tag_name: str) -> ElementBase:

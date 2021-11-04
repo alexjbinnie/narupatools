@@ -19,13 +19,6 @@
 import importlib
 from typing import Any
 
-from ase import Atoms
-from narupa.trajectory import FrameData
-from nglview import NGLWidget
-
-from ..app import Client, Session
-from ..core.dynamics import SimulationDynamics
-
 __has_ngl = importlib.util.find_spec("nglview") is not None
 
 if not __has_ngl:
@@ -37,9 +30,8 @@ from ._session import show_session
 from ._show import show, show_ase, show_narupa, show_trajectory
 from ._structure import ASEStructure, FrameDataStructure, FrameDataTrajectory
 
-
-
 __all__ = [
+    "show",
     "show_ase",
     "show_client",
     "show_narupa",
@@ -48,9 +40,12 @@ __all__ = [
     "show_session",
     "ASEStructure",
     "FrameDataStructure",
+    "FrameDataTrajectory",
 ]
 
 
-def load_ipython_extension(ipython):
+def load_ipython_extension(ipython: Any) -> None:
+    """Register IPython magics."""
     from ._ipython import NGLMagics
+
     ipython.register_magics(NGLMagics)

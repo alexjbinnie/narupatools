@@ -1,4 +1,3 @@
-import os
 from abc import ABCMeta, abstractmethod
 from tempfile import NamedTemporaryFile
 

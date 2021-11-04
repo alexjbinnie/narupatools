@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import numpy as np
 from infinite_sets import InfiniteSet
-from MDAnalysis.topology.tables import SYMB2Z
+from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB, masses
 from narupa.trajectory import FrameData
 
 from narupatools.frame import (
@@ -23,7 +23,7 @@ from narupatools.frame import (
     ResidueCount,
     ResidueNames,
 )
-from MDAnalysis.topology.tables import Z2SYMB, masses
+
 
 @dataclass
 class HDF5Atom:
@@ -86,6 +86,7 @@ class HDF5Topology(FrameSource):
 
     @property
     def masses(self) -> np.ndarray:
+        """Masses of each particle in daltons."""
         return np.array([atom.mass for atom in self.atoms])
 
     @classmethod
@@ -115,7 +116,7 @@ class HDF5Topology(FrameSource):
                                 if "mass" in atom_json:
                                     atom.mass = atom_json["mass"]
                                 else:
-                                    atom.mass = masses[Z2SYMB[atom.atomic_number]]
+                                    atom.mass = masses[Z2SYMB[atom.atomic_number]]  # type: ignore
         return topology
 
     def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102

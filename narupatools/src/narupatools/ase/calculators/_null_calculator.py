@@ -20,7 +20,8 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 
-from ...override import override
+from narupatools.override import override
+
 from ._calculator import Calculator
 
 

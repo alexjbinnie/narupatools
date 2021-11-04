@@ -30,11 +30,11 @@ from narupa.imd.imd_state import dict_to_interaction
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
+from narupatools.frame import FrameSource
 from narupatools.imd.interactions import InteractionParameters
 from narupatools.override import override
 from narupatools.state.view import SharedStateClientWrapper
 
-from ..frame import FrameSource
 from ._session import Session
 from ._shared_state import SessionSharedState, SharedStateMixin
 

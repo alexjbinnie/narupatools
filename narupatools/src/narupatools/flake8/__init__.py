@@ -11,9 +11,11 @@ class NarupatoolsFlake8Plugin:
     version = "1.0.0"
 
     tree: ast.AST
+    filename: str
 
-    def __init__(self, tree: ast.AST):
+    def __init__(self, tree: ast.AST, filename: str):
         self.tree = tree
+        self.filename = filename
 
     def run(self) -> Any:  # noqa: D102
         for node in _iter_node(self.tree):
@@ -29,6 +31,10 @@ class NarupatoolsFlake8Plugin:
                         yield decorator.lineno, decorator.col_offset, "NTL01 @override must have one argument", type(
                             self
                         )
+            if isinstance(node, ast.ImportFrom) and node.level > 1:
+                yield node.lineno, node.col_offset, "NTL02 Cannot import module using ..", type(
+                    self
+                )
 
 
 def _iter_node(node: ast.AST) -> Iterator[ast.AST]:

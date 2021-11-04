@@ -22,7 +22,7 @@ from ._frame_source import FrameSource, TrajectorySource
 
 
 def _get_selection_fields(selection: str, /) -> Set[str]:
-    """Get the set of fields required to determine a selection"""
+    """Get the set of fields required to determine a selection."""
     keywords = set(re.findall(r"\w+", selection))
     fields: Set[str] = set()
     if {
@@ -55,6 +55,7 @@ def _get_selection_fields(selection: str, /) -> Set[str]:
 
 
 def select(frame: Any, /, selection: str) -> np.ndarray:
+    """Calculate the particle indices in a FrameData given by a selection."""
     fields = _get_selection_fields(selection)
 
     if isinstance(frame, FrameSource):

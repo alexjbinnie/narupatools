@@ -25,9 +25,9 @@ from ase import Atoms
 from ase.md import Langevin
 from ase.units import second
 from MDAnalysis import Universe
-from simtk.openmm import LangevinIntegrator
-from simtk.openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
-from simtk.unit import kelvin, nanometer, picosecond, picoseconds
+from openmm import LangevinIntegrator
+from openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
+from openmm.unit import kelvin, nanometer, picosecond, picoseconds
 
 from narupatools.ase import ASEDynamics, NullCalculator
 
@@ -152,7 +152,7 @@ pytest.register_assert_rewrite("test_classes.single_carbon")
 # Skip OpenMM exceptions, which occur on CI but not locally.
 def pytest_runtest_makereport(item, call):
     from _pytest.runner import pytest_runtest_makereport as _pytest_runtest_makereport
-    from simtk.openmm import OpenMMException
+    from openmm import OpenMMException
 
     tr = _pytest_runtest_makereport(item, call)
 

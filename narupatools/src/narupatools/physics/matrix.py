@@ -62,4 +62,5 @@ def matrix_inverse(matrix: Matrix3x3Like) -> Matrix3x3:
 
 
 def transpose(matrix: Matrix3x3Like) -> Matrix3x3:
+    """Calculate the transpose of 3x3 matrices."""
     return np.swapaxes(matrix, -2, -1)

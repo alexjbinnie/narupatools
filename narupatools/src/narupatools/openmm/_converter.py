@@ -24,10 +24,10 @@ import itertools
 from typing import Iterable, Optional, Sequence, Type, TypeVar, Union
 
 import numpy as np
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory.frame_data import FrameData
-from simtk.openmm import Context, State, System
-from simtk.openmm.app import Element, Simulation, Topology
+from openmm import Context, State, System
+from openmm.app import Element, Simulation, Topology
 
 from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
@@ -192,8 +192,9 @@ def frame_to_openmm_topology(frame: FrameData, /) -> Topology:
 
 
 def copy_frame_to_openmm_simulation(
-    frame: FrameData, simulation: Simulation, fields: InfiniteSet[str]
+    frame: FrameData, simulation: Simulation, fields: InfiniteSet[str] = everything()
 ) -> None:
+    """Copy fields from a FrameData to a simulation."""
     if ParticlePositions in frame and ParticlePositions in fields:
         simulation.context.setPositions(frame[ParticlePositions])
     if ParticleVelocities in frame and ParticleVelocities in fields:

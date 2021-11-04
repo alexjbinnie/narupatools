@@ -21,8 +21,8 @@ from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
 from narupatools.frame import FrameConverter
+from narupatools.override import override
 
-from ..override import override
 from ._simulation import LAMMPSSimulation
 
 _TType = TypeVar("_TType")

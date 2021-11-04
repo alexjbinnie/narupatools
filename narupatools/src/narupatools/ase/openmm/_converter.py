@@ -20,9 +20,9 @@ from collections import Callable
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
-from simtk.openmm import LangevinIntegrator, VerletIntegrator
-from simtk.openmm.app import Simulation
-from simtk.unit import picoseconds
+from openmm import LangevinIntegrator, VerletIntegrator
+from openmm.app import Simulation
+from openmm.unit import picoseconds
 
 import narupatools.ase.openmm._calculator as omm_calculator
 from narupatools.ase import UnitsASE

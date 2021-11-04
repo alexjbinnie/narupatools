@@ -33,4 +33,5 @@ __all__ = [
     "OpenMMDynamics",
     "VelocityVerletIntegrator",
     "simulation_subset",
+    "OpenMMSimulation",
 ]

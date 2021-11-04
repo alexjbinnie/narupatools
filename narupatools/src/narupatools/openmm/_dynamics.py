@@ -20,18 +20,23 @@ from __future__ import annotations
 
 import warnings
 from contextlib import contextmanager
-from io import BytesIO
 from os import PathLike
 from threading import Lock
-from typing import AbstractSet, Any, Dict, List, Optional, Union, Generator
+from typing import AbstractSet, Any, Dict, Generator, List, Optional, Union
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
-from simtk.openmm import CustomExternalForce, System
-from simtk.openmm.app import Simulation
+from openmm import CustomExternalForce, System
+from openmm.app import Simulation
 
+from narupatools.frame import (
+    DynamicStructureMethods,
+    ParticlePositions,
+    ParticleVelocities,
+)
 from narupatools.imd import InteractiveSimulationDynamics, SetAndClearInteractionFeature
+from narupatools.override import override
 from narupatools.physics.typing import (
     ScalarArray,
     Vector3,
@@ -39,13 +44,7 @@ from narupatools.physics.typing import (
     Vector3ArrayLike,
 )
 
-from ..frame import DynamicStructureMethods, ParticlePositions, ParticleVelocities
-from ..override import override
-from ._converter import (
-    get_openmm_masses,
-    openmm_context_to_frame,
-    openmm_topology_to_frame,
-)
+from ._converter import get_openmm_masses
 from ._serializer import deserialize_simulation
 from ._simulation import OpenMMSimulation
 
@@ -86,6 +85,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
 
     @contextmanager
     def modify_simulation(self) -> Generator[OpenMMSimulation, None, None]:
+        """Context manager which allows modification of the underlying simulation."""
         with self._simulation.modify():
             yield self._simulation
         self._checkpoint = self._simulation.create_checkpoint()

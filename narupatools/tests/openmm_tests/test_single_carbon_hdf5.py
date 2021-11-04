@@ -16,8 +16,8 @@
 
 import pytest
 from ase.md import Langevin
-from simtk.openmm import LangevinIntegrator, System
-from simtk.openmm.app import Element, Simulation, Topology
+from openmm import LangevinIntegrator, System
+from openmm.app import Element, Simulation, Topology
 from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
 
 from narupatools.ase import ASEDynamics, UnitsASE

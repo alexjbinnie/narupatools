@@ -3,10 +3,9 @@ from __future__ import annotations
 import contextlib
 from typing import Generator, Iterator, Mapping, MutableMapping, Optional
 
-from infinite_sets import InfiniteSet, everything
+from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
-
-from simtk.openmm import (
+from openmm import (
     Context,
     Integrator,
     LocalEnergyMinimizer,
@@ -14,11 +13,13 @@ from simtk.openmm import (
     Platform,
     System,
 )
-from simtk.openmm.app import Simulation, Topology
+from openmm.app import Simulation, Topology
+
+from narupatools.frame import FrameSource
+from narupatools.override import override
 
 from ._converter import openmm_context_to_frame, openmm_topology_to_frame
 from ._serializer import deserialize_simulation
-from narupatools.frame import FrameSource
 
 
 class OpenMMSimulation(FrameSource):
@@ -34,16 +35,16 @@ class OpenMMSimulation(FrameSource):
     be easily modified. It also provides some more pythonic ways to interact with your system.
     """
 
-    def get_frame(self, *, fields: InfiniteSet[str], existing: Optional[FrameData] = None) -> FrameData:
+    @override(FrameSource.get_frame)
+    def get_frame(
+        self, *, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:  # noqa: D102
+
         frame = existing
         if not frame:
             frame = FrameData()
-        openmm_context_to_frame(
-            self._context, fields=fields, existing=frame
-        )
-        openmm_topology_to_frame(
-            self._topology, fields=fields, existing=frame
-        )
+        openmm_context_to_frame(self._context, fields=fields, existing=frame)
+        openmm_topology_to_frame(self._topology, fields=fields, existing=frame)
         return frame
 
     def __init__(
@@ -71,8 +72,8 @@ class OpenMMSimulation(FrameSource):
         if recreate:
             state = self._context.getState(getPositions=True, getVelocities=True)
             self._context = Context(self.system, self.integrator)
-            self._context.setPositions(state.getPositions())
-            self._context.setVelocities(state.getVelocities())
+            self._context.setPositions(state.getPositions())  # type: ignore
+            self._context.setVelocities(state.getVelocities())  # type: ignore
         else:
             self._context.reinitialize(preserveState=True)
 
@@ -94,7 +95,7 @@ class OpenMMSimulation(FrameSource):
 
     @property
     def system(self) -> System:
-        """OpenMM system describing the forces and masses of the simulation."""
+        """System describing the forces and masses of the simulation."""
         return self._system
 
     @system.setter
@@ -104,7 +105,7 @@ class OpenMMSimulation(FrameSource):
 
     @property
     def integrator(self) -> Integrator:
-        """OpenMM integrator used to propagate the simulation forward."""
+        """Integrator used to propagate the simulation forward."""
         return self._integrator
 
     @integrator.setter
@@ -114,7 +115,7 @@ class OpenMMSimulation(FrameSource):
 
     @property
     def topology(self) -> Topology:
-        """OpenMM topology describing the bonds and residues of the simulation."""
+        """Topology describing the bonds and residues of the simulation."""
         return self._topology
 
     @topology.setter
@@ -124,7 +125,7 @@ class OpenMMSimulation(FrameSource):
 
     @property
     def context(self) -> Context:
-        """OpenMM context refering to current calculations and state of the simulation."""
+        """Context referring to current calculations and state of the simulation."""
         return self._context
 
     @classmethod
@@ -171,9 +172,11 @@ class OpenMMSimulation(FrameSource):
         return OpenMMParametersView(self)
 
     def create_checkpoint(self) -> str:
+        """Generate a checkpoint representing a snapshot of the system."""
         return self._context.createCheckpoint()
 
     def load_checkpoint(self, checkpoint: str) -> None:
+        """Reinitialize the simulation from a checkpoint."""
         self._context.loadCheckpoint(checkpoint)
         self._context.reinitialize(preserveState=True)
 
@@ -192,8 +195,8 @@ class OpenMMParametersView(MutableMapping[str, float]):
     def __setitem__(self, k: str, v: float) -> None:
         try:
             return self._simulation._context.setParameter(k, v)
-        except OpenMMException:
-            raise KeyError(f"No parameter with name {k}")
+        except OpenMMException as e:
+            raise KeyError(f"No parameter with name {k}") from e
 
     def __delitem__(self, v: str) -> None:
         raise NotImplementedError("Cannot delete global parameter.")
@@ -201,15 +204,14 @@ class OpenMMParametersView(MutableMapping[str, float]):
     def __getitem__(self, k: str) -> float:
         try:
             return self._simulation._context.getParameter(k)
-        except OpenMMException:
-            raise KeyError(f"No parameter with name {k}")
+        except OpenMMException as e:
+            raise KeyError(f"No parameter with name {k}") from e
 
     def __len__(self) -> int:
         return len(self.__parameters)
 
     def __iter__(self) -> Iterator[str]:
-        for key in self.__parameters.keys():
-            yield key
+        yield from self.__parameters.keys()
 
     @property
     def __parameters(self) -> Mapping[str, float]:

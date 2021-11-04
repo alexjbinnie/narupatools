@@ -121,6 +121,7 @@ class ASEConverter(FrameConverter):
 def copy_frame_to_ase_atoms(
     *, atoms: Atoms, frame: FrameData, fields: InfiniteSet[str] = everything()
 ) -> None:
+    """Copy data from a FrameData to an existing ASE atoms object."""
     if ParticlePositions in fields and ParticlePositions in frame:
         atoms.set_positions(frame[ParticlePositions] * _NarupaToASE.length)
     if ParticleVelocities in fields and ParticleVelocities in frame:

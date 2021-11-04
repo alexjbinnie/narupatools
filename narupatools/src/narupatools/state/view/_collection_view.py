@@ -34,13 +34,13 @@ from __future__ import annotations
 import uuid
 from typing import AbstractSet, Generic, Optional, Type, TypeVar, Union
 
+from narupatools.override import override
 from narupatools.state.typing import (
     Serializable,
     SerializableDictionary,
     SerializableObject,
 )
 
-from ...override import override
 from ._reference import SharedStateReference
 from ._view import SharedStateView
 

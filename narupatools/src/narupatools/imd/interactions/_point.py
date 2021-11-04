@@ -21,6 +21,7 @@ from typing import Any, Protocol, Tuple
 import numpy as np
 
 from narupatools.imd.interactions._parameters import InteractionParameters
+from narupatools.override import override
 from narupatools.physics.force import (
     gaussian_force_and_energy,
     mass_weighted_forces,
@@ -31,7 +32,6 @@ from narupatools.physics.typing import Vector3, Vector3Array
 from narupatools.util import properties
 from narupatools.util.partial import partialclass
 
-from ...override import override
 from ._interaction import Interaction
 
 SPRING_INTERACTION_TYPE = "spring"

@@ -25,7 +25,7 @@ from narupatools.ase import UnitsASE
 from narupatools.frame import convert
 from narupatools.physics.units import UnitsNarupa
 
-from ..calculators import Calculator
+from ..calculators import Calculator  # noqa: NTL02
 from ._forcefield import _MMFFForceField, _RDKitForcefield, _UFFForceField
 
 _ASEToNarupa = UnitsASE >> UnitsNarupa

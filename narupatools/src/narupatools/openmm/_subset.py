@@ -2,15 +2,15 @@ import copy
 from typing import Dict, Union
 
 import numpy as np
-from openmm import Force
-from simtk.openmm import (
+from openmm import (
     CustomAngleForce,
     CustomBondForce,
     CustomExternalForce,
     CustomNonbondedForce,
+    Force,
     System,
 )
-from simtk.openmm.app import Simulation, Topology
+from openmm.app import Simulation, Topology
 
 from narupatools.frame import select
 
@@ -99,6 +99,7 @@ def _copy_customnonbondedforce(
 
 
 def system_subset(system: System, indices: np.ndarray) -> System:
+    """Take a subset of an OpenMM system."""
     indices = np.asarray(indices)
 
     new_system = System()
@@ -130,6 +131,7 @@ def system_subset(system: System, indices: np.ndarray) -> System:
 
 
 def topology_subset(topology: Topology, indices: np.ndarray) -> Topology:
+    """Take a subset of an OpenMM topology."""
     indices = np.asarray(indices)
 
     atom_map = {}
@@ -144,13 +146,13 @@ def topology_subset(topology: Topology, indices: np.ndarray) -> Topology:
 
     j = 0
     for residue in topology.residues():
-        if set(atom.index for atom in residue.atoms()) & set(indices):
+        if {atom.index for atom in residue.atoms()} & set(indices):
             residue_map[residue.index] = j
             j += 1
 
     j = 0
     for chain in topology.chains():
-        if set(residue.index for residue in chain.residues()) & residue_map.keys():
+        if {residue.index for residue in chain.residues()} & residue_map.keys():
             chain_map[chain.index] = j
             j += 1
 
@@ -198,7 +200,11 @@ def topology_subset(topology: Topology, indices: np.ndarray) -> Topology:
 def simulation_subset(
     simulation: Simulation, indices: Union[str, np.ndarray]
 ) -> Simulation:
+    """
+    Create a subset of a simulation by removing particles not in indices.
 
+    This removes the particles from the system, and removes unneeded parameters from each force.
+    """
     if isinstance(indices, str):
         indices = select(simulation, indices)
     else:

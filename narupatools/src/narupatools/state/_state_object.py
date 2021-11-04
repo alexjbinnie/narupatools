@@ -63,7 +63,8 @@ import contextlib
 from collections.abc import Mapping
 from typing import Any, ClassVar, Dict, Type, TypeVar, Union
 
-from ..override import override
+from narupatools.override import override
+
 from .typing import Serializable, SerializableObject
 
 _TClass = TypeVar("_TClass")

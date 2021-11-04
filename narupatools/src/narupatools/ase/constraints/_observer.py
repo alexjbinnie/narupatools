@@ -22,8 +22,8 @@ import numpy as np
 from ase.atoms import Atoms
 
 from narupatools.core.event import Event, EventListener
+from narupatools.override import override
 
-from ...override import override
 from ._constraint import ASECellConstraint, ASEMomentaConstraint
 
 

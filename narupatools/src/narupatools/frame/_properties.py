@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Protocol, Union
+from typing import Protocol, Union, Set, Collection, overload, Iterator, Literal, Any
 
 import numpy as np
 import numpy.typing as npt
 from scipy.spatial.transform import Rotation
 
+from narupatools.override import override
 from narupatools.physics import quaternion
 from narupatools.physics.rigidbody import (
     angular_velocity,
@@ -14,15 +15,14 @@ from narupatools.physics.rigidbody import (
     moment_of_inertia_tensor,
     principal_axes,
 )
+from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
 from narupatools.physics.typing import (
     ScalarArray,
     Vector3,
     Vector3Array,
     Vector3ArrayLike,
 )
-from . import TrajectorySource
 
-from ..physics.thermodynamics import maxwell_boltzmann_velocities
 from ._select import select
 
 
@@ -58,8 +58,9 @@ class StaticStructureProperties(Protocol):
 class WritableStaticStructureProperties(StaticStructureProperties, Protocol):
     """Base protocol for an object which represents a static system of particles."""
 
+    @override(StaticStructureProperties.positions)
     @property
-    def positions(self) -> Vector3Array:
+    def positions(self) -> Vector3Array:  # noqa: D102
         raise AttributeError
 
     @positions.setter
@@ -68,10 +69,14 @@ class WritableStaticStructureProperties(StaticStructureProperties, Protocol):
 
 
 class DynamicStructureMethods:
+    """Mixin methods for calculating properties."""
+
     def center_of_mass_velocity(self: DynamicStructureProperties) -> Vector3:
+        """Calculate the velocity of the center of mass."""
         return center_of_mass_velocity(velocities=self.velocities, masses=self.masses)
 
     def angular_velocity(self: DynamicStructureProperties) -> Vector3:
+        """Calculate the angular velocity about the center of mass."""
         return angular_velocity(
             positions=self.positions, velocities=self.velocities, masses=self.masses
         )
@@ -79,20 +84,25 @@ class DynamicStructureMethods:
     def select(
         self: DynamicStructureProperties, selection: Union[str, np.ndarray]
     ) -> SelectionView:
+        """Select a subset using either indices or selections."""
         return SelectionView(self, selection)
 
     def center_of_mass(self: StaticStructureProperties) -> Vector3:
+        """Calculate the center of mass."""
         return center_of_mass(positions=self.positions, masses=self.masses)
 
     def moment_of_inertia_tensor(self: StaticStructureProperties) -> np.ndarray:
+        """Calculate the moment of inertia tensor."""
         return moment_of_inertia_tensor(positions=self.positions, masses=self.masses)
 
     def principal_axes(self: StaticStructureProperties) -> Vector3Array:
+        """Calculate the principal axes."""
         return principal_axes(positions=self.positions, masses=self.masses)
 
     def translate_to(
         self: WritableStaticStructureProperties, position: Vector3
     ) -> None:
+        """Translate the system so the center of mass is shifted to the provided position."""
         com = self.center_of_mass()  # type: ignore
         self.positions += position - com
 
@@ -172,11 +182,12 @@ class DynamicStructureProperties(StaticStructureProperties, Protocol):
         raise AttributeError
 
 
-class WritableDynamicStructureProperties(StaticStructureProperties, Protocol):
+class WritableDynamicStructureProperties(DynamicStructureProperties, Protocol):
     """Base protocol for an object which represents a dynamic system of particles."""
 
+    @override(DynamicStructureProperties.velocities)
     @property
-    def velocities(self) -> Vector3Array:
+    def velocities(self) -> Vector3Array:  # noqa: D102
         raise AttributeError
 
     @velocities.setter
@@ -184,8 +195,16 @@ class WritableDynamicStructureProperties(StaticStructureProperties, Protocol):
         ...
 
 
-class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
-    """View to a subset of a system, such as a FrameData or dynamics."""
+class SelectionView(DynamicStructureProperties, DynamicStructureMethods, Collection[float]):
+    """
+    View to a subset of a system, such as a FrameData or dynamics.
+
+    A selection consists of a set of indices, representing the indices of the particles within the
+    selection, and an object that this selection is chosen from.
+
+    Selections from the same object may be combined using standard set operations, such as &, | and
+    ^. They may also be compared to each other using set notation for subsets and supersets.
+    """
 
     def __init__(
         self, source: DynamicStructureProperties, selection: Union[str, np.ndarray]
@@ -195,12 +214,69 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
             selection = select(source, selection)
         self._selection = selection
 
-    @property
-    def indices(self) -> np.ndarray:
-        return self._selection.copy()
+    def __iter__(self) -> Iterator[float]:
+        return iter(self._selection)
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self._selection
+
+    def __len__(self) -> int:
+        return len(self._selection)
+
+    def __le__(self, other: Any) -> bool:
+        return set(self._selection) <= set(other)
+
+    def __lt__(self, other: Any) -> bool:
+        return set(self._selection) < set(other)
+
+    def __eq__(self, other: Any) -> bool:
+        return set(self._selection) == set(other)
+
+    def __ne__(self, other: Any) -> bool:
+        return set(self._selection) != set(other)
+
+    def __gt__(self, other: Any) -> bool:
+        return set(self._selection) > set(other)
+
+    def __ge__(self, other: Any) -> bool:
+        return set(self._selection) >= set(other)
+
+    def __and__(self, other: Any) -> SelectionView:
+        if not isinstance(other, SelectionView):
+            return NotImplemented
+        if self._source != other._source:
+            raise ValueError("Cannot intersect two selections from different objects.")
+        return SelectionView(self._source, np.intersect1d(self._selection, other._selection))
+
+    def __or__(self, other: Any) -> SelectionView:
+        if not isinstance(other, SelectionView):
+            return NotImplemented
+        if self._source != other._source:
+            raise ValueError("Cannot take the union of two selections from different objects.")
+        return SelectionView(self._source, np.union1d(self._selection, other._selection))
+
+    def __xor__(self, other: Any) -> SelectionView:
+        if not isinstance(other, SelectionView):
+            return NotImplemented
+        if self._source != other._source:
+            raise ValueError("Cannot take the symmetric difference of two selections from different objects.")
+        return SelectionView(self._source, np.setxor1d(self._selection, other._selection))
+
+    def __sub__(self, other: Any) -> SelectionView:
+        if not isinstance(other, SelectionView):
+            return NotImplemented
+        if self._source != other._source:
+            raise ValueError("Cannot take the set difference of two selections from different objects.")
+        return SelectionView(self._source, np.setdiff1d(self._selection, other._selection))
 
     @property
-    def masses(self) -> ScalarArray:
+    def indices(self) -> np.ndarray:
+        """Indices of the particles that belong in this selection."""
+        return self._selection.copy()
+
+    @override(DynamicStructureProperties.masses)
+    @property
+    def masses(self) -> ScalarArray:  # noqa: D102
         return self._source.masses[..., self._selection]  # type: ignore
 
     @masses.setter
@@ -209,8 +285,9 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
         masses[..., self._selection] = value
         self._source.masses = masses  # type: ignore
 
+    @override(DynamicStructureProperties.positions)
     @property
-    def positions(self) -> Vector3Array:
+    def positions(self) -> Vector3Array:  # noqa: D102
         return self._source.positions[..., self._selection, :]  # type: ignore
 
     @positions.setter
@@ -219,8 +296,9 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
         positions[..., self._selection, :] = value
         self._source.positions = positions  # type: ignore
 
-    @property  # type: ignore
-    def velocities(self) -> Vector3Array:  # type: ignore
+    @override(DynamicStructureProperties.velocities)  # type: ignore
+    @property
+    def velocities(self) -> Vector3Array:  # type: ignore  # noqa: D102
         return self._source.velocities[..., self._selection, :]  # type: ignore
 
     @velocities.setter
@@ -229,12 +307,14 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
         velocities[..., self._selection, :] = value
         self._source.velocities = velocities  # type: ignore
 
+    @override(DynamicStructureProperties.orientations)
     @property
-    def orientations(self) -> npt.NDArray[quaternion]:
-        return self._source.orientations[..., self._selection, :]
+    def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
+        return self._source.orientations[..., self._selection, :]  # type: ignore
 
+    @override(DynamicStructureProperties.moments_of_inertia)
     @property
-    def moments_of_inertia(self) -> Vector3Array:
+    def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         """
         Moments of inertia for each particle abouts its origin in its local frame.
 
@@ -247,7 +327,7 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods):
         return f'<SelectionView selection="{self._selection}" of {self._source}>'
 
     def __array__(self, dtype: npt.DTypeLike = None) -> np.ndarray:
-        if dtype == None:
+        if dtype is None:
             return self.indices.copy()
         else:
             return np.asarray(self.indices, dtype=dtype)

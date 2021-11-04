@@ -1,5 +1,5 @@
 import pytest
-from simtk.openmm import LangevinIntegrator, VerletIntegrator
+from openmm import LangevinIntegrator, VerletIntegrator
 
 from narupatools.openmm import OpenMMSimulation, deserialize_simulation
 

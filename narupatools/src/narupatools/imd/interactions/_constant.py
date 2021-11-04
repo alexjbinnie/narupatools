@@ -20,11 +20,11 @@ from typing import Any
 
 import numpy as np
 
+from narupatools.override import override
 from narupatools.physics.force import mass_weighted_forces
 from narupatools.physics.rigidbody import center_of_mass
 from narupatools.util import properties
 
-from ...override import override
 from ._interaction import Interaction
 from ._parameters import InteractionParameters
 

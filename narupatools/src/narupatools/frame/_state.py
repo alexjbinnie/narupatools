@@ -7,7 +7,7 @@ class StateData:
     """Similar to a Narupa frame, but not stored as protobuf."""
 
     def __init__(self) -> None:
-        self._dict: Dict[Union[str, FrameKey], Any] = dict()
+        self._dict: Dict[Union[str, FrameKey], Any] = {}
 
     def __getitem__(self, key: Union[str, FrameKey]) -> Any:
         if isinstance(key, FrameKey):

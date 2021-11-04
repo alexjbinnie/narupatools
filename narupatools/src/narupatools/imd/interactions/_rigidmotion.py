@@ -20,6 +20,7 @@ from typing import Any, Optional, Union
 import numpy as np
 from numpy.linalg import LinAlgError, inv
 
+from narupatools.override import override
 from narupatools.physics.rigidbody import (
     center_of_mass,
     center_of_mass_velocity,
@@ -35,7 +36,6 @@ from narupatools.physics.vector import (
 )
 from narupatools.util import properties
 
-from ...override import override
 from ._feedback import InteractionFeedback
 from ._interaction import Interaction
 from ._parameters import InteractionParameters

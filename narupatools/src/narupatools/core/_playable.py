@@ -24,7 +24,8 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Lock
 from typing import Generator, Literal, Optional, Union, overload
 
-from ..override import override
+from narupatools.override import override
+
 from .health_check import HealthCheck
 
 

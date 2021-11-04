@@ -47,12 +47,12 @@ from narupatools.frame.fields import (
     PotentialEnergy,
 )
 from narupatools.lammps._units import get_unit_system
+from narupatools.physics.transformation import Rotation
 from narupatools.physics.typing import Vector3
 from narupatools.physics.units import UnitsNarupa, UnitSystem, degree, radian
+from narupatools.physics.vector import magnitude, normalized, vector
 from narupatools.util import mass_to_element
 
-from ..physics.transformation import Rotation
-from ..physics.vector import magnitude, normalized, vector
 from ._constants import VariableDimension, VariableType
 from ._exception_wrapper import catch_lammps_warnings_and_exceptions
 from ._wrapper import Extractable, LAMMPSWrapper

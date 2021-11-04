@@ -60,6 +60,8 @@ def dot_product(a: VectorN, b: VectorN, /) -> float:
     :param b: Vector :math:`b`.
     :return: Dot product :math:`a \cdot b` of the vectors :math:`a` and :math:`b`.
     """
+    a = np.asfarray(a)
+    b = np.asfarray(b)
     return (a * b).sum(axis=-1)  # type: ignore
 
 
@@ -76,6 +78,8 @@ def cross_product(a: Vector3Like, b: Vector3Like, /) -> Vector3:
     :param b: Vector :math:`b`.
     :return: Cross product :math:`a \times b` of the vectors :math:`a` and :math:`b`.
     """
+    a = np.asfarray(a)
+    b = np.asfarray(b)
     if a.shape == (3,) and b.shape == (3,):
         return np.array(
             [

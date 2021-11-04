@@ -23,14 +23,19 @@ from infinite_sets import everything
 from narupa.trajectory import FrameData
 from nglview import NGLWidget
 
-from narupatools.frame import TrajectorySource, FrameSource
+from narupatools.app import Client, Session
+from narupatools.core.dynamics import SimulationDynamics
+from narupatools.frame import FrameSource, TrajectorySource
+
+from ._client import show_client
 from ._dynamics import show_dynamics
 from ._session import show_session
-from ._client import show_client
-
-from ._structure import ASEStructure, FrameDataStructure, NarupaToolsTrajectory, FrameDataTrajectory
-from ..app import Client, Session
-from narupatools.core.dynamics import SimulationDynamics
+from ._structure import (
+    ASEStructure,
+    FrameDataStructure,
+    FrameDataTrajectory,
+    NarupaToolsTrajectory,
+)
 
 
 def show_ase(atoms: Atoms, /, **kwargs: Any) -> NGLWidget:
@@ -75,6 +80,7 @@ def show_trajectory(source: TrajectorySource, /, **kwargs: Any) -> NGLWidget:
 
 
 def show(obj: Any) -> NGLWidget:
+    """Show an arbitrary object using nglview."""
     if isinstance(obj, Atoms):
         return show_ase(obj)
     if isinstance(obj, Client):

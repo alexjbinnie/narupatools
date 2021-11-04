@@ -22,7 +22,7 @@ from os import PathLike
 from typing import Optional, Union
 
 from ase.md.md import MolecularDynamics
-from simtk.openmm.app import Simulation
+from openmm.app import Simulation
 
 from narupatools.ase import ASEDynamics
 from narupatools.ase.openmm import openmm_simulation_to_ase_molecular_dynamics

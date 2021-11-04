@@ -24,9 +24,9 @@ from ase.atoms import Atoms
 
 from narupatools.ase._units import UnitsASE
 from narupatools.imd import Interaction
+from narupatools.override import override
 from narupatools.physics.units import UnitsNarupa
 
-from ...override import override
 from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
 from ._null_constraint import NullConstraint
 
