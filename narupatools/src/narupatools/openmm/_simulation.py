@@ -36,9 +36,9 @@ class OpenMMSimulation(FrameSource):
     """
 
     @override(FrameSource.get_frame)
-    def get_frame(
+    def get_frame(  # noqa: D102
         self, *, fields: InfiniteSet[str], existing: Optional[FrameData] = None
-    ) -> FrameData:  # noqa: D102
+    ) -> FrameData:
 
         frame = existing
         if not frame:

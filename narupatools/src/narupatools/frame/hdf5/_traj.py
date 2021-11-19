@@ -26,34 +26,30 @@ from narupatools.frame import (
 )
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.physics.typing import ScalarArray, Vector3Array
+
 from ._descriptor import HDF5AppendableArray, HDF5Attribute
 from ._object import _HDF5EditableObject
-
 from ._topology import HDF5Topology
 from ._utils import generate_topology
 
 
-
-
-
-
-
-
-
 class HDF5InteractionParameters(_HDF5EditableObject):
+    """Interaction parameters stored in a trajectory."""
+
     def __init__(self, interaction_view: HDF5Interaction):
         self._interaction = interaction_view
 
     @property
-    def writable(self) -> bool:
+    def writable(self) -> bool:  # noqa: D102
         return self._interaction.writable
 
     @property
-    def hdf5_group(self) -> Group:
+    def hdf5_group(self) -> Group:  # noqa: D102
         return self._interaction.hdf5_group
 
     @property
     def n_atoms(self) -> int:
+        """Number of atoms involved in the interaction."""
         return self._interaction.n_atoms
 
     _position = HDF5AppendableArray(
@@ -75,6 +71,7 @@ class HDF5InteractionParameters(_HDF5EditableObject):
     force = _force.as_numpy()
 
     def save_interaction(self, *, interaction: Interaction) -> None:
+        """Save interaction parameters to file."""
         if hasattr(interaction, "position"):
             self._position.append([interaction.position])  # type: ignore[attr-defined]
         if hasattr(interaction, "scale"):
@@ -101,14 +98,15 @@ class HDF5Interaction(_HDF5EditableObject):
 
     @property
     def n_atoms(self) -> int:
+        """Number of atoms in the interaction."""
         return len(self.particle_indices)
 
     @property
-    def writable(self) -> bool:
+    def writable(self) -> bool:  # noqa: D102
         return self._trajectory.writable
 
     @property
-    def hdf5_group(self) -> Group:
+    def hdf5_group(self) -> Group:  # noqa: D102
         return self._group
 
     @classmethod
@@ -121,7 +119,7 @@ class HDF5Interaction(_HDF5EditableObject):
         interaction: Interaction,
         frame_index: int,
     ) -> HDF5Interaction:
-
+        """Create a new interaction."""
         group = trajectory._file.create_group(
             where=interaction_group, name=key, title="Interaction"
         )
@@ -178,6 +176,7 @@ class HDF5Interaction(_HDF5EditableObject):
 
     @property
     def particle_indices(self) -> npt.NDArray[np.int_]:
+        """Particle indices involved in the interaction."""
         if self._particle_indices is None:
             if hasattr(self._group, "indices"):
                 self._particle_indices = np.array(self._group.indices)
@@ -240,7 +239,7 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
         self._interactions_group: Optional[Group] = None
 
     @property
-    def writable(self) -> bool:
+    def writable(self) -> bool:  # noqa: D102
         return self._trajectory.writable
 
     @property
@@ -353,8 +352,7 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
 
 
 class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObject):
-    def __len__(self) -> int:
-        return self.n_frames
+    """Trajectory stored as an HDF5 trajectory."""
 
     application = HDF5Attribute("application")
     convention_version = HDF5Attribute("conventionVersion")
@@ -417,8 +415,12 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
     )
     realtimes = _realtimes.as_numpy()
 
+    def __len__(self) -> int:
+        return self.n_frames
+
     @classmethod
     def load_file(cls, filename: str) -> HDF5Trajectory:
+        """Load a HDF5 trajectory from a file."""
         file = tables.open_file(filename, mode="r")
         obj = cls(file, False)
 
@@ -449,6 +451,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         overwrite_existing: bool = False,
         expected_frames: Optional[int] = None,
     ) -> HDF5Trajectory:
+        """Create a trajectory streamed to a file."""
         if not overwrite_existing and os.path.exists(filename):
             raise FileExistsError(filename)
         file = tables.open_file(filename, mode="w", title=title or "")
@@ -473,6 +476,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         author: Optional[str] = None,
         expected_frames: Optional[int] = None,
     ) -> HDF5Trajectory:
+        """Create a trajectory stored in memory."""
         with NamedTemporaryFile() as tmp:
             filename = tmp.name + ".h5"
         file = tables.open_file(
@@ -505,15 +509,16 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         self.interactions = InteractionsView(self)
 
     @property
-    def writable(self) -> bool:
+    def writable(self) -> bool:  # noqa: D102
         return self._writable
 
     @property
-    def hdf5_group(self) -> Group:
+    def hdf5_group(self) -> Group:  # noqa: D102
         return self._file.root
 
     @property
     def n_atoms(self) -> int:
+        """Number of atoms in the trajectory."""
         if hasattr(self, "_n_atoms"):
             return self._n_atoms  # type: ignore
         self._n_atoms = int(self._positions.shape[1])
@@ -521,6 +526,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
 
     @property
     def n_frames(self) -> int:
+        """Number of frames in the trajectory."""
         return self.positions.shape[0]
 
     def save_frame(self, *, frame: FrameData, time: float) -> None:
@@ -573,6 +579,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
 
     @property
     def topology(self) -> HDF5Topology:
+        """Topology of the system."""
         if self._topology is None:
             if "topology" in self._file.root:
                 self._topology = HDF5Topology.from_string(
@@ -584,6 +591,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
 
     @property
     def masses(self) -> np.ndarray:
+        """Masses of each atom in the system, in daltons."""
         return self.topology.masses
 
     def get_frame(  # noqa: D102
@@ -627,12 +635,15 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         filename: Optional[str] = None,
         expected_frames: Optional[int] = None,
         flush_every: int = 1,
+        title: Optional[str] = None,
     ) -> Generator[HDF5Trajectory, None, None]:
         """Record dynamics to a single trajectory, stopping if it is reset."""
         if filename is not None:
-            traj = cls.new_file(filename=filename, expected_frames=expected_frames)
+            traj = cls.new_file(
+                filename=filename, expected_frames=expected_frames, title=title
+            )
         else:
-            traj = cls.in_memory(expected_frames=expected_frames)
+            traj = cls.in_memory(expected_frames=expected_frames, title=title)
 
         has_logged_initial = False
         frame_index = 0

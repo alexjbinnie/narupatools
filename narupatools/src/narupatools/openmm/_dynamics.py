@@ -71,6 +71,8 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
 
     def __init__(self, simulation: OpenMMSimulation, playback_interval: float = 0.0):
         super().__init__(playback_interval=playback_interval)
+        if isinstance(simulation, Simulation):
+            simulation = OpenMMSimulation.from_simulation(simulation)
         self._simulation = simulation
         self._masses = get_openmm_masses(self._simulation.system)
 
@@ -92,6 +94,11 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
 
     @property
     def simulation(self) -> OpenMMSimulation:
+        """
+        Underlying OpenMM Simulation.
+
+        Generally, this should not be modified directly, as it may lead to unexpected issues.
+        """
         return self._simulation
 
     @property
@@ -182,6 +189,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
             return OpenMMDynamics.from_xml_string(infile.read(), platform=platform)
 
     def minimize(self, tolerance: float, max_iterations: Optional[int] = None) -> None:
+        """Minimize the system to a given tolerance."""
         with self._simulation_lock:
             if not max_iterations:
                 max_iterations = 0

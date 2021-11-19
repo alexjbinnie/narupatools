@@ -1,8 +1,8 @@
 from abc import abstractmethod
-from typing import Protocol, Tuple, Optional
+from typing import Optional, Protocol, Tuple
 
 import tables
-from tables import Group, EArray, Float32Atom
+from tables import EArray, Float32Atom, Group
 
 
 class _HDF5EditableObject(Protocol):
@@ -11,26 +11,30 @@ class _HDF5EditableObject(Protocol):
     @property
     @abstractmethod
     def hdf5_group(self) -> Group:
+        """HDF5 group to store attributes."""
         pass
 
     @property
     @abstractmethod
     def writable(self) -> bool:
+        """Is this HDF5 object currently writable?"""
         pass
 
     @property
     @abstractmethod
     def n_atoms(self) -> int:
+        """Number of atoms in this object."""
         pass
 
     def create_earray(
-            self,
-            *,
-            name: str,
-            title: str,
-            shape: Tuple[int, ...],
-            units: Optional[str] = None,
+        self,
+        *,
+        name: str,
+        title: str,
+        shape: Tuple[int, ...],
+        units: Optional[str] = None,
     ) -> EArray:
+        """Create a new extendable array."""
         if hasattr(self, "expected_frames"):
             expected_frames = self.expected_frames  # type: ignore
         else:

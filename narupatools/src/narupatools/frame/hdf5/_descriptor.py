@@ -1,4 +1,4 @@
-from typing import Type, Any, Tuple, Optional
+from typing import Any, Optional, Tuple, Type
 
 import numpy as np
 import numpy.typing as npt
@@ -7,6 +7,8 @@ from narupatools.frame.hdf5._object import _HDF5EditableObject
 
 
 class HDF5Attribute:
+    """Descriptor that stores a value in a HDF5 attribute."""
+
     def __init__(self, name: str):
         self._name = name
 
@@ -33,13 +35,13 @@ class HDF5AppendableArray:
     """
 
     def __init__(
-            self,
-            *,
-            h5_name: str,
-            title: str,
-            shape: Tuple[int, ...],
-            per_atom: bool = False,
-            units: Optional[str],
+        self,
+        *,
+        h5_name: str,
+        title: str,
+        shape: Tuple[int, ...],
+        per_atom: bool = False,
+        units: Optional[str],
     ):
         self._h5_name = h5_name
         """Name of the array stored as an HDF5 EArray."""
@@ -76,6 +78,8 @@ class HDF5AppendableArray:
             return value
 
     def as_numpy(self, dtype: npt.DTypeLike = float) -> np.ndarray:
+        """Create a property that accesses the array as a numpy array."""
+
         def get(obj: Any) -> np.ndarray:
             return np.array(self.__get__(obj, type(obj)), dtype=dtype)
 

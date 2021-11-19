@@ -24,6 +24,8 @@ from ._show import show
 
 @magics_class
 class NGLMagics(Magics):
+    """IPython magic for use with NGL."""
+
     @line_magic
     def ngl(self, line: str) -> Any:
         """Display the given object using nglview."""

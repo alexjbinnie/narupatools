@@ -10,6 +10,10 @@ def nanotube_openmm_simulation(nanotube_xml_filename):
         return deserialize_simulation(file.read())
 
 
+def test_platform(nanotube_openmm_simulation):
+    print(nanotube_openmm_simulation.context.getPlatform().getName())
+
+
 @pytest.fixture
 def nanotube_simulation(nanotube_openmm_simulation):
     return OpenMMSimulation.from_simulation(nanotube_openmm_simulation)

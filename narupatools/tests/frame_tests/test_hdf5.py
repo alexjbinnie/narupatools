@@ -91,13 +91,13 @@ def test_interaction_frame_range(nanotube_traj):
 def test_interaction_position_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        assert interaction.interaction_positions.shape == (size, 3)
+        assert interaction.parameters.position.shape == (size, 3)
 
 
 def test_interaction_scales_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        assert interaction.interaction_scales.shape == (size,)
+        assert interaction.parameters.scale.shape == (size,)
 
 
 def test_interaction_forces_shape(nanotube_traj):

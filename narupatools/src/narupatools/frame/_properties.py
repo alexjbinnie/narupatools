@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol, Union, Set, Collection, overload, Iterator, Literal, Any
+from typing import Any, Collection, Iterator, Protocol, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -195,7 +195,9 @@ class WritableDynamicStructureProperties(DynamicStructureProperties, Protocol):
         ...
 
 
-class SelectionView(DynamicStructureProperties, DynamicStructureMethods, Collection[float]):
+class SelectionView(
+    DynamicStructureProperties, DynamicStructureMethods, Collection[float]
+):
     """
     View to a subset of a system, such as a FrameData or dynamics.
 
@@ -246,28 +248,42 @@ class SelectionView(DynamicStructureProperties, DynamicStructureMethods, Collect
             return NotImplemented
         if self._source != other._source:
             raise ValueError("Cannot intersect two selections from different objects.")
-        return SelectionView(self._source, np.intersect1d(self._selection, other._selection))
+        return SelectionView(
+            self._source, np.intersect1d(self._selection, other._selection)
+        )
 
     def __or__(self, other: Any) -> SelectionView:
         if not isinstance(other, SelectionView):
             return NotImplemented
         if self._source != other._source:
-            raise ValueError("Cannot take the union of two selections from different objects.")
-        return SelectionView(self._source, np.union1d(self._selection, other._selection))
+            raise ValueError(
+                "Cannot take the union of two selections from different objects."
+            )
+        return SelectionView(
+            self._source, np.union1d(self._selection, other._selection)
+        )
 
     def __xor__(self, other: Any) -> SelectionView:
         if not isinstance(other, SelectionView):
             return NotImplemented
         if self._source != other._source:
-            raise ValueError("Cannot take the symmetric difference of two selections from different objects.")
-        return SelectionView(self._source, np.setxor1d(self._selection, other._selection))
+            raise ValueError(
+                "Cannot take the symmetric difference of two selections from different objects."
+            )
+        return SelectionView(
+            self._source, np.setxor1d(self._selection, other._selection)
+        )
 
     def __sub__(self, other: Any) -> SelectionView:
         if not isinstance(other, SelectionView):
             return NotImplemented
         if self._source != other._source:
-            raise ValueError("Cannot take the set difference of two selections from different objects.")
-        return SelectionView(self._source, np.setdiff1d(self._selection, other._selection))
+            raise ValueError(
+                "Cannot take the set difference of two selections from different objects."
+            )
+        return SelectionView(
+            self._source, np.setdiff1d(self._selection, other._selection)
+        )
 
     @property
     def indices(self) -> np.ndarray:

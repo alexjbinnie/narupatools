@@ -9,6 +9,7 @@ from narupatools.frame.fields import (
     BondCount,
     BondPairs,
     ParticleCount,
+    ParticleElements,
     ParticleNames,
     ParticlePositions,
     ParticleResidues,
@@ -51,6 +52,8 @@ def _get_selection_fields(selection: str, /) -> Set[str]:
         fields |= {ParticlePositions, ParticleCount}  # type: ignore
     if {"bonded"} & keywords:
         fields |= {BondPairs, BondCount}  # type: ignore
+    if {"element"} & keywords:
+        fields |= {ParticleElements}
     return fields
 
 

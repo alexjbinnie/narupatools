@@ -22,12 +22,12 @@ from .exceptions import LAMMPSError, LAMMPSWarning
 
 has_lammps = importlib.util.find_spec("lammps") is not None
 
-if not has_lammps:
-    raise ImportError("narupatools.lammps requires lammps to be installed.")
+if has_lammps:
+    from ._converter import LAMMPSConverter  # noqa: F401
+    from ._dynamics import LAMMPSDynamics
+    from ._simulation import LAMMPSSimulation
 
-from ._converter import LAMMPSConverter  # noqa: F401
-from ._dynamics import LAMMPSDynamics
-from ._simulation import LAMMPSSimulation
+from ._datafile import LAMMPSDataFile
 from ._units import (
     UnitsLAMMPSCGS,
     UnitsLAMMPSElectron,
@@ -52,4 +52,5 @@ __all__ = [
     "LAMMPSError",
     "LAMMPSWarning",
     "LAMMPSDynamics",
+    "LAMMPSDataFile",
 ]
