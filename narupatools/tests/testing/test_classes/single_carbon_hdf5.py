@@ -33,14 +33,16 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         raise NotImplementedError
 
     def test_hdf5_writer(self, dynamics, hdf5_filename):
-        with HDF5Trajectory.record(dynamics) as traj:
+        with HDF5Trajectory.record(dynamics, filename=hdf5_filename) as traj:
             dynamics.run(100)
 
         assert traj.n_frames == 101
         assert traj.n_atoms == 1
         assert traj.times[1] - traj.times[0] == pytest.approx(0.01)
-        assert traj.time[-1] == pytest.approx(dynamics.total_time)
-        assert traj.xyz[-1] == pytest.approx(dynamics.positions)
+        assert traj.times[-1] == pytest.approx(dynamics.total_time)
+        assert traj.positions[-1] == pytest.approx(dynamics.positions)
+
+        traj.close()
 
         traj2 = HDF5Trajectory.load_file(hdf5_filename)
         assert traj2.positions[-1] == pytest.approx(dynamics.positions)
@@ -54,7 +56,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
 
     def test_hdf5_writer_imd(self, dynamics, hdf5_filename):
         with HDF5Trajectory.record(
-            dynamics, filename=hdf5_filename, title="Test Trajectory"
+            dynamics, filename=hdf5_filename, title="Test Trajectory", close_file_after=True
         ):
             dynamics.run(20)
 
@@ -68,10 +70,12 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
 
             dynamics.run(20)
 
+
+
         traj = mdtraj.load_hdf5(hdf5_filename)
         assert traj.n_frames == 101
         assert traj.n_atoms == 1
-        assert traj.times[1] - traj.times[0] == pytest.approx(0.01)
+        assert traj.time[1] - traj.time[0] == pytest.approx(0.01)
         assert traj.time[-1] == pytest.approx(dynamics.total_time)
         assert traj.xyz[-1] == pytest.approx(dynamics.positions)
 
@@ -85,7 +89,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
 
         assert len(traj2.interactions) == 1
         interaction = traj2.interactions[key]
-        assert interaction.indices == np.array([0])
+        assert interaction.particle_indices == np.array([0])
         assert interaction.start_time == pytest.approx(0.2)
         assert interaction.end_time == pytest.approx(0.8)
         assert interaction.duration == pytest.approx(0.6)
@@ -100,7 +104,7 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         assert traj2.interactions.forces.shape == (101, 1, 3)
 
     def test_hdf5_writer_multiple_interactions(self, dynamics, hdf5_filename):
-        with HDF5Trajectory.record(dynamics, filename=hdf5_filename):
+        with HDF5Trajectory.record(dynamics, filename=hdf5_filename, close_file_after=True):
             dynamics.run(20)
             key1 = dynamics.imd.add_interaction(
                 constant_interaction(force=vector(50.0, 0.0, 0.0), particles=[0])

@@ -18,9 +18,13 @@ class _StateDataConvert(FrameConverter):
     ) -> _T:
         if destination == StateData:
             state = StateData()
-            for key in frame:
+            for key in frame.keys() & fields:
                 state[key] = frame[key]
-            return frame
+            return state
+        if isinstance(destination, StateData):
+            for key in frame.keys() & fields:
+                destination[key] = frame[key]
+            return destination
         raise NotImplementedError()
 
     @classmethod

@@ -636,6 +636,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         expected_frames: Optional[int] = None,
         flush_every: int = 1,
         title: Optional[str] = None,
+            close_file_after: bool = False
     ) -> Generator[HDF5Trajectory, None, None]:
         """Record dynamics to a single trajectory, stopping if it is reset."""
         if filename is not None:
@@ -709,6 +710,8 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             dynamics.on_post_step.remove_callback(log_step)
             dynamics.imd.on_end_interaction.remove_callback(log_end_interaction)
             traj._writable = False
+            if close_file_after:
+                traj.close()
 
     def __str__(self) -> str:
         s = "<HDF5Trajectory"

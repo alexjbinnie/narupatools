@@ -1,4 +1,4 @@
-from ase.md import Langevin
+from ase.md import VelocityVerlet
 
 from narupatools.ase.openmm import ASEOpenMMDynamics
 
