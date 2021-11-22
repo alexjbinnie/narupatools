@@ -40,4 +40,3 @@ dependencies:
 - openmm-plumed=1.*
 - pip:
   - ./narupatools
-name: narupatools

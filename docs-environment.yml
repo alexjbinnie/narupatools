@@ -1,0 +1,20 @@
+# Conda environment for documentation.
+name: narupatools-docs
+channels:
+  - conda-forge
+  - irl
+  - alexjbinnie
+dependencies:
+  - python>=3.8
+  - numpy>=1.20.*
+  - openmm>=7.5.*
+  - narupa-server=0.1.2085
+  - mdtraj=1.9.*
+  - lxml=4.6.*
+  - infinite-sets=1.0.*
+  - sphinx=3.5.*
+  - sphinx-autodoc-typehints=1.12.*
+  - nbsphinx=0.8.*
+  - ipykernel
+  - plotly=4.14.*
+  - nglview=2.7.*

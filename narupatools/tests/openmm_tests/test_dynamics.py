@@ -20,6 +20,8 @@ import pytest
 from openmm import LangevinIntegrator
 from openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
 from openmm.unit import kelvin, nanometer, picosecond, picoseconds
+from simtk.openmm import LangevinIntegrator
+from simtk.openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
 from test_classes.dynamics import VillinDynamicsTests
 
 from narupatools.openmm._dynamics import OpenMMDynamics
