@@ -18,8 +18,7 @@ from io import BytesIO
 
 import pytest
 from simtk.openmm import LangevinIntegrator
-from simtk.openmm.app import ForceField, HBonds, PDBFile, Simulation
-from simtk.openmm.app.forcefield import PME
+from simtk.openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
 from simtk.unit import kelvin, nanometer, picosecond, picoseconds
 from test_classes.dynamics import VillinDynamicsTests
 

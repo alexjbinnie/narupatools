@@ -7,8 +7,8 @@ channels:
 dependencies:
   - python>=3.8
   - numpy>=1.20.*
-  - openmm<7.6.0
-  - narupa-server=0.1.2061
+  - openmm>=7.5.*
+  - narupa-server=0.1.2085
   - mdtraj=1.9.*
   - lxml=4.6.*
   - infinite-sets=1.0.*
