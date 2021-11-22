@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import warnings
 from tempfile import NamedTemporaryFile
 from time import monotonic
 from typing import Any, Generator, Iterator, Mapping, Optional
@@ -183,6 +184,15 @@ class HDF5Interaction(_HDF5EditableObject):
             else:
                 raise AttributeError
         return self._particle_indices
+
+    @property
+    def indices(self) -> npt.NDArray[np.int_]:
+        warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+        warnings.warn(f"Call to deprecated function {HDF5Interaction.indices.__name__}.",
+                      category=DeprecationWarning,
+                      stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning)  # reset filter
+        return self.particle_indices
 
     def save_interaction(
         self,
