@@ -15,6 +15,8 @@ dependencies:
   - quaternion
 # Exact Narupa version. Required as breaking changes can occur
   - narupa-server=0.1.2085
+# MDTraj needed for using HDF5
+  - mdtraj=1.*
 # Documentation tools
   - sphinx=3.5.*
   - sphinx-autodoc-typehints=1.12.*
