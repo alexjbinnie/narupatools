@@ -36,7 +36,7 @@ _OpenMMToASE = UnitsOpenMM >> UnitsASE
 
 class OpenMMCalculator(Calculator):
     """
-    Simple implementation of a ASE calculator for OpenMM.
+    Simple implementation of an ASE calculator for OpenMM.
 
     The context of the OpenMM simulation is used to compute forces and energies given a
     set of positions. When the ASE `Atoms` object has its positions changed by an

@@ -56,7 +56,10 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
 
     def test_hdf5_writer_imd(self, dynamics, hdf5_filename):
         with HDF5Trajectory.record(
-            dynamics, filename=hdf5_filename, title="Test Trajectory", close_file_after=True
+            dynamics,
+            filename=hdf5_filename,
+            title="Test Trajectory",
+            close_file_after=True,
         ):
             dynamics.run(20)
 
@@ -69,8 +72,6 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
             dynamics.imd.remove_interaction(key)
 
             dynamics.run(20)
-
-
 
         traj = mdtraj.load_hdf5(hdf5_filename)
         assert traj.n_frames == 101
@@ -97,14 +98,13 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         assert interaction.calculate_work() == pytest.approx(
             dynamics.imd.total_work, rel=1e-3
         )
-        assert interaction.calculate_power() == pytest.approx(
-            dynamics.imd.total_work / 0.6, rel=1e-3
-        )
 
         assert traj2.interactions.forces.shape == (101, 1, 3)
 
     def test_hdf5_writer_multiple_interactions(self, dynamics, hdf5_filename):
-        with HDF5Trajectory.record(dynamics, filename=hdf5_filename, close_file_after=True):
+        with HDF5Trajectory.record(
+            dynamics, filename=hdf5_filename, close_file_after=True
+        ):
             dynamics.run(20)
             key1 = dynamics.imd.add_interaction(
                 constant_interaction(force=vector(50.0, 0.0, 0.0), particles=[0])

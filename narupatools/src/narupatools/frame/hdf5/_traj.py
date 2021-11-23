@@ -26,6 +26,7 @@ from narupatools.frame import (
     TrajectorySource,
 )
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
+from narupatools.physics.energy import cumulative_work, total_work
 from narupatools.physics.typing import ScalarArray, Vector3Array
 
 from ._descriptor import HDF5AppendableArray, HDF5Attribute
@@ -187,11 +188,18 @@ class HDF5Interaction(_HDF5EditableObject):
 
     @property
     def indices(self) -> npt.NDArray[np.int_]:
-        warnings.simplefilter('always', DeprecationWarning)  # turn off filter
-        warnings.warn(f"Call to deprecated function {HDF5Interaction.indices.__name__}.",
-                      category=DeprecationWarning,
-                      stacklevel=2)
-        warnings.simplefilter('default', DeprecationWarning)  # reset filter
+        """
+        Particle indices involved in the interaction.
+
+        This is deprecated, and particle_indices should be used instead.
+        """
+        warnings.simplefilter("always", DeprecationWarning)
+        warnings.warn(
+            f"Call to deprecated function {HDF5Interaction.indices.__name__}.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        warnings.simplefilter("default", DeprecationWarning)
         return self.particle_indices
 
     def save_interaction(
@@ -236,6 +244,36 @@ class HDF5Interaction(_HDF5EditableObject):
     def frame_slice(self) -> slice:
         """Slice of frame indices covered by this interaction."""
         return slice(self.frame_indices[0], self.frame_indices[-1] + 1)
+
+    def calculate_per_particle_work(self) -> np.ndarray:
+        """Calculate the per-particle work done by all interactions."""
+        return total_work(  # type: ignore
+            forces=self.forces,
+            positions=self._trajectory.positions[
+                ..., self.frame_slice, self.particle_indices, :
+            ],
+            time_axis=-3,
+        )
+
+    def calculate_cumulative_work(self) -> np.ndarray:
+        """Calculate the cumulative work done by the interaction at each timestep."""
+        return cumulative_work(  # type: ignore
+            forces=self.forces,
+            positions=self._trajectory.positions[
+                ..., self.frame_slice, self.particle_indices, :
+            ],
+            time_axis=-3,
+        ).sum(axis=-1)
+
+    def calculate_work(self) -> np.ndarray:
+        """Calculate the cumulative work done by the interaction at each timestep."""
+        return total_work(  # type: ignore
+            forces=self.forces,
+            positions=self._trajectory.positions[
+                ..., self.frame_slice, self.particle_indices, :
+            ],
+            time_axis=-3,
+        ).sum(axis=-1)
 
     def __str__(self) -> str:
         return f"<InteractionView indices={self.particle_indices} start_index={self.start_frame_index} end_index={self.end_frame_index} type={self.interaction_type}>"
@@ -356,6 +394,24 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
                 interaction.frame_slice, interaction.particle_indices
             ] += interaction.forces
         return forces
+
+    def calculate_per_particle_work(self) -> np.ndarray:
+        """Calculate the per-particle work done by all interactions."""
+        return total_work(  # type: ignore
+            forces=self.forces, positions=self._trajectory.positions, time_axis=-3
+        )
+
+    def calculate_cumulative_work(self) -> np.ndarray:
+        """Calculate the cumulative work done by all interactions at each timestep."""
+        return cumulative_work(  # type: ignore
+            forces=self.forces, positions=self._trajectory.positions, time_axis=-3
+        ).sum(axis=-1)
+
+    def calculate_work(self) -> np.ndarray:
+        """Calculate the cumulative work done by all interactions at each timestep."""
+        return total_work(  # type: ignore
+            forces=self.forces, positions=self._trajectory.positions, time_axis=-3
+        ).sum(axis=-1)
 
     def __repr__(self) -> str:
         return f"<InteractionsView {len(self)} interaction(s)>"
@@ -646,7 +702,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         expected_frames: Optional[int] = None,
         flush_every: int = 1,
         title: Optional[str] = None,
-            close_file_after: bool = False
+        close_file_after: bool = False,
     ) -> Generator[HDF5Trajectory, None, None]:
         """Record dynamics to a single trajectory, stopping if it is reset."""
         if filename is not None:
@@ -664,11 +720,18 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             nonlocal has_logged_initial
 
             if has_logged_initial:
-                return
-
-            log_step(**kwargs)
-            traj.save_topology(dynamics.get_frame(fields=everything()))
-            has_logged_initial = True
+                # Interactions that have appeared should be registered now.
+                for interaction in dynamics.imd.current_interactions.values():
+                    if interaction.key not in traj.interactions:
+                        traj.interactions.save_interaction(
+                            key=interaction.key,
+                            interaction=interaction,
+                            frame_index=frame_index - 1,
+                        )
+            else:
+                log_step(**kwargs)
+                traj.save_topology(dynamics.get_frame(fields=everything()))
+                has_logged_initial = True
 
         def log_step(**kwargs: Any) -> None:
             nonlocal traj
@@ -706,7 +769,7 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
             nonlocal traj
             nonlocal frame_index
 
-            traj.interactions.end_interaction(key=key, frame_index=frame_index + 1)
+            traj.interactions.end_interaction(key=key, frame_index=frame_index - 1)
 
         dynamics.on_pre_step.add_callback(log_initial, priority=-1000)
         dynamics.on_post_step.add_callback(log_step, priority=-1000)

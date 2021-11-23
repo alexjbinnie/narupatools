@@ -69,7 +69,11 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     ) -> FrameData:
         return self._simulation.get_frame(fields=fields, existing=existing)
 
-    def __init__(self, simulation: OpenMMSimulation, playback_interval: float = 0.0):
+    def __init__(
+        self,
+        simulation: Union[Simulation, OpenMMSimulation],
+        playback_interval: float = 0.0,
+    ):
         super().__init__(playback_interval=playback_interval)
         if isinstance(simulation, Simulation):
             simulation = OpenMMSimulation.from_simulation(simulation)

@@ -15,7 +15,8 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Patch to FrameData that allows copy() to work with empty arrays."""
-from typing import Any, Generator, Tuple, Union, KeysView, ItemsView, ValuesView
+
+from typing import Any, Generator, ItemsView, KeysView, Union
 
 import numpy as np
 from narupa.trajectory import FrameData
@@ -103,11 +104,11 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
 
     def keys(self) -> KeysView[str]:
         """Iterate over the keys in the Frame."""
-        return KeysView(self)
+        return KeysView(self)  # type: ignore
 
     def items(self) -> ItemsView[str, Any]:
         """Iterate over the keys and values of the Frame."""
-        return ItemsView(self)
+        return ItemsView(self)  # type: ignore
 
     def __iter__(self) -> Generator[str, None, None]:
         """Iterate over the keys of the Frame."""

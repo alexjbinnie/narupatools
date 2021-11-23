@@ -17,7 +17,7 @@
 """
 Code relating to ASE constraints, which can modify an ASE atoms object.
 
-ASE constraints don't exist as a base class from which all other constraints subclass.
+ASE constraints don't exist as a base class from which all other constraints are a subclass.
 Instead, it is assumed that they have at a minimum an `adjust_positions` and
 `adjust_forces` method, with optional other methods depending on what they alter.
 

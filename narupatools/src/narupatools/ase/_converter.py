@@ -208,8 +208,8 @@ def ase_atoms_to_frame(
     :param atoms: ASE Atoms object to convert.
     :param fields: A collection ofs that should be added to the frame if available.
     :param frame: An optional preexisting FrameData to populate.
-    :return: A FrameData populated with information available in the ASE atoms object
-             whoses are present in the properties parameter.
+    :return: FrameData populated with information available in the ASE atoms object
+             whose keys are present in the properties parameter.
     """
     if frame is None:
         frame = FrameData()

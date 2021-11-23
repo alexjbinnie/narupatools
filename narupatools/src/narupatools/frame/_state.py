@@ -1,9 +1,9 @@
-from typing import Any, Dict, Union, Optional, Type
+from typing import Any, Dict, KeysView, Optional, Type, Union
 
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.frame import FrameKey, get_frame_key, FrameConverter
+from narupatools.frame import FrameConverter, FrameKey, get_frame_key
 from narupatools.frame._converter import _T
 
 
@@ -18,13 +18,13 @@ class _StateDataConvert(FrameConverter):
     ) -> _T:
         if destination == StateData:
             state = StateData()
-            for key in frame.keys() & fields:
+            for key in frame.keys() & fields:  # type: ignore
                 state[key] = frame[key]
-            return state
+            return state  # type: ignore
         if isinstance(destination, StateData):
-            for key in frame.keys() & fields:
+            for key in frame.keys() & fields:  # type: ignore
                 destination[key] = frame[key]
-            return destination
+            return destination  # type: ignore
         raise NotImplementedError()
 
     @classmethod
@@ -33,7 +33,7 @@ class _StateDataConvert(FrameConverter):
     ) -> FrameData:
         if isinstance(object_, StateData):
             frame = FrameData()
-            for key in object_:
+            for key in object_:  # type: ignore
                 frame[key] = object_[key]
             return frame
         raise NotImplementedError()
@@ -53,7 +53,8 @@ class StateData:
         except KeyError:
             return self._dict[key]
 
-    def keys(self):
+    def keys(self) -> KeysView[str]:
+        """View of keys in the state data."""
         return self._dict.keys()
 
     def __setitem__(self, key: Union[str, FrameKey], value: Any) -> None:

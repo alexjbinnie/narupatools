@@ -83,4 +83,4 @@ intersphinx_mapping = {
 
 set_type_checking_flag = True
 
-inheritance_graph_attrs = dict(rankdir="TB")
+inheritance_graph_attrs = {"rankdir": "TB"}
