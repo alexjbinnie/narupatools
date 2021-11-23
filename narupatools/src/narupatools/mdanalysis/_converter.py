@@ -209,17 +209,17 @@ def frame_to_mdanalysis_topology(  # noqa: C901
     :return: MDAnalysis topology with the given fields copied over.
     """
     try:
-        natoms = ParticleCount.get(frame)
+        natoms = ParticleCount.get(frame, calculate=True)
     except KeyError:
         natoms = 0
 
     try:
-        nress = ResidueCount.get(frame)
+        nress = ResidueCount.get(frame, calculate=True)
     except KeyError:
         nress = 0
 
     try:
-        nsegs = ChainCount.get(frame)
+        nsegs = ChainCount.get(frame, calculate=True)
     except KeyError:
         nsegs = 1
 

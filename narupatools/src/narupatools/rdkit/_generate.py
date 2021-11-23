@@ -1,3 +1,4 @@
+import contextlib
 from typing import Type, TypeVar
 
 import numpy as np
@@ -84,9 +85,10 @@ def generate_from_smiles(
             mol = AllChem.AddHs(mol)
         AllChem.EmbedMolecule(mol)
         # Minimize to avoid clashes
-        AllChem.UFFOptimizeMolecule(
-            mol, ignoreInterfragInteractions=True, maxIters=2000
-        )
+        with contextlib.suppress(RuntimeError):
+            AllChem.UFFOptimizeMolecule(
+                mol, ignoreInterfragInteractions=True, maxIters=2000
+            )
 
         monomer_info = Chem.AtomPDBResidueInfo()
         monomer_info.SetResidueName("UNL")
@@ -110,6 +112,9 @@ def generate_from_smiles(
 
     # Minimize the structure of the molecule
     Chem.SanitizeMol(mol)
-    AllChem.UFFOptimizeMolecule(mol, ignoreInterfragInteractions=False, maxIters=100)
+    with contextlib.suppress(RuntimeError):
+        AllChem.UFFOptimizeMolecule(
+            mol, ignoreInterfragInteractions=False, maxIters=100
+        )
 
     return convert(mol, output_type)

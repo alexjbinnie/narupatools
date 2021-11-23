@@ -15,6 +15,7 @@ The :obj:`narupatools.physics.vector.vector` method creates a one-dimensional nu
 .. testcode:: vector
 
    from narupatools.physics.vector import vector
+   import numpy as np
 
    vec = vector(0, 1, 3)  # NumPy array of dtype float
 
@@ -36,15 +37,6 @@ The :obj:`narupatools.physics.vector.cross_product` method takes the cross produ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :obj:`narupatools.physics.vector.magnitude` function gets the norm of a vector or set of vectors.
-
-.. testcode:: dynamics_run_steps
-
-   # Run forever in the background. Set block=True to run in the current thread.
-   dynamics.run(block=False)
-
-.. testcleanup:: dynamics_run_steps
-
-   dynamics.stop()
 
 ... normalize vectors or quaternions?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

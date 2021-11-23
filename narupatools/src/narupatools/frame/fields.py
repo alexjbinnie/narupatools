@@ -333,6 +333,36 @@ class _ParticleMassesKey(_FloatArrayKey):
         return atomic_numbers_to_masses(elements)
 
 
+class _ParticleCountKey(_IntegerKey):
+    @override(FrameKey._calculate)
+    def _calculate(self, frame: FrameData, /) -> int:
+        try:
+            return len(ParticlePositions.get(frame))
+        except KeyError as e:
+            for key, value in frame.items():  # type: ignore
+                if key.startswith("particle."):
+                    return len(value)
+            raise KeyError from e
+
+
+class _ResidueCountKey(_IntegerKey):
+    @override(FrameKey._calculate)
+    def _calculate(self, frame: FrameData, /) -> int:
+        for key, value in frame.items():  # type: ignore
+            if key.startswith("residue."):
+                return len(value)
+        raise KeyError
+
+
+class _ChainCountKey(_IntegerKey):
+    @override(FrameKey._calculate)
+    def _calculate(self, frame: FrameData, /) -> int:
+        for key, value in frame.items():  # type: ignore
+            if key.startswith("chain."):
+                return len(value)
+        raise KeyError
+
+
 ParticlePositions = _ThreeByNFloatArrayKey(PARTICLE_POSITIONS)
 """
 Array of particle positions in nanometers, as a NumPy N by 3 array of floats.
@@ -380,7 +410,7 @@ ParticleCharges = _FloatArrayKey("particle.charges")
 Array of particle charges in proton charges, as a NumPy array of floats.
 """
 
-ParticleCount = _IntegerKey(PARTICLE_COUNT)
+ParticleCount = _ParticleCountKey(PARTICLE_COUNT)
 """
 Number of particles in the system, as an integer.
 """
@@ -450,7 +480,7 @@ ResidueChains = _IntegerArrayKey(RESIDUE_CHAINS)
 Array of residue chain indices, as a NumPy array of integers.
 """
 
-ResidueCount = _IntegerKey(RESIDUE_COUNT)
+ResidueCount = _ResidueCountKey(RESIDUE_COUNT)
 """
 Number of residues in the system, as an integer.
 """
@@ -460,7 +490,7 @@ ChainNames = _StringArrayKey(CHAIN_NAMES)
 Array of chain names, as a NumPy array of strings.
 """
 
-ChainCount = _IntegerKey(CHAIN_COUNT)
+ChainCount = _ChainCountKey(CHAIN_COUNT)
 """
 Number of chains in the system, as an integer.
 """

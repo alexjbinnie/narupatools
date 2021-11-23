@@ -18,9 +18,9 @@ If you have an OpenMM simulation object, then an OpenMM dynamics object can be c
 
 .. testsetup:: from_simulation
 
-   from simtk.openmm import Simulation
+   from narupatools.openmm import OpenMMSimulation
 
-   simulation = OpenMMSimulation()
+   simulation = OpenMMSimulation.from_xml_file("serialized_simulation.xml")
 
 .. testcode:: from_simulation
 

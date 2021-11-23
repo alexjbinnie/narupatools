@@ -408,7 +408,7 @@ class InteractionsView(Mapping[str, HDF5Interaction]):
         ).sum(axis=-1)
 
     def calculate_work(self) -> np.ndarray:
-        """Calculate the cumulative work done by all interactions at each timestep."""
+        """Calculate the work done by all interactions at each timestep."""
         return total_work(  # type: ignore
             forces=self.forces, positions=self._trajectory.positions, time_axis=-3
         ).sum(axis=-1)
