@@ -13,23 +13,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
+import functools
 import logging
+from collections import Callable
 
-import numpy as np
 from ase.atoms import Atoms
-from ase.md import Langevin
+from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
-from simtk.openmm import LangevinIntegrator
-from simtk.openmm.app import Simulation
-from simtk.unit import picoseconds
+from openmm import LangevinIntegrator, VerletIntegrator
+from openmm.app import Simulation
+from openmm.unit import picoseconds
 
 import narupatools.ase.openmm._calculator as omm_calculator
 from narupatools.ase import UnitsASE
-from narupatools.core.units import UnitsNarupa, pico, second
 from narupatools.frame import convert
-from narupatools.openmm._units import UnitsOpenMM
-from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
+from narupatools.openmm import UnitsOpenMM
+from narupatools.physics.units import UnitsNarupa, pico, second
 
 _OpenMMToASE = UnitsOpenMM >> UnitsASE
 _NarupaToASE = UnitsNarupa >> UnitsASE
@@ -37,6 +36,10 @@ _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 DEFAULT_LANGEVIN_FRICTION = 10.0 / (pico * second)  # Friction in per picosecond
 
+INTEGRATOR_VERLET_MESSAGE = (
+    "Running OpenMM simulation that uses OpenMM's leap-frog Verlet integrator. ASE will use "
+    "a velocity Verlet integrator with the same timestep."
+)
 INTEGRATOR_NOT_LANGEVIN_MESSAGE = (
     "Running OpenMM simulation that was not setup with Langevin Integrator. A Langevin "
     "integrator with friction 0.01 fs^{-1} will be used."
@@ -94,40 +97,33 @@ def openmm_simulation_to_ase_molecular_dynamics(
 
     atoms = openmm_simulation_to_ase_atoms(simulation)
 
-    try:
-        # Get temperature of OpenMM simulation in K
-        temperature = simulation.integrator.getTemperature()._value  # type: ignore
-    except AttributeError:
-        # Use default temperature of 300 K
-        temperature = 300
-
     timestep = simulation.integrator.getStepSize().value_in_unit(picoseconds)
 
-    # friction in per femtosecond
-    if not isinstance(simulation.integrator, LangevinIntegrator):
-        logging.warning(INTEGRATOR_NOT_LANGEVIN_MESSAGE)
-        friction = DEFAULT_LANGEVIN_FRICTION
+    if isinstance(simulation.integrator, LangevinIntegrator):
+        integrator: Callable[..., MolecularDynamics] = functools.partial(
+            Langevin,
+            timestep=timestep * _OpenMMToASE.time,
+            temperature_K=simulation.integrator.getTemperature()._value,
+            friction=simulation.integrator.getFriction().value_in_unit(
+                picoseconds ** (-1)
+            )
+            / _OpenMMToASE.time,
+            fixcm=False,
+        )
+    elif isinstance(simulation.integrator, VerletIntegrator):
+        logging.warning(INTEGRATOR_VERLET_MESSAGE)
+        integrator = functools.partial(
+            VelocityVerlet,
+            timestep=timestep * _OpenMMToASE.time,
+        )
     else:
-        friction = simulation.integrator.getFriction().value_in_unit(
-            picoseconds ** (-1)
+        logging.warning(INTEGRATOR_NOT_LANGEVIN_MESSAGE)
+        integrator = functools.partial(
+            Langevin,
+            timestep=timestep * _OpenMMToASE.time,
+            temperature_K=300,
+            friction=DEFAULT_LANGEVIN_FRICTION / _OpenMMToASE.time,
+            fixcm=False,
         )
 
-    # Set the momenta corresponding to T=300K
-    atoms.set_momenta(
-        atoms.get_masses()[:, np.newaxis]
-        * maxwell_boltzmann_velocities(
-            masses=atoms.get_masses() * _ASEToNarupa.mass, temperature=temperature
-        )
-        * _NarupaToASE.velocity
-    )
-
-    # We do not remove the center of mass (fixcm=False). If the center of
-    # mass translations should be removed, then the removal should be added
-    # to the OpenMM system.
-    return Langevin(
-        atoms=atoms,
-        timestep=timestep * _OpenMMToASE.time,
-        temperature_K=temperature,
-        friction=friction / _OpenMMToASE.time,
-        fixcm=False,
-    )
+    return integrator(atoms=atoms)

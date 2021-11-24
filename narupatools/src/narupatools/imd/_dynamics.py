@@ -19,7 +19,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any
 
-from narupatools.app._session import Broadcastable, Session
+from narupatools.app import Broadcastable, Session
 from narupatools.core.dynamics import SimulationDynamics
 from narupatools.imd._feature import InteractionFeature
 from narupatools.override import override
@@ -60,12 +60,12 @@ class InteractiveSimulationDynamics(
     @override
     def start_broadcast(self, session: Session) -> None:  # noqa: D102
         self._shared_state = session.shared_state
-        self.imd.add_source(session.shared_state.interactions.snapshot)
+        self.imd.add_source(session.interactions.snapshot)
         self.imd.on_end_interaction.add_callback(self._interaction_ended)
         # Low priority to ensure interaction has updated first
         self.on_post_step.add_callback(self._send_interaction_feedback, priority=-10)
 
     @override
     def end_broadcast(self, session: Session) -> None:  # noqa: D102
-        self.imd.remove_source(session.shared_state.interactions.snapshot)
+        self.imd.remove_source(session.interactions.snapshot)
         self.imd.on_end_interaction.remove_callback(self._interaction_ended)

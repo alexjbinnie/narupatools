@@ -17,6 +17,7 @@
 """Code for interfacing with NGLView."""
 
 import importlib
+from typing import Any
 
 __has_ngl = importlib.util.find_spec("nglview") is not None
 
@@ -25,15 +26,26 @@ if not __has_ngl:
 
 from ._client import show_client
 from ._dynamics import show_dynamics
-from ._show import show_ase, show_narupa, show_trajectory
-from ._structure import ASEStructure, FrameDataStructure
+from ._session import show_session
+from ._show import show, show_ase, show_narupa, show_trajectory
+from ._structure import ASEStructure, FrameDataStructure, FrameDataTrajectory
 
 __all__ = [
+    "show",
     "show_ase",
     "show_client",
     "show_narupa",
     "show_dynamics",
     "show_trajectory",
+    "show_session",
     "ASEStructure",
     "FrameDataStructure",
+    "FrameDataTrajectory",
 ]
+
+
+def load_ipython_extension(ipython: Any) -> None:
+    """Register IPython magics."""
+    from ._ipython import NGLMagics
+
+    ipython.register_magics(NGLMagics)

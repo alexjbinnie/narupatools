@@ -21,7 +21,7 @@ from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
 import numpy as np
 
-from narupatools.core.dynamics import DynamicsProperties
+from narupatools.frame import DynamicStructureProperties
 from narupatools.physics.typing import Vector3Array
 
 from ._feedback import InteractionFeedback
@@ -40,7 +40,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     def __init__(
         self,
         *,
-        dynamics: DynamicsProperties,
+        dynamics: DynamicStructureProperties,
         key: str,
         start_time: float,
         interaction: _TInteractionData,
@@ -71,6 +71,8 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         self._particles = interaction.particles
         self.update(interaction)
 
+        self._forces_energy_dirty = True
+
     @classmethod
     def register_interaction_type(
         cls, interaction_type: str, python_type: Type[Interaction], /
@@ -87,7 +89,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         cls,
         *,
         key: str,
-        dynamics: DynamicsProperties,
+        dynamics: DynamicStructureProperties,
         start_time: float,
         interaction: InteractionParameters,
     ) -> Interaction:
@@ -125,8 +127,11 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     def particle_indices(self, value: np.ndarray) -> None:
         self._particles = value
 
+    def __len__(self) -> int:
+        return len(self._particles)
+
     @property
-    def dynamics(self) -> DynamicsProperties:
+    def dynamics(self) -> DynamicStructureProperties:
         """Underlying dynamics this interaction is affecting."""
         return self._dynamics
 
@@ -150,7 +155,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
     @property
     def potential_energy(self) -> float:
         """Potential energy of the interaction, in kilojoules per mole."""
-        self.calculate_forces_and_energy()
+        if self._forces_energy_dirty:
+            self.calculate_forces_and_energy()
+            self._forces_energy_dirty = False
         if self._energy is None:
             raise AttributeError
         return self._energy
@@ -165,7 +172,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         This is a (N, 3) NumPy array, where N is the number of particles affected by
         this interaction.
         """
-        self.calculate_forces_and_energy()
+        if self._forces_energy_dirty:
+            self.calculate_forces_and_energy()
+            self._forces_energy_dirty = False
         if self._forces is None:
             raise AttributeError
         return self._forces
@@ -180,7 +189,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
         This is a (N, 3) NumPy array, where N is the number of particles affected by
         this interaction.
         """
-        self.calculate_forces_and_energy()
+        if self._forces_energy_dirty:
+            self.calculate_forces_and_energy()
+            self._forces_energy_dirty = False
         if self._torques is None:
             raise AttributeError
         return self._torques
@@ -196,13 +207,13 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         new_forces = self.forces
 
-        work_this_step = 0.0
-
-        for i in range(len(self._particles)):
-            # Use trapezoidal rule to calculate single step of integral F.dS
-            F = 0.5 * (self._previous_forces[i] + new_forces[i])
-            dS = _current_positions[i] - self._previous_positions[i]
-            work_this_step += np.dot(F, dS)
+        work_this_step = (
+            0.5
+            * (
+                (self._previous_forces + new_forces)
+                * (_current_positions - self._previous_positions)
+            ).sum()
+        )
 
         self._last_step_work = work_this_step
         self._total_work += work_this_step
@@ -224,3 +235,11 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         Overriding this allows a subclass to implement features such as caching.
         """
+
+    def mark_positions_dirty(self) -> None:
+        """Mark positions as having changed."""
+        self._forces_energy_dirty = True
+
+    def mark_velocities_dirty(self) -> None:
+        """Mark velocities as having changed."""
+        self._forces_energy_dirty = True

@@ -34,13 +34,13 @@ from __future__ import annotations
 import uuid
 from typing import AbstractSet, Generic, Optional, Type, TypeVar, Union
 
+from narupatools.override import override
 from narupatools.state.typing import (
     Serializable,
     SerializableDictionary,
     SerializableObject,
 )
 
-from ...override import override
 from ._reference import SharedStateReference
 from ._view import SharedStateView
 
@@ -90,7 +90,7 @@ class SharedStateCollectionView(SharedStateView[TValue], Generic[TValue]):
         """Create a view of a set of keys with values of the specified type."""
         return SharedStateCollectionView(view, prefix, snapshot_class)
 
-    @override
+    @override(SharedStateView.set)
     def set(
         self, key: str, snapshot: Optional[TValue] = None, /, **kwargs: Serializable
     ) -> SharedStateReference[TValue]:
@@ -125,11 +125,11 @@ class SharedStateCollectionView(SharedStateView[TValue], Generic[TValue]):
         key = self._resolve_key(self._create_key())
         return self.set(key, snapshot, **kwargs)
 
-    @override
+    @override(SharedStateView._keys)
     def _keys(self) -> AbstractSet[str]:
         return {key for key in self._dictionary if key.startswith(self.prefix)}
 
-    @override
+    @override(SharedStateView._resolve_key)
     def _resolve_key(self, key: str, /) -> str:
         if isinstance(key, str) and not key.startswith(self.prefix):
             return self.prefix + key
@@ -139,7 +139,7 @@ class SharedStateCollectionView(SharedStateView[TValue], Generic[TValue]):
         """Generate a unique key in the collection."""
         return self.prefix + str(uuid.uuid4())
 
-    @override
+    @override(SharedStateView._make_reference)
     def _make_reference(self, full_key: str) -> SharedStateReference[TValue]:
         """
         Create a reference to a specific item with the given key.

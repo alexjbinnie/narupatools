@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, Optional
+from typing import Any, List, Optional, Union
 
 from .component import ComponentViewer
 
@@ -29,5 +29,8 @@ class Trajectory:
     def n_frames(self): ...
 
 class NGLWidget:
+    _camera_orientation: List[float]
     def __init__(self, structure: Optional[Structure] = ..., **kwargs: Any) -> None: ...
     def add_structure(self, structure: Structure) -> ComponentViewer: ...
+    def observe(self, handler: Any, names: List[str] = ...) -> None: ...
+    def remove_component(self, c: Union[int, ComponentViewer]) -> None: ...

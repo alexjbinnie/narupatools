@@ -27,7 +27,7 @@ from rdkit.Chem.rdForceFieldHelpers import (
     UFFHasAllMoleculeParams,
 )
 
-from narupatools.core import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 from narupatools.rdkit import UnitsRDKit
 
 _RDKitToNarupa = UnitsRDKit >> UnitsNarupa
@@ -39,6 +39,7 @@ class _RDKitForcefield:
         self._forcefield = forcefield
 
     def calculate_energy(self, coordinates: Optional[np.ndarray] = None) -> float:
+        self._forcefield.Initialize()
         if coordinates is not None:
             energy = self._forcefield.CalcEnergy(
                 list(coordinates.flatten() * _NarupaToRDKit.length)
@@ -48,6 +49,7 @@ class _RDKitForcefield:
         return energy * _RDKitToNarupa.energy  # type: ignore[no-any-return]
 
     def calculate_forces(self, coordinates: Optional[np.ndarray] = None) -> np.ndarray:
+        self._forcefield.Initialize()
         if coordinates is not None:
             forces = self._forcefield.CalcGrad(
                 list(coordinates.flatten() * _NarupaToRDKit.length)

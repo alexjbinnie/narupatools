@@ -19,12 +19,23 @@
 from typing import Any
 
 from ase.atoms import Atoms
+from infinite_sets import everything
 from narupa.trajectory import FrameData
 from nglview import NGLWidget
 
-from narupatools.frame._frame_source import TrajectorySource
+from narupatools.app import Client, Session
+from narupatools.core.dynamics import SimulationDynamics
+from narupatools.frame import FrameSource, TrajectorySource
 
-from ._structure import ASEStructure, FrameDataStructure, NarupaToolsTrajectory
+from ._client import show_client
+from ._dynamics import show_dynamics
+from ._session import show_session
+from ._structure import (
+    ASEStructure,
+    FrameDataStructure,
+    FrameDataTrajectory,
+    NarupaToolsTrajectory,
+)
 
 
 def show_ase(atoms: Atoms, /, **kwargs: Any) -> NGLWidget:
@@ -66,3 +77,22 @@ def show_trajectory(source: TrajectorySource, /, **kwargs: Any) -> NGLWidget:
     """
     structure = NarupaToolsTrajectory(source)
     return NGLWidget(structure, **kwargs)
+
+
+def show(obj: Any) -> NGLWidget:
+    """Show an arbitrary object using nglview."""
+    if isinstance(obj, Atoms):
+        return show_ase(obj)
+    if isinstance(obj, Client):
+        return show_client(obj)
+    if isinstance(obj, Session):
+        return show_session(obj)
+    if isinstance(obj, SimulationDynamics):
+        return show_dynamics(obj)
+    if isinstance(obj, FrameData):
+        return show_narupa(obj)
+    if isinstance(obj, FrameSource):
+        return show_narupa(obj.get_frame(fields=everything()))
+    if isinstance(obj, list) and isinstance(obj[0], FrameData):
+        return NGLWidget(FrameDataTrajectory(obj))
+    raise ValueError(f"Cannot work out how to show object {obj} using nglview")

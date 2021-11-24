@@ -16,16 +16,17 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Dict, Protocol
 
 import numpy as np
 from ase.atoms import Atoms
 
 from narupatools.ase._units import UnitsASE
-from narupatools.core import UnitsNarupa
 from narupatools.imd import Interaction
+from narupatools.override import override
+from narupatools.physics.units import UnitsNarupa
 
-from ...override import override
 from ._constraint import ASEEnergyConstraint, ASEMomentaConstraint, ASETorqueConstraint
 from ._null_constraint import NullConstraint
 
@@ -37,16 +38,16 @@ class ASEAtomsWrapper(Protocol):
     """Wrappar around an ASE atoms object."""
 
     @property
+    @abstractmethod
     def atoms(self) -> Atoms:
         """Wrapped ASE Atoms."""
-        ...
 
 
 class _ASEAtomsWrapper(ASEAtomsWrapper):
     def __init__(self, atoms: Atoms):
         self._atoms = atoms
 
-    @override
+    @override(ASEAtomsWrapper.atoms)
     @property
     def atoms(self) -> Atoms:
         return self._atoms
@@ -75,32 +76,32 @@ class InteractionConstraint(
         """
         self.interaction = interaction
 
-    @override
+    @override(ASEMomentaConstraint.adjust_positions)
     def adjust_positions(  # noqa: D102
         self, atoms: Atoms, positions: np.ndarray, /
     ) -> None:
         # Assume all interactions depend on positions
-        self.interaction.calculate_forces_and_energy()
+        self.interaction.mark_positions_dirty()
 
-    @override
+    @override(ASEMomentaConstraint.adjust_momenta)
     def adjust_momenta(  # noqa: D102
         self, atoms: Atoms, momenta: np.ndarray, /
     ) -> None:
         # Assume no interactions depend on velocities
         # When they do, this should conditionally invalidate the cache
-        self.interaction.calculate_forces_and_energy()
+        self.interaction.mark_velocities_dirty()
 
-    @override
+    @override(ASEMomentaConstraint.adjust_forces)
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102
         forces[self.interaction.particle_indices] += (
             self.interaction.forces * _NarupaToASE.force
         )
 
-    @override
+    @override(ASEEnergyConstraint.adjust_potential_energy)
     def adjust_potential_energy(self, /, atoms: Atoms) -> float:  # noqa: D102
         return self.interaction.potential_energy * _NarupaToASE.energy
 
-    @override
+    @override(ASETorqueConstraint.adjust_torques)
     def adjust_torques(  # noqa: D102
         self, atoms: Atoms, torques: np.ndarray, /
     ) -> None:  # noqa: D102

@@ -34,11 +34,14 @@ with warnings.catch_warnings():
         quaternion,
     )
 
+quaternion_from_vector_part = from_vector_part
+as_quaternion_array = as_quat_array
+
 __all__ = [
     "quaternion",
     "as_rotation_vector",
     "as_rotation_matrix",
     "from_rotation_vector",
-    "as_quat_array",
-    "from_vector_part",
+    "as_quaternion_array",
+    "quaternion_from_vector_part",
 ]

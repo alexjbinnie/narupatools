@@ -91,19 +91,19 @@ def test_interaction_frame_range(nanotube_traj):
 def test_interaction_position_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        assert interaction.interaction_positions.shape == (size, 3)
+        assert interaction.parameters.position.shape == (size, 3)
 
 
 def test_interaction_scales_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        assert interaction.interaction_scales.shape == (size,)
+        assert interaction.parameters.scale.shape == (size,)
 
 
 def test_interaction_forces_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        atoms = len(interaction.indices)
+        atoms = len(interaction.particle_indices)
         assert interaction.forces.shape == (size, atoms, 3)
 
 
@@ -115,7 +115,7 @@ def test_interaction_energy_shape(nanotube_traj):
 
 def test_interaction_per_particle_work_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
-        size = len(interaction.indices)
+        size = len(interaction.particle_indices)
         assert interaction.calculate_per_particle_work().shape == (size,)
 
 

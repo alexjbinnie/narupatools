@@ -21,6 +21,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import AbstractSet, Any, Generator, Optional, Protocol, Union
 
+from infinite_sets import InfiniteSet
 from narupa.app import NarupaImdClient
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.core import DEFAULT_CONNECT_ADDRESS
@@ -29,12 +30,13 @@ from narupa.imd.imd_state import dict_to_interaction
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from narupatools.imd.interactions._parameters import InteractionParameters
-from narupatools.state.view._wrappers import SharedStateClientWrapper
+from narupatools.frame import FrameSource
+from narupatools.imd.interactions import InteractionParameters
+from narupatools.override import override
+from narupatools.state.view import SharedStateClientWrapper
 
-from ..override import override
 from ._session import Session
-from ._shared_state import SessionSharedState
+from ._shared_state import SessionSharedState, SharedStateMixin
 
 
 class OnFrameReceivedCallback(Protocol):
@@ -44,7 +46,7 @@ class OnFrameReceivedCallback(Protocol):
         ...
 
 
-class Client(NarupaImdClient):
+class Client(NarupaImdClient, SharedStateMixin):
     """
     An extension of the standard Narupa python client with more features.
 
@@ -57,6 +59,10 @@ class Client(NarupaImdClient):
     * Fixes a bug where the client starts receiving frames before it has finished setting up the necessary
       variables to store them.
     """
+
+    @override(FrameSource.get_frame)
+    def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
+        return self.current_frame  # type: ignore
 
     _on_frame_received_event: Event[OnFrameReceivedCallback]
 
@@ -95,7 +101,7 @@ class Client(NarupaImdClient):
         """Event triggered when a frame is received by the client."""
         return self._on_frame_received_event
 
-    @override
+    @override(NarupaImdClient._on_frame_received)
     def _on_frame_received(self, frame_index: int, frame: FrameData) -> None:
         changes = frame.array_keys | frame.value_keys
         super()._on_frame_received(frame_index, frame)
@@ -138,7 +144,7 @@ class Client(NarupaImdClient):
         ) as client:
             yield client
 
-    @override
+    @override(NarupaImdClient.start_interaction)
     def start_interaction(
         self,
         interaction: Optional[Union[InteractionParameters, ParticleInteraction]] = None,
@@ -147,7 +153,7 @@ class Client(NarupaImdClient):
         Start an interaction with the IMD server.
 
         This method can take either a :obj:`ParticleInteraction` (narupa representation of an interaction)
-        or :obj:`InteractionData` (narupatools representation), with :obj:`InteractionData` being designed
+        or :obj:`InteractionParameters` (narupatools representation), with :obj:`InteractionData` being designed
         to support a wider range of interaction types.
 
         :param interaction: Initial interaction data.

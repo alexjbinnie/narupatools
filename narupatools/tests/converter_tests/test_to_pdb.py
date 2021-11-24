@@ -1,6 +1,6 @@
 from narupa.trajectory import FrameData
 
-from narupatools.frame._converter import frame_to_pdb_string
+from narupatools.frame import frame_to_pdb_string
 
 
 def test_pdb_empty_frame():

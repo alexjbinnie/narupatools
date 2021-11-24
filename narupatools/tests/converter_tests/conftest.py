@@ -5,8 +5,7 @@ import pytest
 from ase.geometry import cellpar_to_cell
 from infinite_sets import InfiniteSet, everything
 
-from narupatools.core.random import random_integer, random_word
-from narupatools.frame import NarupaFrame
+from narupatools.frame import FrameData
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -31,6 +30,7 @@ from narupatools.frame.fields import (
     ResidueNames,
 )
 from narupatools.physics.random import random_float, random_vector
+from narupatools.util.random import random_integer, random_word
 
 
 @pytest.fixture(params=range(20))
@@ -210,47 +210,47 @@ def make_frame(  # noqa: C901
     chain_names,
 ):
     def make(fields: InfiniteSet[FrameKey]):
-        frame = NarupaFrame()
+        frame = FrameData()
         if ParticleCount in fields:
-            ParticleCount.set(frame, particle_count)
+            frame[ParticleCount] = particle_count
         if ParticleCharges in fields:
-            ParticleCharges.set(frame, particle_charges)
+            frame[ParticleCharges] = particle_charges
         if ParticlePositions in fields:
-            ParticlePositions.set(frame, particle_positions)
+            frame[ParticlePositions] = particle_positions
         if ParticleVelocities in fields:
-            ParticleVelocities.set(frame, particle_velocities)
+            frame[ParticleVelocities] = particle_velocities
         if ParticleForces in fields:
-            ParticleForces.set(frame, particle_forces)
+            frame[ParticleForces] = particle_forces
         if ParticleNames in fields:
-            ParticleNames.set(frame, particle_names)
+            frame[ParticleNames] = particle_names
         if ParticleMasses in fields:
-            ParticleMasses.set(frame, particle_masses)
+            frame[ParticleMasses] = particle_masses
         if ParticleElements in fields:
-            ParticleElements.set(frame, particle_elements)
+            frame[ParticleElements] = particle_elements
         if ParticleResidues in fields:
-            ParticleResidues.set(frame, particle_residues)
+            frame[ParticleResidues] = particle_residues
         if ParticleTypes in fields:
-            ParticleTypes.set(frame, particle_types)
+            frame[ParticleTypes] = particle_types
         if ResidueNames in fields:
-            ResidueNames.set(frame, residue_names)
+            frame[ResidueNames] = residue_names
         if ResidueChains in fields:
-            ResidueChains.set(frame, residue_chains)
+            frame[ResidueChains] = residue_chains
         if ResidueCount in fields:
-            ResidueCount.set(frame, residue_count)
+            frame[ResidueCount] = residue_count
         if ChainCount in fields:
-            ChainCount.set(frame, chain_count)
+            frame[ChainCount] = chain_count
         if BoxVectors in fields:
-            BoxVectors.set(frame, box_vectors)
+            frame[BoxVectors] = box_vectors
         if PotentialEnergy in fields:
-            PotentialEnergy.set(frame, potential_energy)
+            frame[PotentialEnergy] = potential_energy
         if BondCount in fields:
-            BondCount.set(frame, bond_count)
+            frame[BondCount] = bond_count
         if BondPairs in fields:
-            BondPairs.set(frame, bond_pairs)
+            frame[BondPairs] = bond_pairs
         if ResidueIds in fields:
-            ResidueIds.set(frame, residue_ids)
+            frame[ResidueIds] = residue_ids
         if ChainNames in fields:
-            ChainNames.set(frame, chain_names)
+            frame[ChainNames] = chain_names
         return frame
 
     return make

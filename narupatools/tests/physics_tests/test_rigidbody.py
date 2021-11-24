@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
 
-from narupatools.core.random import random_integer
 from narupatools.physics import rigidbody
 from narupatools.physics.matrix import identity_matrix, kronecker_delta, zero_matrix
 from narupatools.physics.random import (
     random_float,
+    random_integer,
     random_unit_quaternion,
     random_vector,
 )

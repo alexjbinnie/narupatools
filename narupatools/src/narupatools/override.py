@@ -21,28 +21,49 @@ from typing import Any, TypeVar
 _T = TypeVar("_T")
 
 
-def override(f: _T) -> _T:
+def override(source_method: Any, /) -> Any:
     """
     Mark a method or property as overriding a method in a base class.
 
+    This is a decorator that can be applied to methods and properties:
+
+    .. code-block:: python
+
+       class MyBaseClass:
+
+           def my_method():
+               ...
+
+       class MyClass(MyBaseClass):
+
+           @override(MyBaseClass.my_method)
+           def my_method():
+               ...
+
     This does not perform any checks to ensure that there is actually a method to override. This
-    merely annotates the method or property such that a call to is_overriden returns True.
+    merely annotates the method or property.
+
+    To check if a method is overriden, use :obj:`marked_as_override`.
     """
-    if isinstance(f, property):
-        if f.fget is not None:
-            f.fget.__override__ = True  # type: ignore[attr-defined]
-        if f.fset is not None:
-            f.fset.__override__ = True  # type: ignore[attr-defined]
-        if f.fdel is not None:
-            f.fdel.__override__ = True  # type: ignore[attr-defined]
-    else:
-        f.__override__ = True  # type: ignore[attr-defined]
-    return f
+
+    def wrap(f: Any) -> Any:
+        if isinstance(f, property):
+            if f.fget is not None:
+                f.fget.__override__ = True  # type: ignore[attr-defined]
+            if f.fset is not None:
+                f.fset.__override__ = True  # type: ignore[attr-defined]
+            if f.fdel is not None:
+                f.fdel.__override__ = True  # type: ignore[attr-defined]
+        else:
+            f.__override__ = True
+        return f
+
+    return wrap
 
 
 def marked_as_override(f: Any) -> bool:
     """
-    Is the given method or property overriden?
+    Check if the given method or property is marked using the @override annotation.
 
     This merely checks if the argument has been annotated with @override. It does
     not actually check if the method or property overrides something in the base class.

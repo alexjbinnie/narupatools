@@ -17,23 +17,22 @@
 """Converter functions for interfacing with LAMMPS."""
 from typing import Any, Optional, Type, TypeVar, Union
 
-from ase.atoms import Atoms
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.frame import convert
-from narupatools.frame._converter import FrameConverter
+from narupatools.frame import FrameConverter
+from narupatools.override import override
 
-from ._calculator import LAMMPSCalculator
 from ._simulation import LAMMPSSimulation
 
 _TType = TypeVar("_TType")
 
 
 class LAMMPSConverter(FrameConverter):
-    """FrameConverter for the mdtraj package."""
+    """FrameConverter for the LAMMPS package."""
 
     @classmethod
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls, object_: Any, /, *, fields: InfiniteSet[str], existing: Optional[FrameData]
     ) -> FrameData:
@@ -42,6 +41,7 @@ class LAMMPSConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
@@ -50,16 +50,3 @@ class LAMMPSConverter(FrameConverter):
         fields: InfiniteSet[str],
     ) -> _TType:
         raise NotImplementedError
-
-
-def atoms_from_lammps_simulation(simulation: LAMMPSSimulation) -> Atoms:
-    """
-    Create an ASE Atoms object based on a LAMMPS simulation.
-
-    :param simulation: LAMMPS simulation to use.
-    :return: ASE atoms object with a calculator that references the given simulation.
-    """
-    atoms = convert(simulation, Atoms)
-    calc = LAMMPSCalculator(simulation, atoms)
-    atoms.set_calculator(calc)
-    return atoms

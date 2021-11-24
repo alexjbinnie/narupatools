@@ -394,7 +394,8 @@ class LAMMPSWrapper:
         elif dimension == VariableDimension.ARRAY2D:
             return self._to_numpy(value, (natoms, ncols))
 
-    def _to_numpy(self, raw_ptr: Any, shape: Tuple[int, ...]) -> np.ndarray:
+    @staticmethod
+    def _to_numpy(raw_ptr: Any, shape: Tuple[int, ...]) -> np.ndarray:
         if len(shape) == 1:
             ptr = ctypes.cast(raw_ptr, POINTER(ctypes.c_double * shape[0]))
         else:
@@ -594,6 +595,9 @@ class LAMMPSWrapper:
         if value is None:
             raise InvalidThermoKeywordError(keyword)
         return value
+
+    def __len__(self) -> int:
+        return self.__lammps.get_natoms()
 
     def close(self) -> None:
         """Close the LAMMPS instance."""

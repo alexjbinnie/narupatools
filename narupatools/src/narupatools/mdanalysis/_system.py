@@ -20,7 +20,7 @@ from infinite_sets import InfiniteSet
 from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
-from narupatools.frame._frame_source import FrameSource
+from narupatools.frame import FrameSource
 from narupatools.mdanalysis import mdanalysis_universe_to_frame
 from narupatools.override import override
 
@@ -31,6 +31,6 @@ class MDAnalysisSystem(FrameSource):
     def __init__(self, universe: Universe):
         self._universe = universe
 
-    @override
+    @override(FrameSource.get_frame)
     def get_frame(self, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
         return mdanalysis_universe_to_frame(self._universe)

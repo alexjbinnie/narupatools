@@ -1,6 +1,6 @@
 from typing import Type
 
-from simtk.openmm.app import Topology
+from openmm.app import Topology
 
 from narupatools.frame.fields import (
     BondCount,

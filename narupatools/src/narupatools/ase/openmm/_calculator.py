@@ -24,19 +24,19 @@ from typing import Any, List, Optional, Tuple
 import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.calculator import CalculatorSetupError, all_changes
-from simtk.openmm.app import Simulation
-from simtk.unit import angstrom
+from openmm.app import Simulation
+from openmm.unit import angstrom
 
 from narupatools.ase._units import UnitsASE
-from narupatools.ase.calculators._calculator import Calculator
-from narupatools.openmm._units import UnitsOpenMM
+from narupatools.ase.calculators import Calculator
+from narupatools.openmm import UnitsOpenMM
 
 _OpenMMToASE = UnitsOpenMM >> UnitsASE
 
 
 class OpenMMCalculator(Calculator):
     """
-    Simple implementation of a ASE calculator for OpenMM.
+    Simple implementation of an ASE calculator for OpenMM.
 
     The context of the OpenMM simulation is used to compute forces and energies given a
     set of positions. When the ASE `Atoms` object has its positions changed by an
@@ -45,6 +45,8 @@ class OpenMMCalculator(Calculator):
     """
 
     implemented_properties = ["energy", "forces"]
+
+    ignored_changes = set(all_changes) - {"positions"}
 
     def __init__(self, simulation: Simulation, **kwargs: Any):
         """

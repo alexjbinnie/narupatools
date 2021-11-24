@@ -24,12 +24,12 @@ from narupatools.override import override
 class NullConstraint(ASEConstraint):
     """ASE constraint that does nothing."""
 
-    @override
+    @override(ASEConstraint.adjust_positions)
     def adjust_positions(  # noqa: D102
         self, atoms: Atoms, positions: np.ndarray, /
     ) -> None:
         pass
 
-    @override
+    @override(ASEConstraint.adjust_forces)
     def adjust_forces(self, atoms: Atoms, forces: np.ndarray, /) -> None:  # noqa: D102
         pass

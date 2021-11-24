@@ -20,9 +20,8 @@ from typing import Any, Protocol, Tuple
 
 import numpy as np
 
-from narupatools.core.partial import partialclass
-from narupatools.core.properties import float_property, numpy_property
 from narupatools.imd.interactions._parameters import InteractionParameters
+from narupatools.override import override
 from narupatools.physics.force import (
     gaussian_force_and_energy,
     mass_weighted_forces,
@@ -30,8 +29,9 @@ from narupatools.physics.force import (
 )
 from narupatools.physics.rigidbody import center_of_mass
 from narupatools.physics.typing import Vector3, Vector3Array
+from narupatools.util import properties
+from narupatools.util.partial import partialclass
 
-from ...override import override
 from ._interaction import Interaction
 
 SPRING_INTERACTION_TYPE = "spring"
@@ -48,12 +48,12 @@ class OffsetForceFunction(Protocol):
 class PointInteractionData(InteractionParameters):
     """Data for a point interaction."""
 
-    @numpy_property(dtype=float)
+    @properties.numpy(dtype=float, shape=(3,))
     def position(self) -> None:
         """Position at which the interaction is applied."""
         ...
 
-    @float_property
+    @properties.number
     def scale(self) -> None:
         """Scaling factor applied to the force of this interaction."""
         ...
@@ -72,13 +72,13 @@ class PointInteraction(Interaction[PointInteractionData]):
         super().__init__(**kwargs)
         self._force_func = force_func
 
-    @override
+    @override(Interaction.update)
     def update(self, interaction: PointInteractionData) -> None:  # noqa: D102
         super().update(interaction)
         self.position = interaction.position
         self.interaction_scale = interaction.scale
 
-    @override
+    @override(Interaction.calculate_forces_and_energy)
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]

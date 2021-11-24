@@ -60,9 +60,15 @@ class EventListener(Protocol[_TCallback]):
 
     def add_callback(self, callback: _TCallback, priority: float = 0) -> None:
         """
-        Add a callback.
+        Add a callback, which will be called when the event is triggered.
+
+        A callback can have a priority, which defaults to 0. Callbacks with higher priority are called before
+        callbacks with lower priority. The order in which callbacks with the same priority are called is not
+        defined, though often happens to be the same as the order the callbacks were added.
 
         :param callback: Function to be invoked when the event is triggered.
+        :param priority: Priority of the callback, which decides what order callbacks are invoked. The default priority
+                         is 0.
         """
 
     def remove_callback(self, callback: _TCallback) -> None:
@@ -119,7 +125,7 @@ class Event(EventListener, Generic[TEventCallback]):
                     signature(callback_type.__call__)
                 )
 
-    @override
+    @override(EventListener.add_callback)
     def add_callback(self, callback: TEventCallback, priority: float = 0) -> None:
         """
         Add a callback to this event.
@@ -153,7 +159,7 @@ class Event(EventListener, Generic[TEventCallback]):
             self._callbacks, key=attrgetter("priority"), reverse=True
         )
 
-    @override
+    @override(EventListener.remove_callback)
     def remove_callback(self, callback: TEventCallback) -> None:
         """
         Remove a callback from this event.

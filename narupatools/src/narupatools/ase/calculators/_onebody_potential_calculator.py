@@ -30,7 +30,7 @@ class OneBodyPotentialCalculator(Calculator, metaclass=ABCMeta):
 
     implemented_properties = ["forces", "energy"]
 
-    @override
+    @override(Calculator._calculate)
     def _calculate(self, atoms: Atoms, **kwargs: Any) -> None:  # noqa: D102
         forces = np.zeros((len(atoms), 3))
         energy = 0.0

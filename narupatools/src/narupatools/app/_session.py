@@ -19,21 +19,11 @@
 from __future__ import annotations
 
 import time
-from abc import ABCMeta
 from contextlib import contextmanager
 from types import TracebackType
-from typing import (
-    Any,
-    Generator,
-    Generic,
-    Optional,
-    Protocol,
-    Type,
-    TypeVar,
-    runtime_checkable,
-)
+from typing import Any, Generator, Optional, Protocol, Type, runtime_checkable
 
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.app import NarupaImdApplication
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.core import DEFAULT_SERVE_ADDRESS, NarupaServer
@@ -46,27 +36,28 @@ from narupa.trajectory.frame_server import (
     STEP_COMMAND_KEY,
 )
 
-from narupatools.core._playable import Playable
-from narupatools.core.event import Event
+from narupatools.core import Playable
+from narupatools.core.dynamics import SimulationDynamics
+from narupatools.core.event import Event, EventListener
 from narupatools.core.health_check import HealthCheck
-from narupatools.frame._frame_producer import FrameProducer
-from narupatools.frame._frame_source import FrameSource, FrameSourceWithNotify
-from narupatools.state.view._wrappers import SharedStateServerWrapper
+from narupatools.frame import (
+    FrameProducer,
+    FrameSource,
+    FrameSourceWithNotify,
+    OnFieldsChangedCallback,
+    TrajectoryPlayback,
+    TrajectorySource,
+)
+from narupatools.override import override
+from narupatools.state.view import SharedStateServerWrapper
 
-from ..override import override
-from ._shared_state import SessionSharedState
-
-TTarget = TypeVar("TTarget")
-
-TTarget_Co = TypeVar("TTarget_Co", contravariant=True)
+from ._shared_state import SessionSharedState, SharedStateMixin
 
 
-class OnTargetChanged(Protocol[TTarget_Co]):
+class OnTargetChanged(Protocol):
     """Callback for when the target of a session is altered."""
 
-    def __call__(
-        self, target: Optional[TTarget_Co], previous_target: Optional[TTarget_Co]
-    ) -> None:
+    def __call__(self, target: Optional[Any], previous_target: Optional[Any]) -> None:
         """
         Called when the target of a session is altered.
 
@@ -99,7 +90,21 @@ class Broadcastable(Protocol):
         """
 
 
-class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
+def _resolve_target(value: Any) -> Any:
+    if isinstance(value, FrameSourceWithNotify):
+        return value
+    if isinstance(value, Playable):
+        return value
+    dynamics = SimulationDynamics.create_from_object(value)
+    if dynamics is not None:
+        return dynamics
+    traj_source = TrajectorySource.create_from_object(value)
+    if traj_source is not None:
+        return TrajectoryPlayback(traj_source)
+    return value
+
+
+class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
     """
     Generic Narupa server that can broadcast various objects.
 
@@ -118,8 +123,19 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
     completely detached from the MD loop, and hence can be specified in real time.
     """
 
+    @override(FrameSourceWithNotify.on_fields_changed)
+    @property
+    def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
+        return self._on_fields_changed
+
+    @override(FrameSourceWithNotify.get_frame)
+    def get_frame(  # noqa: D102
+        self, *, fields: InfiniteSet[str] = everything()
+    ) -> FrameData:
+        return FrameData(self._server.frame_publisher.last_frame)
+
     def __init__(
-        self, target: Optional[TTarget] = None, *, autoplay: bool = True, **kwargs: Any
+        self, target: Optional[Any] = None, *, autoplay: bool = True, **kwargs: Any
     ):
         """
         Create a session.
@@ -127,10 +143,12 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         :param autoplay: If the target is playable, should it be automatically started if its not running.
         :param kwargs: Parameters to initialise the server with.
         """
-        self._target: Optional[TTarget] = None
+        self._target: Optional[Any] = None
 
         self.frame_index = 0
         self._server = self._initialise_server(**kwargs)
+
+        self._on_fields_changed = Event(OnFieldsChangedCallback)
 
         self._frame_producer = FrameProducer(self._produce_frame)
         self._frame_producer.on_frame_produced.add_callback(self._on_frame_produced)
@@ -154,7 +172,7 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         if target is not None:
             self.show(target)
 
-        if isinstance(target, Playable) and autoplay:
+        if isinstance(self.target, Playable) and autoplay:
             target.play()
 
     @property
@@ -172,9 +190,12 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         """The last frame sent by the server."""
         return self._server.frame_publisher.last_frame  # type: ignore[no-any-return]
 
-    def _on_frame_produced(self, *, frame: FrameData, **kwargs: Any) -> None:
+    def _on_frame_produced(
+        self, *, frame: FrameData, fields: InfiniteSet[str], **kwargs: Any
+    ) -> None:
         self._server.frame_publisher.send_frame(self.frame_index, frame)
         self.frame_index += 1
+        self._on_fields_changed.invoke(fields=fields)
 
     def run(self, *, block: bool = False) -> None:
         """
@@ -212,25 +233,33 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         if isinstance(self._target, Playable):
             self._target.pause()
 
-    def show(self, target: TTarget, /) -> None:
+    def show(self, target: Any, /) -> None:
         """
         Broadcast an object, replacing the previous target if present.
 
         :param target: Object to start broadcasting.
         """
         self.target = target
+        # Reset the frame publisher
+        self.frame_index = 0
+        self._server.frame_publisher.last_frame = None
+        frame = self._produce_frame(fields=everything())
+        self._on_frame_produced(frame=frame, fields=everything())
 
     @property
-    def target(self) -> Optional[TTarget]:
+    def target(self) -> Optional[Any]:
         """Target which is being broadcast by this session."""
         return self._target
 
     @target.setter
-    def target(self, value: TTarget) -> None:
+    def target(self, value: Any) -> None:
+        value = _resolve_target(value)
         if isinstance(self._target, Playable):
             self._target.stop(wait=True)
         if isinstance(self._target, FrameSourceWithNotify):
-            self._target.on_fields_changed.remove_callback(self._on_fields_changed)
+            self._target.on_fields_changed.remove_callback(
+                self._on_target_fields_changed
+            )
         if isinstance(self._target, Broadcastable):
             self._target.end_broadcast(self)
 
@@ -238,7 +267,7 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._target = value
 
         if isinstance(self._target, FrameSourceWithNotify):
-            self._target.on_fields_changed.add_callback(self._on_fields_changed)
+            self._target.on_fields_changed.add_callback(self._on_target_fields_changed)
             self._frame_producer.always_dirty = False
         else:
             self._frame_producer.always_dirty = True
@@ -249,10 +278,10 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._frame_producer.mark_dirty()
 
         self._on_target_changed.invoke(
-            target=self._target, previous_target=previous_target  # type: ignore
+            target=self._target, previous_target=previous_target
         )
 
-    def _on_fields_changed(self, *, fields: InfiniteSet, **kwargs: Any) -> None:
+    def _on_target_fields_changed(self, *, fields: InfiniteSet, **kwargs: Any) -> None:
         self._frame_producer.mark_dirty(fields)
 
     def _produce_frame(self, fields: InfiniteSet[str]) -> FrameData:
@@ -267,10 +296,12 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         """
         if isinstance(self._target, FrameSource):
             return self._target.get_frame(fields=fields)
+        if isinstance(self._target, FrameData):
+            return self._target.copy()  # type: ignore
         return FrameData()
 
+    @staticmethod
     def _initialise_server(
-        self,
         *,
         name: Optional[str] = None,
         address: Optional[str] = None,
@@ -294,7 +325,7 @@ class Session(Generic[TTarget], HealthCheck, metaclass=ABCMeta):
         self._frame_producer.stop(wait=True)
         self._server.close()
 
-    @override
+    @override(HealthCheck.health_check)
     def health_check(self) -> None:  # noqa: D102
         self._frame_producer.health_check()
         if isinstance(self._target, HealthCheck):

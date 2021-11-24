@@ -21,12 +21,12 @@ Methods here are not specific with units - as long as arguments are provided in
 consistent units, then the calculated result will be correct.
 """
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 from numpy.linalg import inv
 
-from .matrix import zero_matrix
+from .matrix import transpose
 from .typing import (
     Matrix3x3,
     ScalarArray,
@@ -36,12 +36,7 @@ from .typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from .vector import (
-    cross_product,
-    left_vector_triple_product_matrix,
-    sqr_magnitude,
-    zero_vector,
-)
+from .vector import sqr_magnitude, zero_vector
 
 
 def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> Vector3:
@@ -58,20 +53,9 @@ def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> V
     :return: Center of mass of the particles, in the same units as positions was
              provided in.
     """
-    positions: Vector3Array = np.asfarray(positions)
-    masses: ScalarArray = np.asfarray(masses)
-
-    count = len(positions)
-    if len(masses) != count:
-        raise ValueError(
-            f"Mismatch between number of positions ({len(positions)}) "
-            f"and number of masses ({len(masses)})"
-        )
-
-    total_center = zero_vector()
-    for i in range(count):
-        total_center += masses[i] * positions[i]
-    return total_center / sum(masses)
+    masses = np.asfarray(masses)
+    positions = np.asfarray(positions)
+    return (positions * masses[..., np.newaxis]).sum(axis=-2) / masses[..., np.newaxis].sum(axis=-2)  # type: ignore
 
 
 def center_of_mass_velocity(
@@ -114,8 +98,18 @@ def center_of_mass_acceleration(
     return center_of_mass(masses=masses, positions=accelerations)
 
 
+_center_of_mass = center_of_mass
+
+_center_of_mass_velocity = center_of_mass_velocity
+
+
 def spin_angular_momentum(
-    *, masses: ScalarArray, positions: Vector3Array, velocities: Vector3Array
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    velocities: Vector3Array,
+    center_of_mass: Optional[Vector3] = None,
+    center_of_mass_velocity: Optional[Vector3] = None,
 ) -> Vector3:
     r"""
     Calculate the spin angular momentum of a set of particles.
@@ -133,14 +127,19 @@ def spin_angular_momentum(
     :return: Spin angular momentum :math:`L` in units of [mass] * [distance] squared /
              [time].
     """
-    com = center_of_mass(masses=masses, positions=positions)
-    com_velocity = center_of_mass_velocity(masses=masses, velocities=velocities)
-    angular_momentum = np.array([0.0, 0.0, 0.0], dtype=float)
-    for i in range(len(masses)):
-        angular_momentum += masses[i] * cross_product(
-            positions[i] - com, velocities[i] - com_velocity
+    if center_of_mass is None:
+        center_of_mass = _center_of_mass(masses=masses, positions=positions)
+    if center_of_mass_velocity is None:
+        center_of_mass_velocity = _center_of_mass_velocity(
+            masses=masses, velocities=velocities
         )
-    return angular_momentum
+    return (  # type: ignore
+        np.cross(
+            np.asfarray(positions) - center_of_mass[..., np.newaxis, :],
+            np.asfarray(velocities) - center_of_mass_velocity[..., np.newaxis, :],
+        )
+        * np.asfarray(masses)[..., np.newaxis]
+    ).sum(axis=-2)
 
 
 def orbital_angular_momentum(
@@ -275,12 +274,53 @@ def moment_of_inertia_tensor(
         origin = center_of_mass(masses=masses, positions=positions)
     else:
         origin = np.asfarray(origin)
-    tensor = zero_matrix()
-    for i in range(len(masses)):
-        tensor -= masses[i] * left_vector_triple_product_matrix(
-            positions[i] - origin, positions[i] - origin
-        )
-    return tensor
+
+    positions = np.asfarray(positions)
+    masses = np.asfarray(masses)
+
+    positions = positions - origin[..., np.newaxis, :]  # type: ignore
+    return (masses * (positions ** 2).sum(-1)).sum(-1)[  # type: ignore
+        ..., np.newaxis, np.newaxis
+    ] * np.eye(3) - (
+        masses[..., np.newaxis, np.newaxis]
+        * np.einsum("...i,...j->...ij", positions, positions)
+    ).sum(
+        -3
+    )
+
+
+def principal_moments_and_axes(
+    *, masses: ScalarArrayLike, positions: Vector3ArrayLike
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Calculate the principal moments and axes of a set of point particles.
+
+    The principal axes are the eigenvectors of the moment of inertia tensor. They describe the axes
+    which form a coordinate system where the moment of inertia tensor is diagonal.
+
+    :param masses: Mass of each particles.
+    :param positions: Position of each particle.
+    :return: Tuple of the principal moments (ordered from largest to smallest) and corresponding principal axes.
+    """
+    masses = np.asfarray(masses)
+    positions = np.asfarray(positions)
+    inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
+    eigvals, eigvecs = np.linalg.eig(inertia)
+    idx = eigvals.argsort()[..., ::-1]
+    return eigvals[idx], np.take_along_axis(
+        transpose(eigvecs), idx[..., np.newaxis], axis=-2
+    )
+
+
+def principal_axes(
+    *, masses: ScalarArrayLike, positions: Vector3ArrayLike
+) -> np.ndarray:
+    """
+    Calculate the principal axes of a set of point particles.
+
+    The principal axes are the eigenvectors of the moment of inertia tensor.
+    """
+    return principal_moments_and_axes(masses=masses, positions=positions)[1]
 
 
 def angular_velocity(

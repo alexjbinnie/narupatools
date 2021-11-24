@@ -73,7 +73,7 @@ There are also units defined in :mod:`narupatools.core.units` such as :obj:`~nar
 
     value_nm = 2.42 * angstrom
 
-Units also override the :code:`>>` operator and hence can be used to get conversion factors in a pythonic way:
+Units also override the :code:`>>` operator and hence can be used to get conversion factors in a Pythonic way:
 
 .. code-block:: python
 

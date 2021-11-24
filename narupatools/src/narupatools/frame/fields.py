@@ -16,8 +16,10 @@
 
 """Standard fields and their getters/setters for Narupa frames."""
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Generic, Iterable, TypeVar, Union
+from typing import Any, Dict, Generic, Iterable, TypeVar, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -43,8 +45,10 @@ from narupa.trajectory.frame_data import (
 )
 from typing_extensions import Final
 
-from narupatools.frame._utils import atomic_numbers_to_masses
 from narupatools.override import override
+from narupatools.util import atomic_numbers_to_masses
+
+from ._converter import convert
 
 PARTICLE_MASSES = "particle.masses"
 PARTICLE_VELOCITIES = "particle.velocities"
@@ -101,7 +105,7 @@ def get_frame_key(key: str) -> "FrameKey":
 _TDefault = TypeVar("_TDefault")
 
 
-class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
+class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
     """
     Key that can be placed in a Narupa FrameData, such as positions or potential energy.
 
@@ -111,20 +115,34 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
 
     key: Final[str]
 
+    def __new__(cls, key: str) -> FrameKey:  # noqa: D102
+        return super().__new__(cls, key)
+
     def __init__(self, key: str):
         global _DEFINED_KEYS
         self.key = key
         _DEFINED_KEYS[key] = self
 
     @abstractmethod
-    def set(self, frame_data: FrameData, new_value: _TFrom, /) -> None:
+    def _set(self, frame_data: FrameData, new_value: _TFrom, /) -> None:
+        ...
+
+    def set(self, frame_data: Any, new_value: _TFrom, /) -> None:
         r"""
         Insert the value into the given frame data for this key.
 
         :param frame_data: FrameData to modify.
         :param new_value: Value to insert.
         """
-        ...
+        if isinstance(frame_data, FrameData):
+            self._set(frame_data, new_value)
+        else:
+            frame = FrameData()
+            self._set(frame, new_value)
+            convert(frame, frame_data, fields={self.key})
+
+    def __set__(self, obj: Any, value: Any, /) -> None:
+        self.set(obj, value)
 
     @abstractmethod
     def _get(self, frame_data: FrameData, /) -> _TTo:
@@ -139,7 +157,7 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         """
         raise KeyError
 
-    def get(self, frame_data: FrameData, /, *, calculate: bool = False) -> _TTo:
+    def get(self, frame_data: Any, /, *, calculate: bool = False) -> _TTo:
         """
         Get the value of the given frame data for this key.
 
@@ -147,12 +165,17 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         :param calculate: Calculate the value based on other keys available.
         :raises KeyError: Given key is not available.
         """
+        if not isinstance(frame_data, FrameData):
+            frame_data = convert(frame_data, FrameData, fields={self.key})
         try:
             return self._get(frame_data)
         except KeyError:
             if calculate:
                 return self._calculate(frame_data)
         raise KeyError(f"Frame does not contain key {self.key}")
+
+    def __get__(self, obj: Any, objtype: Any = None, /) -> _TTo:
+        return self.get(obj)
 
     def get_with_default(
         self, frame_data: FrameData, /, default: _TDefault, *, calculate: bool = False
@@ -169,102 +192,175 @@ class FrameKey(Generic[_TFrom, _TTo], metaclass=ABCMeta):
         except KeyError:
             return default
 
+    def __hash__(self) -> int:
+        return hash(self.key)
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, FrameKey):
+            return other.key == self.key
+        if isinstance(other, str):
+            return other == self.key
+        return False
+
+    @abstractmethod
+    def convert(self, value: _TFrom) -> _TTo:
+        """Convert a value that can be stored using this key to the canonical representation."""
+        pass
+
 
 class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
-    @override
-    def set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
         frame_data.set_float_array(self.key, value)
 
-    @override
+    @override(FrameKey.convert)
+    def convert(self, value: AssignableToFloatArray) -> np.ndarray:
+        return np.asfarray(value)  # type: ignore
+
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
-        return np.array(frame_data.raw.arrays[self.key].float_values.values)
+        return self.convert(frame_data.raw.arrays[self.key].float_values.values)
 
 
 class _ThreeByNFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
-    @override
-    def set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
+    @override(FrameKey.convert)
+    def convert(self, value: AssignableToFloatArray) -> np.ndarray:
+        return _to_n_by_3(value)
+
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
         array = _flatten_array(value)
         if len(array) % 3 > 0:
             raise TypeError(f"Cannot set {self.key} to array not divisible by 3.")
         frame_data.set_float_array(self.key, array)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
-        return _to_n_by_3(frame_data.raw.arrays[self.key].float_values.values)
+        return self.convert(frame_data.raw.arrays[self.key].float_values.values)
 
 
 class _IntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
-    @override
-    def set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
         frame_data.set_index_array(self.key, value)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
-        return np.array(frame_data.raw.arrays[self.key].index_values.values)
+        return self.convert(frame_data.raw.arrays[self.key].index_values.values)
+
+    @override(FrameKey.convert)
+    def convert(self, value: AssignableToIndexArray) -> np.ndarray:
+        return np.asarray(value)
 
 
 class _TwoByNIntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
-    @override
-    def set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
         array = _flatten_array(value)
         if len(array) % 2 > 0:
             raise TypeError(f"Cannot set {self.key} to array not divisible by 2.")
         frame_data.set_index_array(self.key, array)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
-        return _to_n_by_2(frame_data.raw.arrays[self.key].index_values.values)
+        return self.convert(frame_data.raw.arrays[self.key].index_values.values)
+
+    @override(FrameKey.convert)
+    def convert(self, value: AssignableToIndexArray) -> np.ndarray:
+        return _to_n_by_2(value)
 
 
 class _StringArrayKey(FrameKey[AssignableToStringArray, np.ndarray]):
-    @override
-    def set(self, frame_data: FrameData, value: AssignableToStringArray) -> None:
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: AssignableToStringArray) -> None:
         frame_data.set_string_array(self.key, value)
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
         if self.key not in frame_data.raw.arrays.keys():
             raise KeyError(f"{self.key} not present in FrameData")
         return np.array(frame_data.raw.arrays[self.key].string_values.values)
 
+    @override(FrameKey.convert)
+    def convert(self, value: AssignableToStringArray) -> np.ndarray:
+        return np.array(value)
+
 
 class _IntegerKey(FrameKey[int, int]):
-    @override
-    def set(self, frame_data: FrameData, value: int) -> None:
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: int) -> None:
         frame_data.raw.values[self.key].number_value = value
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> int:
         if self.key not in frame_data.raw.values.keys():
             raise KeyError(f"{self.key} not present in FrameData")
         return int(frame_data.raw.values[self.key].number_value)
 
+    @override(FrameKey.convert)
+    def convert(self, value: int) -> int:
+        return int(value)
+
 
 class _FloatKey(FrameKey[float, float]):
-    @override
-    def set(self, frame_data: FrameData, value: float) -> None:
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: float) -> None:
         frame_data.raw.values[self.key].number_value = value
 
-    @override
+    @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> float:
         if self.key not in frame_data.raw.values.keys():
             raise KeyError(f"{self.key} not present in FrameData")
         return float(frame_data.raw.values[self.key].number_value)
 
+    @override(FrameKey.convert)
+    def convert(self, value: float) -> float:
+        return float(value)
+
 
 class _ParticleMassesKey(_FloatArrayKey):
-    @override
+    @override(FrameKey._calculate)
     def _calculate(self, frame_data: FrameData, /) -> np.ndarray:
         elements = ParticleElements.get(frame_data)
         return atomic_numbers_to_masses(elements)
+
+
+class _ParticleCountKey(_IntegerKey):
+    @override(FrameKey._calculate)
+    def _calculate(self, frame: FrameData, /) -> int:
+        try:
+            return len(ParticlePositions.get(frame))
+        except KeyError as e:
+            for key, value in frame.items():  # type: ignore
+                if key.startswith("particle."):
+                    return len(value)
+            raise KeyError from e
+
+
+class _ResidueCountKey(_IntegerKey):
+    @override(FrameKey._calculate)
+    def _calculate(self, frame: FrameData, /) -> int:
+        for key, value in frame.items():  # type: ignore
+            if key.startswith("residue."):
+                return len(value)
+        raise KeyError
+
+
+class _ChainCountKey(_IntegerKey):
+    @override(FrameKey._calculate)
+    def _calculate(self, frame: FrameData, /) -> int:
+        for key, value in frame.items():  # type: ignore
+            if key.startswith("chain."):
+                return len(value)
+        raise KeyError
 
 
 ParticlePositions = _ThreeByNFloatArrayKey(PARTICLE_POSITIONS)
@@ -314,7 +410,7 @@ ParticleCharges = _FloatArrayKey("particle.charges")
 Array of particle charges in proton charges, as a NumPy array of floats.
 """
 
-ParticleCount = _IntegerKey(PARTICLE_COUNT)
+ParticleCount = _ParticleCountKey(PARTICLE_COUNT)
 """
 Number of particles in the system, as an integer.
 """
@@ -384,7 +480,7 @@ ResidueChains = _IntegerArrayKey(RESIDUE_CHAINS)
 Array of residue chain indices, as a NumPy array of integers.
 """
 
-ResidueCount = _IntegerKey(RESIDUE_COUNT)
+ResidueCount = _ResidueCountKey(RESIDUE_COUNT)
 """
 Number of residues in the system, as an integer.
 """
@@ -394,7 +490,7 @@ ChainNames = _StringArrayKey(CHAIN_NAMES)
 Array of chain names, as a NumPy array of strings.
 """
 
-ChainCount = _IntegerKey(CHAIN_COUNT)
+ChainCount = _ChainCountKey(CHAIN_COUNT)
 """
 Number of chains in the system, as an integer.
 """

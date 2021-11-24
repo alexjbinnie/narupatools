@@ -16,7 +16,7 @@
 
 """Unit conversions for OpenMM."""
 
-from narupatools.core.units import (
+from narupatools.physics.units import (
     UnitSystem,
     amu,
     elementary_charge,

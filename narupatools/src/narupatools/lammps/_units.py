@@ -18,7 +18,7 @@
 
 from typing import Dict
 
-from narupatools.core.units import (
+from narupatools.physics.units import (
     UnitSystem,
     amu,
     angstrom,

@@ -6,5 +6,5 @@ dependencies:
 # Testing Framework.
   - pytest=6.*
   - pytest-xdist=2.*
-  - pytest-timeout=1.4.*
+  - pytest-timeout=2.*
   - hypothesis=6.*

@@ -59,3 +59,8 @@ def matrix_inverse(matrix: Matrix3x3Like) -> Matrix3x3:
         return np.linalg.inv(matrix)  # type: ignore
     except np.linalg.LinAlgError as e:
         raise ValueError("Matrix is singular and hence cannot be inverted.") from e
+
+
+def transpose(matrix: Matrix3x3Like) -> Matrix3x3:
+    """Calculate the transpose of 3x3 matrices."""
+    return np.swapaxes(matrix, -2, -1)

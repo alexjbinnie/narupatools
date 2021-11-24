@@ -18,19 +18,20 @@
 
 from __future__ import annotations
 
+from typing import Any, Dict
+
 import numpy as np
 import numpy.typing as npt
 from ase import Atoms
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
-from narupatools.core import UnitsNarupa
-from narupatools.core.dynamics import DynamicsProperties, SimulationRotationProperties
-from narupatools.frame._frame_source import FrameSource
-from narupatools.physics._quaternion import quaternion
+from narupatools.frame import DynamicStructureProperties, FrameSource
+from narupatools.override import override
+from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+from narupatools.physics.units import UnitsNarupa
 
-from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
     get_angular_momenta,
@@ -59,25 +60,25 @@ def create_ase_atoms(
     :param masses: Mass of each atom in daltons.
     :return: ASE atoms object.
     """
-    kwargs = {}
+    kwargs: Dict[str, Any] = {}
 
     if positions is not None:
-        kwargs["positions"] = positions * _NarupaToASE.length
+        kwargs["positions"] = np.asfarray(positions) * _NarupaToASE.length
 
     if velocities is not None:
-        kwargs["velocities"] = velocities * _NarupaToASE.velocity
+        kwargs["velocities"] = np.asfarray(velocities) * _NarupaToASE.velocity
 
     if masses is not None:
-        kwargs["masses"] = masses * _NarupaToASE.mass
+        kwargs["masses"] = np.asfarray(masses) * _NarupaToASE.mass
 
-    atoms = Atoms(**kwargs)  # type: ignore
+    atoms = Atoms(**kwargs)
 
     atoms.calc = NullCalculator()
 
     return atoms
 
 
-class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
+class ASESystem(FrameSource, DynamicStructureProperties):
     """Wrapper around an ASE `Atoms` object so it is exposed consistently."""
 
     def __init__(self, atoms: Atoms):
@@ -88,8 +89,10 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         """
         self._atoms = atoms
 
-    @override
-    def get_frame(self, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
+    @override(FrameSource.get_frame)
+    def get_frame(  # noqa: D102
+        self, fields: InfiniteSet[str] = everything()
+    ) -> FrameData:
         frame = FrameData()
         ase_atoms_to_frame(self._atoms, fields=fields, frame=frame)
         return frame
@@ -114,7 +117,7 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         return ASESystem(atoms)
 
     @property
-    @override
+    @override(DynamicStructureProperties.positions)
     def positions(self) -> Vector3Array:  # noqa: D102
         return self.atoms.positions * _ASEToNarupa.length  # type: ignore
 
@@ -123,7 +126,7 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         self.atoms.set_positions(np.asfarray(value) * _NarupaToASE.length)
 
     @property
-    @override
+    @override(DynamicStructureProperties.velocities)
     def velocities(self) -> Vector3Array:  # noqa: D102
         return self.atoms.get_velocities() * _ASEToNarupa.velocity  # type: ignore
 
@@ -132,12 +135,12 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         self.atoms.set_velocities(np.asfarray(value) * _NarupaToASE.velocity)
 
     @property
-    @override
+    @override(DynamicStructureProperties.forces)
     def forces(self) -> Vector3Array:  # noqa: D102
         return self.atoms.get_forces() * _ASEToNarupa.force  # type: ignore
 
     @property
-    @override
+    @override(DynamicStructureProperties.masses)
     def masses(self) -> ScalarArray:  # noqa: D102
         return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
@@ -146,17 +149,17 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         self.atoms.set_masses(np.asfarray(value) * _NarupaToASE.mass)
 
     @property
-    @override
+    @override(DynamicStructureProperties.kinetic_energy)
     def kinetic_energy(self) -> float:  # noqa: D102
         return self.atoms.get_kinetic_energy() * _ASEToNarupa.energy
 
-    @override
+    @override(DynamicStructureProperties.potential_energy)
     @property
     def potential_energy(self) -> float:  # noqa: D102
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
 
     @property
-    @override
+    @override(DynamicStructureProperties.orientations)
     def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
         return get_rotations(self.atoms)
 
@@ -165,7 +168,7 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         set_rotations(self.atoms, value)
 
     @property
-    @override
+    @override(DynamicStructureProperties.angular_momenta)
     def angular_momenta(self) -> Vector3Array:  # noqa: D102
         return get_angular_momenta(self.atoms)
 
@@ -176,7 +179,7 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         )
 
     @property
-    @override
+    @override(DynamicStructureProperties.angular_velocities)
     def angular_velocities(self) -> Vector3Array:
         """
         Angular velocity of each particle abouts its center of mass.
@@ -192,7 +195,7 @@ class ASESystem(FrameSource, DynamicsProperties, SimulationRotationProperties):
         )
 
     @property
-    @override
+    @override(DynamicStructureProperties.moments_of_inertia)
     def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
 

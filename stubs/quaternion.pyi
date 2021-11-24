@@ -7,6 +7,11 @@ class quaternion(np.generic):
     def __mul__(self, other: quaternion) -> quaternion: ...
     @property
     def components(self) -> np.ndarray: ...
+    x: float
+    y: float
+    z: float
+    w: float
+    vec: np.ndarray
 
 one: quaternion
 

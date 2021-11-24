@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, List, Optional, Protocol, Type, runtime_checkable
+from typing import Any, List, Optional, Protocol, Type
 
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
@@ -34,8 +34,7 @@ class OnFieldsChangedCallback(Protocol):
         pass
 
 
-@runtime_checkable
-class FrameSource(Protocol, metaclass=ABCMeta):
+class FrameSource(metaclass=ABCMeta):
     """Base class for object which can create a FrameData."""
 
     @abstractmethod

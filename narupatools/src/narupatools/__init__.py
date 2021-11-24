@@ -18,6 +18,7 @@
 
 import importlib
 import os
+from typing import Any
 
 import narupatools.ase  # noqa: F401
 import narupatools.core
@@ -38,6 +39,17 @@ if importlib.util.find_spec("rdkit") is not None:
 
 if importlib.util.find_spec("nglview") is not None:
     import narupatools.nglview  # noqa: F401
+
+    def load_ipython_extension(ipython: Any) -> None:
+        """
+        Entry point for IPython.
+
+        This is called when the narupatools extension is imported using::
+
+            %load_ext narupatools
+        """
+        narupatools.nglview.load_ipython_extension(ipython)
+
 
 __location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 with open(__location + "/VERSION") as _version_file:

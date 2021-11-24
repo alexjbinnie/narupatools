@@ -1,10 +1,12 @@
 import pytest
+from ase import Atoms
 
 from narupatools.ase import ASEDynamics
 
 pytest.importorskip("rdkit")
 
-from narupatools.ase.rdkit import MMFF94Calculator, UFFCalculator, atoms_from_smiles
+from narupatools.ase.rdkit import MMFF94Calculator, UFFCalculator
+from narupatools.rdkit import generate_from_smiles
 
 
 def call_count(f):
@@ -22,13 +24,13 @@ def calculator(request):
 
 
 def test_forces(calculator):
-    atoms = atoms_from_smiles("C")
+    atoms = generate_from_smiles("C", output_type=Atoms)
     atoms.calc = calculator()
     assert atoms.get_forces().shape == (5, 3)
 
 
 def test_calculation_count(calculator):
-    atoms = atoms_from_smiles("C")
+    atoms = generate_from_smiles("C", output_type=Atoms)
     atoms.calc = calculator()
     atoms.calc._calculate_forcefield = call_count(atoms.calc._calculate_forcefield)
     _ = atoms.get_potential_energy()
@@ -41,11 +43,9 @@ def test_calculation_count(calculator):
 
 
 def test_dynamics_call_count(calculator):
-    atoms = atoms_from_smiles("C")
+    atoms = generate_from_smiles("C", output_type=Atoms)
     atoms.calc = calculator()
     atoms.calc._calculate_forcefield = call_count(atoms.calc._calculate_forcefield)
-    dynamics = ASEDynamics.create_langevin(
-        atoms, friction=1e-6, timestep=0.1, temperature=100
-    )
+    dynamics = ASEDynamics.create_velocity_verlet(atoms, timestep=0.001)
     dynamics.run(100)
     assert atoms.calc._calculate_forcefield.call_count == 101

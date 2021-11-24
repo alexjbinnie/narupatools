@@ -26,9 +26,9 @@ itself.
 
 from typing import Optional, Type, TypeVar, overload
 
+from narupatools.override import override
 from narupatools.state.typing import Serializable, SerializableObject
 
-from ...override import override
 from ._collection_view import SharedStateCollectionView
 from ._reference import SharedStateReference
 from ._view import SharedStateView
@@ -68,7 +68,7 @@ class SharedStateDictionaryView(SharedStateView[Serializable]):
                 self._dictionary, prefix
             )
 
-    @override
+    @override(SharedStateView._make_reference)
     def _make_reference(self, full_key: str, /) -> SharedStateReference[Serializable]:
         return SharedStateReference.untyped_reference(self._dictionary, full_key)
 
@@ -89,7 +89,7 @@ class SharedStateDictionaryView(SharedStateView[Serializable]):
     ) -> SharedStateReference[TSerializableObjectType]:
         pass
 
-    @override
+    @override(SharedStateView.get)
     def get(  # type: ignore[override]
         self,
         key: str,

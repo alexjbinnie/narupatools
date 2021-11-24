@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pytest
 
-from narupatools.core.constants import boltzmann_constant
+from narupatools.physics.constants import boltzmann_constant
 from narupatools.physics.thermodynamics import maxwell_boltzmann_velocities
 
 

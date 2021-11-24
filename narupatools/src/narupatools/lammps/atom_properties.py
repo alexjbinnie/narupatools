@@ -50,8 +50,8 @@ class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
         """Extract the value of the property from a LAMMPS wrapper."""
         return lammps.extract_atom(self.key)  # type: ignore[return-value]
 
-    @overload
     @classmethod
+    @overload
     def define(
         cls,
         key: str,
@@ -60,8 +60,8 @@ class AtomProperty(Generic[_TReturnType], Extractable[_TReturnType]):
     ) -> AtomProperty[npt.NDArray[np.int64]]:
         ...
 
-    @overload
     @classmethod
+    @overload
     def define(
         cls,
         key: str,

@@ -18,6 +18,5 @@
 
 from ._patch import *  # noqa: F401, F403
 from ._playable import Playable, PlayableAlreadyRunningError
-from .units import UnitsNarupa
 
-__all__ = ["UnitsNarupa", "Playable", "PlayableAlreadyRunningError"]
+__all__ = ["Playable", "PlayableAlreadyRunningError"]

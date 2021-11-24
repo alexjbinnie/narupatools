@@ -16,8 +16,10 @@
 
 """Code for handling FrameData and other related objects."""
 
-from ._converter import convert
-from ._frame import NarupaFrame
+from narupa.trajectory import FrameData
+
+from ._converter import FrameConverter, convert
+from ._frame_producer import FrameProducer
 from ._frame_source import (
     FrameSource,
     FrameSourceWithNotify,
@@ -25,14 +27,25 @@ from ._frame_source import (
     TrajectorySource,
 )
 from ._patch import *  # noqa: F401, F403
+from ._pdb import frame_to_pdb_string
+from ._properties import DynamicStructureProperties, StaticStructureProperties
+from ._select import select
+from ._state import StateData
 from ._trajectory_playback import TrajectoryPlayback
 
 __all__ = [
     "convert",
-    "NarupaFrame",
+    "select",
     "TrajectoryPlayback",
     "FrameSource",
+    "FrameData",
     "FrameSourceWithNotify",
     "OnFieldsChangedCallback",
     "TrajectorySource",
+    "FrameConverter",
+    "FrameProducer",
+    "frame_to_pdb_string",
+    "StaticStructureProperties",
+    "DynamicStructureProperties",
+    "StateData",
 ]

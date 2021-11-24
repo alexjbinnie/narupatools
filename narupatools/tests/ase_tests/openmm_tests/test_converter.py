@@ -15,15 +15,15 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from simtk.openmm import LangevinIntegrator
-from simtk.openmm.app import Simulation
-from simtk.unit import kelvin, picosecond, picoseconds
+from openmm import LangevinIntegrator
+from openmm.app import Simulation
+from openmm.unit import kelvin, picosecond, picoseconds
 
 from narupatools.ase._units import UnitsASE
 from narupatools.ase.openmm._converter import (
     openmm_simulation_to_ase_molecular_dynamics,
 )
-from narupatools.core.units import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 
 
 @pytest.fixture(params=[0.01, 0.1, 1.0])

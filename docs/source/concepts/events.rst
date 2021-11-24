@@ -1,10 +1,10 @@
 Events
 ======
 
-Events are a way to react to something specific occuring, by adding a function known as a callback which will be called
+Events are a way to react to something specific occurring, by adding a function known as a callback which will be called
 each time the event is triggered. They are common in other languages such as C#.
 
-*narupatools* uses events thouroughly to allow easy extensibility of code. Events allow you to insert code that runs for certain events such as after each dynamics step or at the start of each interaction. An event is created as so:
+*narupatools* uses events thoroughly to allow easy extensibility of code. Events allow you to insert code that runs for certain events such as after each dynamics step or at the start of each interaction. An event is created as so:
 
 .. testcode::
 

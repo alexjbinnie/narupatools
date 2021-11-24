@@ -15,17 +15,17 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Set
 
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 from rdkit import Chem
 
 from narupatools.ase import UnitsASE
-from narupatools.core import UnitsNarupa
 from narupatools.frame import convert
+from narupatools.physics.units import UnitsNarupa
 
-from ..calculators import Calculator
+from ..calculators import Calculator  # noqa: NTL02
 from ._forcefield import _MMFFForceField, _RDKitForcefield, _UFFForceField
 
 _ASEToNarupa = UnitsASE >> UnitsNarupa
@@ -49,6 +49,8 @@ class RDKitForceFieldCalculator(Calculator, metaclass=abc.ABCMeta):
     """
 
     implemented_properties = ["energy", "forces"]
+
+    ignored_changes: Set[str] = set(all_changes) - {"numbers", "positions"}
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)

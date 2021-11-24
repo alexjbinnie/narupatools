@@ -18,10 +18,11 @@
 
 from typing import Any, Iterable, Mapping
 
+import numpy as np
 import six
 from google.protobuf.struct_pb2 import ListValue, Struct
 
-from narupatools.physics._quaternion import quaternion
+from narupatools.physics import quaternion
 from narupatools.state import SerializableObject
 from narupatools.state.typing import Serializable
 
@@ -75,7 +76,7 @@ def _set_protobuf_value(struct_value: Any, value: Serializable) -> None:
         _extend_listvalue(struct_value.list_value, value.components)
     elif isinstance(value, six.string_types):
         struct_value.string_value = value
-    elif isinstance(value, (int, float)):
+    elif isinstance(value, (int, float, np.integer, np.floating)):
         struct_value.number_value = value
     elif isinstance(value, Mapping):
         struct_value.struct_value.Clear()

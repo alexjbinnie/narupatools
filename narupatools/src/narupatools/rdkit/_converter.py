@@ -16,17 +16,14 @@
 
 """Conversion methods between RDKit and Narupa."""
 
-from typing import Any, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 from infinite_sets import InfiniteSet
 from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB
 from narupa.trajectory import FrameData
 from rdkit import Chem
 
-from narupatools.core.collections import infinite_seq
-from narupatools.core.units import UnitsNarupa
-from narupatools.frame import NarupaFrame
-from narupatools.frame._converter import FrameConverter
+from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
@@ -36,9 +33,13 @@ from narupatools.frame.fields import (
     ParticleMasses,
     ParticleNames,
     ParticlePositions,
+    ParticleResidues,
+    ResidueNames,
 )
 from narupatools.override import override
+from narupatools.physics.units import UnitsNarupa
 from narupatools.rdkit._units import UnitsRDKit
+from narupatools.util.collections import infinite_seq
 
 _RDKitToNarupa = UnitsRDKit >> UnitsNarupa
 _NarupaToRDKit = UnitsNarupa >> UnitsRDKit
@@ -61,6 +62,8 @@ RDKIT_PROPERTIES = frozenset(
         ParticlePositions.key,
         ParticleMasses.key,
         ParticleNames.key,
+        ParticleResidues.key,
+        ResidueNames.key,
         ParticleElements.key,
         BondPairs.key,
         BondTypes.key,
@@ -73,14 +76,14 @@ _RDKIT_BOND_TYPES = {
     "a": Chem.BondType.AROMATIC,
     "s": Chem.BondType.SINGLE,
     "d": Chem.BondType.DOUBLE,
-    "t": Chem.BondType.TRIPLE
+    "t": Chem.BondType.TRIPLE,
 }
 
 _NT_BOND_TYPES = {
     Chem.BondType.AROMATIC: "a",
     Chem.BondType.SINGLE: "s",
     Chem.BondType.DOUBLE: "d",
-    Chem.BondType.TRIPLE: "t"
+    Chem.BondType.TRIPLE: "t",
 }
 
 
@@ -88,7 +91,7 @@ class RDKitConverter(FrameConverter):
     """Frame converter for the RDKit package."""
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(  # noqa: D102
         cls,
         frame: FrameData,
@@ -101,7 +104,7 @@ class RDKitConverter(FrameConverter):
         raise NotImplementedError
 
     @classmethod
-    @override
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(  # noqa: D102
         cls,
         object_: _TType,
@@ -129,7 +132,7 @@ def rdkit_mol_to_frame(
     :return: FrameData containing data from RDKit mol.
     """
     if frame is None:
-        frame = NarupaFrame()
+        frame = FrameData()
 
     indices = {}
 
@@ -142,7 +145,7 @@ def rdkit_mol_to_frame(
         )
 
     if ParticleMasses.key in fields:
-        ParticleMasses.set(frame, [atom.GetMass() for atom in mol.GetAtoms()])
+        frame[ParticleMasses] = [atom.GetMass() for atom in mol.GetAtoms()]
 
     if ParticleElements.key in fields:
         ParticleElements.set(
@@ -151,8 +154,29 @@ def rdkit_mol_to_frame(
 
     atom_extra = [atom.GetMonomerInfo() for atom in mol.GetAtoms()]
 
+    rdkit_res_number_to_index: Dict[int, int] = {}
+
     if atom_extra[0] is not None and ParticleNames.key in fields:
-        ParticleNames.set(frame, [atom.GetName() for atom in atom_extra])
+        frame[ParticleNames] = [atom.GetName() for atom in atom_extra]
+
+    if atom_extra[0] is not None and (
+        ParticleResidues.key in fields or ResidueNames.key in fields
+    ):
+        res_indices: List[int] = []
+        res_names: List[str] = []
+        for atom in atom_extra:
+            resnum = atom.GetResidueNumber()
+            if resnum in rdkit_res_number_to_index:
+                res_indices.append(rdkit_res_number_to_index[resnum])
+            else:
+                res_index = len(res_names)
+                rdkit_res_number_to_index[resnum] = res_index
+                res_indices.append(res_index)
+                res_names.append(atom.GetResidueName())
+        if ParticleResidues.key in fields:
+            frame[ParticleResidues] = res_indices
+        if ResidueNames.key in fields:
+            frame[ResidueNames] = res_names
 
     if BondPairs.key in fields or BondTypes.key in fields:
         bonds = []
@@ -163,9 +187,9 @@ def rdkit_mol_to_frame(
             bonds.append([indices[id1], indices[id2]])
             types.append(_NT_BOND_TYPES.get(bond.GetBondType(), Chem.BondType.SINGLE))
         if BondPairs.key in fields:
-            BondPairs.set(frame, bonds)
+            frame[BondPairs] = bonds
         if BondTypes.key in fields:
-            BondTypes.set(frame, types)
+            frame[BondTypes] = types
 
     return frame
 

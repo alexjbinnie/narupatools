@@ -1,20 +1,42 @@
-# Conda environment for running narupatools and associated jupyter notebooks.
-name: narupatools
 channels:
-  - conda-forge
-  - irl
-  - alexjbinnie
+- conda-forge
+- irl
+- alexjbinnie
 dependencies:
-  - python>=3.8
-  - numpy>=1.20.*
-  - narupa-server=0.1.2061
-  - mdtraj=1.9.*
-  - lammps=2021.02.10
-  - lxml=4.6.*
-  - infinite-sets=1.0.*
-  - quaternion
-  - plotly=4.14.*
-  - nglview=2.7.*
-  - pip
-  - pip:
-    - ./narupatools
+- black=21.*
+- flake8-bugbear=21.*
+- flake8-builtins=1.5.*
+- flake8-comprehensions=3.*
+- flake8-docstrings=1.*
+- flake8-pyi=20.*
+- flake8-rst-docstrings=0.2.*
+- flake8-simplify=0.14.*
+- flake8=3.9.*
+- hypothesis=6.*
+- infinite-sets=1.*
+- ipykernel
+- isort=5.*
+- lxml=4.*
+- mdtraj=1.*
+- mypy=0.910
+- mypy_extensions=0.4.*
+- narupa-server=0.1.2085
+- nbsphinx=0.8.*
+- nglview=3.*
+- numpy>=1.21.*
+- openmm>=7.6
+- pip
+- plotly=5.*
+- pytest-timeout=2.*
+- pytest-xdist=2.*
+- pytest=6.*
+- python>=3.8
+- quaternion
+- rdkit=2021.*
+- sphinx-autodoc-typehints=1.12.*
+- sphinx=3.5.*
+- plumed=2.*
+- py-plumed=2.*
+- openmm-plumed=1.*
+- pip:
+  - ./narupatools

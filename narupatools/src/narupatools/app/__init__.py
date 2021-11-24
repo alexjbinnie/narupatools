@@ -16,8 +16,23 @@
 
 """Application-level code for clients and servers."""
 
-from ._client import Client
-from ._session import Broadcastable, Session
-from ._shared_state import SessionSharedState
+from ._client import Client, OnFrameReceivedCallback
+from ._session import Broadcastable, OnTargetChanged, Session
+from ._shared_state import (
+    OnSharedStateAddedCallback,
+    OnSharedStateChangedCallback,
+    OnSharedStateRemovedCallback,
+    SessionSharedState,
+)
 
-__all__ = ["Client", "Session", "SessionSharedState", "Broadcastable"]
+__all__ = [
+    "OnFrameReceivedCallback",
+    "Client",
+    "Session",
+    "SessionSharedState",
+    "Broadcastable",
+    "OnTargetChanged",
+    "OnSharedStateAddedCallback",
+    "OnSharedStateRemovedCallback",
+    "OnSharedStateChangedCallback",
+]

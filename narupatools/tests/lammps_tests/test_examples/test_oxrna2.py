@@ -7,4 +7,5 @@ from narupatools.lammps import LAMMPSSimulation
 
 
 def test_simulation():
-    _ = LAMMPSSimulation.from_file("in.duplex4")
+    simulation = LAMMPSSimulation.from_file("in.duplex4")
+    simulation.run(100)

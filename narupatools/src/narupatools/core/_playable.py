@@ -24,7 +24,8 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Lock
 from typing import Generator, Literal, Optional, Union, overload
 
-from ..override import override
+from narupatools.override import override
+
 from .health_check import HealthCheck
 
 
@@ -253,6 +254,6 @@ class Playable(HealthCheck, metaclass=ABCMeta):
     def _restart(self) -> None:
         ...
 
-    @override
+    @override(HealthCheck.health_check)
     def health_check(self) -> None:  # noqa: D102
         HealthCheck.check_task(self._run_task)

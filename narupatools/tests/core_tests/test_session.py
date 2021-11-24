@@ -5,6 +5,16 @@ import numpy as np
 import pytest
 
 from narupatools.app import Client, Session
+from narupatools.core import Playable
+from narupatools.util.timing import wait_for
+
+
+class TestPlayable(Playable):
+    def _restart(self) -> None:
+        pass
+
+    def _advance(self) -> bool:
+        return True
 
 
 @pytest.fixture
@@ -18,6 +28,32 @@ def client(session) -> Generator[Client, None, None]:
     with Client.connect_to_session(session) as client:
         client.subscribe_multiplayer()
         yield client
+
+
+def test_session_initial_target():
+    playable = TestPlayable()
+    session = Session(playable, port=0, run_discovery=False)
+    assert session.target is playable
+    session.close()
+
+
+def test_session_autoplay():
+    playable = TestPlayable()
+    assert not playable.is_running
+    session = Session(playable, port=0, run_discovery=False)
+    wait_for(lambda: playable.is_running)
+    session.close()
+    playable.stop()
+
+
+def test_session_no_autoplay():
+    playable = TestPlayable()
+    assert not playable.is_running
+    session = Session(playable, autoplay=False, port=0, run_discovery=False)
+    assert not playable.is_running
+    assert session.target is playable
+    session.close()
+    playable.stop()
 
 
 def test_shared_state_numpy_array(session, client):

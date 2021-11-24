@@ -19,25 +19,34 @@
 from __future__ import annotations
 
 from threading import Lock
-from typing import Dict, Generic, TypeVar
+from typing import Any, Dict, Generic, Optional, TypeVar
 
 import numpy as np
 import numpy.typing as npt
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
 from ase.md.md import MolecularDynamics
+from ase.optimize import LBFGS
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.core.units import UnitsNarupa
-from narupatools.imd import Interaction, InteractiveSimulationDynamics
-from narupatools.imd._feature import InteractionFeature
-from narupatools.imd.interactions._parameters import InteractionParameters
-from narupatools.physics._quaternion import quaternion
+from narupatools.frame import (
+    DynamicStructureMethods,
+    DynamicStructureProperties,
+    ParticlePositions,
+    ParticleVelocities,
+)
+from narupatools.imd import (
+    Interaction,
+    InteractionFeature,
+    InteractiveSimulationDynamics,
+)
+from narupatools.imd.interactions import InteractionParameters
+from narupatools.override import override
+from narupatools.physics import quaternion
 from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
+from narupatools.physics.units import UnitsNarupa
 
-from ..core.dynamics import SimulationRotationProperties
-from ..override import override
 from ._converter import ase_atoms_to_frame
 from ._rotations import (
     get_angular_momenta,
@@ -52,7 +61,7 @@ from ._rotations import (
 from ._system import ASESystem
 from ._units import UnitsASE
 from .calculators import NullCalculator
-from .constraints import InteractionConstraint
+from .constraints import ASEObserver, InteractionConstraint
 
 TIntegrator = TypeVar("TIntegrator", bound=MolecularDynamics)
 
@@ -61,7 +70,10 @@ _ASEToNarupa = UnitsASE >> UnitsNarupa
 
 
 class ASEDynamics(
-    InteractiveSimulationDynamics, SimulationRotationProperties, Generic[TIntegrator]
+    InteractiveSimulationDynamics,
+    DynamicStructureProperties,
+    DynamicStructureMethods,
+    Generic[TIntegrator],
 ):
     """
     Run dynamics using an ASE `MolecularDynamics` object.
@@ -69,6 +81,10 @@ class ASEDynamics(
     This allows the simulation to be run at a set playback rate, as well as exposing
     standard properties such as time step and elapsed steps.
     """
+
+    _initial_positions: np.ndarray
+    _initial_momenta: np.ndarray
+    _initial_box: np.ndarray
 
     def __init__(
         self,
@@ -85,11 +101,12 @@ class ASEDynamics(
         """
         super().__init__(playback_interval=playback_interval)
         self._dynamics = dynamics
-        self._initial_positions = self.atoms.get_positions()
-        self._initial_momenta = self.atoms.get_momenta()
-        self._initial_box = self.atoms.get_cell()
+        self.set_reset_state()
         self._imd = ASEIMDFeature(self)
         self._atom_lock = Lock()
+        self._observer = ASEObserver.get_or_create(self.atoms)
+        # self._observer.on_set_positions.add_callback(self.imd.mark_positions_dirty)
+        # self._observer.on_set_momenta.add_callback(self.imd.mark_velocities_dirty)
 
     @staticmethod
     def from_ase_dynamics(dynamics: TIntegrator) -> ASEDynamics[TIntegrator]:
@@ -152,7 +169,7 @@ class ASEDynamics(
         return ASEDynamics.from_ase_dynamics(dynamics)
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.imd)
     def imd(self) -> ASEIMDFeature:  # noqa:D102
         return self._imd
 
@@ -174,20 +191,26 @@ class ASEDynamics(
         """
         return self._dynamics
 
-    @override
+    @override(InteractiveSimulationDynamics._step_internal)
     def _step_internal(self) -> None:
         with self._atom_lock:
             self._dynamics.run(1)
 
-    @override
+    @override(InteractiveSimulationDynamics._reset_internal)
     def _reset_internal(self) -> None:
         with self._atom_lock:
             self.atoms.set_positions(self._initial_positions)
             self.atoms.set_momenta(self._initial_momenta)
             self.atoms.set_cell(self._initial_box)
 
+    def set_reset_state(self) -> None:
+        """Set the current state as the state that will be returned to on reset."""
+        self._initial_positions = self.atoms.get_positions()
+        self._initial_momenta = self.atoms.get_momenta()
+        self._initial_box = self.atoms.get_cell()
+
     @property
-    @override
+    @override(InteractiveSimulationDynamics.timestep)
     def timestep(self) -> float:  # noqa: D102
         return self.molecular_dynamics.dt * _ASEToNarupa.time
 
@@ -195,53 +218,64 @@ class ASEDynamics(
     def timestep(self, value: float) -> None:
         self.molecular_dynamics.dt = value * _NarupaToASE.time
 
-    @override
-    def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
-        frame = FrameData()
+    @override(InteractiveSimulationDynamics._get_frame)
+    def _get_frame(
+        self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:
+        if existing is not None:
+            frame = existing
+        else:
+            frame = FrameData()
         with self._atom_lock:
             ase_atoms_to_frame(self.atoms, fields=fields, frame=frame)
         return frame
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.positions)
     def positions(self) -> Vector3Array:  # noqa: D102
         return self.atoms.positions * _ASEToNarupa.length  # type: ignore
 
     @positions.setter
     def positions(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_positions(np.asfarray(value) * _NarupaToASE.length)
+        self._on_fields_changed.invoke(fields={ParticlePositions})
 
-    @override
+    @override(InteractiveSimulationDynamics.velocities)  # type: ignore
     @property
-    def velocities(self) -> Vector3Array:  # noqa: D102
+    def velocities(self) -> Vector3Array:  # type: ignore  # noqa: D102
         return self.atoms.get_velocities() * _ASEToNarupa.velocity  # type: ignore
 
     @velocities.setter
     def velocities(self, value: Vector3ArrayLike) -> None:
         self.atoms.set_velocities(np.asfarray(value) * _NarupaToASE.velocity)
+        self._on_fields_changed.invoke(fields={ParticleVelocities})
 
-    @override
+    @override(InteractiveSimulationDynamics.forces)
     @property
     def forces(self) -> Vector3Array:  # noqa: D102
         return self.atoms.get_forces() * _ASEToNarupa.force  # type: ignore
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.masses)
     def masses(self) -> ScalarArray:  # noqa: D102
         return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
 
+    @masses.setter
+    def masses(self, value: ScalarArray) -> None:
+        self.atoms.set_masses(value * _NarupaToASE.mass)
+
     @property
-    @override
+    @override(InteractiveSimulationDynamics.kinetic_energy)
     def kinetic_energy(self) -> float:  # noqa: D102
         return self.atoms.get_kinetic_energy() * _ASEToNarupa.energy
 
     @property
-    @override
+    @override(InteractiveSimulationDynamics.potential_energy)
     def potential_energy(self) -> float:  # noqa: D102
         return self.atoms.get_potential_energy() * _ASEToNarupa.energy
 
     @property
-    @override
+    @override(DynamicStructureProperties.orientations)
     def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
         return get_rotations(self.atoms)
 
@@ -250,7 +284,7 @@ class ASEDynamics(
         set_rotations(self.atoms, value)
 
     @property
-    @override
+    @override(DynamicStructureProperties.angular_momenta)
     def angular_momenta(self) -> Vector3Array:  # noqa: D102
         return get_angular_momenta(self.atoms) * _ASEToNarupa.angular_momentum
 
@@ -261,12 +295,12 @@ class ASEDynamics(
         )
 
     @property
-    @override
+    @override(DynamicStructureProperties.angular_velocities)
     def angular_velocities(self) -> Vector3Array:  # noqa: D102
         """Angular velocity of each particle abouts its center of mass, in radians per picoseconds."""
         return get_angular_velocities(self.atoms) * _ASEToNarupa.angular_velocity
 
-    @override
+    @override(DynamicStructureProperties.moments_of_inertia)
     @property
     def moments_of_inertia(self) -> Vector3Array:  # noqa: D102
         return get_principal_moments(self.atoms) * _ASEToNarupa.moment_inertia
@@ -278,9 +312,21 @@ class ASEDynamics(
         )
 
     @property
-    @override
+    @override(DynamicStructureProperties.torques)
     def torques(self) -> Vector3Array:  # noqa: D102
         return get_torques(self.atoms) * _NarupaToASE.torque
+
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> ASEDynamics:
+        if isinstance(obj, MolecularDynamics):
+            return ASEDynamics.from_ase_dynamics(obj)
+        raise NotImplementedError
+
+    def minimize(self) -> None:
+        """Minimize the system using LBFGS."""
+        minimizer = LBFGS(atoms=self.atoms, logfile=None)
+        minimizer.run(fmax=0.05)
+        self._on_fields_changed.invoke(fields={ParticlePositions})
 
 
 class ASEIMDFeature(InteractionFeature[ASEDynamics]):
@@ -291,11 +337,11 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         self.constraints: Dict[str, InteractionConstraint] = {}
 
     @property
-    @override
+    @override(InteractionFeature._system_size)
     def _system_size(self) -> int:
         return len(self.dynamics.atoms)
 
-    @override
+    @override(InteractionFeature.create_interaction)
     def create_interaction(  # noqa: D102
         self, *, key: str, interaction: InteractionParameters, start_time: float
     ) -> Interaction:
@@ -311,7 +357,7 @@ class ASEIMDFeature(InteractionFeature[ASEDynamics]):
         self.dynamics.atoms.constraints.append(constraint)
         return instance
 
-    @override
+    @override(InteractionFeature.remove_interaction)
     def remove_interaction(self, key: str) -> Interaction:  # noqa: D102
         instance = super().remove_interaction(key)
         constraint = self.constraints[key]

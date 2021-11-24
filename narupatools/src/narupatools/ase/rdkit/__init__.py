@@ -29,6 +29,5 @@ if importlib.util.find_spec("rdkit") is None:
     raise ImportError("Cannot use narupatools.ase.rdkit without rdkit.")
 
 from ._calculator import MMFF94Calculator, UFFCalculator
-from ._generate import atoms_from_smiles
 
-__all__ = ["atoms_from_smiles", "MMFF94Calculator", "UFFCalculator"]
+__all__ = ["MMFF94Calculator", "UFFCalculator"]

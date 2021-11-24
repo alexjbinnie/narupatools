@@ -91,6 +91,7 @@ def generate_topology(frame: FrameData, /) -> bytes:
         }
         if atom_mass is not None:
             atom["mass"] = atom_mass
+
         residues[atom_res]["atoms"].append(atom)
 
     topology = {"bonds": bonds, "chains": chains}

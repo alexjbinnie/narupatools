@@ -17,10 +17,11 @@
 import time
 
 import pytest
+from testing import assert_event_called
 
 from narupatools.app import Client, Session
-from narupatools.core.timing import wait_for
 from narupatools.frame.fields import ParticlePositions
+from narupatools.util.timing import wait_for
 
 
 @pytest.fixture
@@ -49,3 +50,11 @@ def test_client_gets_frame(session_villin_openmm, client):
     wait_for(lambda: ParticlePositions.key in client.current_frame)
     assert ParticlePositions.key in client.current_frame
     assert ParticlePositions.key in client.current_frame.copy()
+
+
+def test_client_frame_received_triggered(session_villin_openmm, client):
+    client.subscribe_to_frames()
+    wait_for(lambda: ParticlePositions.key in client.current_frame)
+
+    with assert_event_called(client.on_frame_received):
+        time.sleep(1)
