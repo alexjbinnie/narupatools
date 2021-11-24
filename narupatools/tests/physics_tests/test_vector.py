@@ -192,12 +192,12 @@ def test_angle(vec1, vec2):
 
 def test_distance(vec1, vec2):
     offset = np.subtract(vec1, vec2)
-    assert distance(vec1, vec2) == magnitude(offset)
+    assert distance(vec1, vec2) == pytest.approx(magnitude(offset))
 
 
 def test_sqr_distance(vec1, vec2):
     offset = np.subtract(vec1, vec2)
-    assert sqr_distance(vec1, vec2) == sqr_magnitude(offset)
+    assert sqr_distance(vec1, vec2) == pytest.approx(sqr_magnitude(offset))
 
 
 def test_angle_zero(vec3):
