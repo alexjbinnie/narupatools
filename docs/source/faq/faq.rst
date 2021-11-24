@@ -10,4 +10,6 @@ Frequently Asked Questions
    ase
    openmm
    rdkit
+   lammps
+   nglview
    maths

@@ -1,5 +1,5 @@
-Using with OpenMM
-=================
+Using with RDKit
+================
 
 RDKit integration in narupatools provides a couple of ASE forcefields, as well as access to the powerful tools allowing generating systems.
 
