@@ -34,7 +34,10 @@ def compare_signatures(item, original):
     """Check if the first method is a valid override of the second method."""
     sig_ovr = inspect.signature(item)
     try:
-        sig_orig = inspect.signature(original)
+        if isinstance(original, property):
+            sig_orig = inspect.signature(original.fget)
+        else:
+            sig_orig = inspect.signature(original)
     except ValueError:
         return
 
@@ -44,13 +47,16 @@ def compare_signatures(item, original):
     for index, params in enumerate(sig_orig.parameters.items()):
         name, param = params
         if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            name2, param2 = params_ovr[index]
-            if name != name2:
-                warnings.warn(f"Parameter name {name2} of {item} incompatible with {name} of {original}", UserWarning)
-            if param2.kind == inspect.Parameter.POSITIONAL_ONLY:
-                warnings.warn(
-                    f"Overriden function {item} has parameter {name2} as positional, whilst {original} allows it as a keyword.",
-                    UserWarning)
+            try:
+                name2, param2 = params_ovr[index]
+                if name != name2:
+                    warnings.warn(f"Parameter name {name2} of {item} incompatible with {name} of {original}", UserWarning)
+                if param2.kind == inspect.Parameter.POSITIONAL_ONLY:
+                    warnings.warn(
+                        f"Overriden function {item} has parameter {name2} as positional, whilst {original} allows it as a keyword.",
+                        UserWarning)
+            except IndexError:
+                warnings.warn(f"Parameter name {name} of {item} missing in override.", UserWarning)
 
         if param.kind == inspect.Parameter.POSITIONAL_ONLY:
             _, param2 = params_ovr[index]

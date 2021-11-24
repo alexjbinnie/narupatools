@@ -26,9 +26,13 @@ from ._frame_source import (
     OnFieldsChangedCallback,
     TrajectorySource,
 )
-from ._patch import *  # noqa: F401, F403
+from ._patch import _PatchedFrameData  # noqa: F401
 from ._pdb import frame_to_pdb_string
-from ._properties import DynamicStructureProperties, StaticStructureProperties
+from ._properties import (
+    DynamicStructureMethods,
+    DynamicStructureProperties,
+    StaticStructureProperties,
+)
 from ._select import select
 from ._state import StateData
 from ._trajectory_playback import TrajectoryPlayback
@@ -47,5 +51,6 @@ __all__ = [
     "frame_to_pdb_string",
     "StaticStructureProperties",
     "DynamicStructureProperties",
+    "DynamicStructureMethods",
     "StateData",
 ]

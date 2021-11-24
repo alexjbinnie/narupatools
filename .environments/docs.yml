@@ -18,7 +18,7 @@ dependencies:
 # MDTraj needed for using HDF5
   - mdtraj=1.*
 # Documentation tools
-  - sphinx=3.5.*
+  - sphinx=4.*
   - sphinx-autodoc-typehints=1.12.*
   - nbsphinx=0.8.*
   - ipykernel

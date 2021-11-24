@@ -24,6 +24,7 @@ from narupatools.core.dynamics import SimulationDynamics
 from narupatools.imd._feature import InteractionFeature
 from narupatools.override import override
 
+
 class InteractiveSimulationDynamics(
     SimulationDynamics, Broadcastable, metaclass=ABCMeta
 ):
@@ -54,10 +55,10 @@ class InteractiveSimulationDynamics(
     def _send_interaction_feedback(self, **kwargs: Any) -> None:
         for key, interaction in self.imd.current_interactions.items():
             feedback_key = "interaction_feedback." + key[12:]
-            feedback = interaction.create_feeback()
+            feedback = interaction.create_feedback()
             self._shared_state[feedback_key] = feedback
 
-    @override
+    @override(Broadcastable.start_broadcast)
     def start_broadcast(self, session: Session) -> None:  # noqa: D102
         self._shared_state = session.shared_state
         self.imd.add_source(session.interactions.snapshot)
@@ -65,7 +66,7 @@ class InteractiveSimulationDynamics(
         # Low priority to ensure interaction has updated first
         self.on_post_step.add_callback(self._send_interaction_feedback, priority=-10)
 
-    @override
+    @override(Broadcastable.end_broadcast)
     def end_broadcast(self, session: Session) -> None:  # noqa: D102
         self.imd.remove_source(session.interactions.snapshot)
         self.imd.on_end_interaction.remove_callback(self._interaction_ended)

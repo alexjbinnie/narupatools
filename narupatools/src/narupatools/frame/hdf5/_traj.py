@@ -15,15 +15,13 @@ from narupa.trajectory import FrameData
 from tables import File, Group, NoSuchNodeError
 
 import narupatools
-from narupatools.frame import (
-    DynamicStructureMethods,
+from narupatools.frame import DynamicStructureMethods, StateData, TrajectorySource
+from narupatools.frame.fields import (
     KineticEnergy,
     ParticleForces,
     ParticlePositions,
     ParticleVelocities,
     PotentialEnergy,
-    StateData,
-    TrajectorySource,
 )
 from narupatools.imd import Interaction, InteractiveSimulationDynamics
 from narupatools.physics.energy import cumulative_work, total_work

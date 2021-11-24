@@ -175,6 +175,8 @@ class FrameKey(str, Generic[_TFrom, _TTo], metaclass=ABCMeta):
         raise KeyError(f"Frame does not contain key {self.key}")
 
     def __get__(self, obj: Any, objtype: Any = None, /) -> _TTo:
+        if obj is None:
+            raise AttributeError
         return self.get(obj)
 
     def get_with_default(

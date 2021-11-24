@@ -69,7 +69,7 @@ html_css_files = [
 autodoc_mock_imports = ["lammps"]
 
 autodoc_default_options = {
-    'imported-members': True,
+    "imported-members": True,
 }
 
 autosummary_generate = True
@@ -83,7 +83,7 @@ intersphinx_mapping = {
     "mdtraj": ("https://mdtraj.org/1.9.4", None),
     "narupa": ("https://narupa.readthedocs.io/en/latest", None),
     "openmm": ("http://docs.openmm.org/7.1.0/api-python/", None),
-    "nglview": ("http://nglviewer.org/nglview/latest/", None)
+    "nglview": ("http://nglviewer.org/nglview/latest/", None),
 }
 
 set_type_checking_flag = True

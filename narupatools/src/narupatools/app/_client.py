@@ -91,6 +91,7 @@ class Client(NarupaImdClient, SharedStateMixin):
             self._shared_state._on_dictionary_update
         )
 
+    @override(SharedStateMixin.shared_state)
     @property
     def shared_state(self) -> SessionSharedState:
         """Shared state as currently seen by the client."""

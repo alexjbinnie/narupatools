@@ -1,14 +1,19 @@
-from typing import Any, Dict, KeysView, Optional, Type, Union
+from typing import Any, Dict, KeysView, Optional, Type, TypeVar, Union
 
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.frame import FrameConverter, FrameKey, get_frame_key
-from narupatools.frame._converter import _T
+from narupatools.override import override
+
+from ._converter import FrameConverter
+from .fields import FrameKey, get_frame_key
+
+_T = TypeVar("_T")
 
 
 class _StateDataConvert(FrameConverter):
     @classmethod
+    @override(FrameConverter.convert_from_frame)
     def convert_from_frame(
         cls,
         frame: FrameData,
@@ -28,6 +33,7 @@ class _StateDataConvert(FrameConverter):
         raise NotImplementedError()
 
     @classmethod
+    @override(FrameConverter.convert_to_frame)
     def convert_to_frame(
         cls, object_: _T, /, *, fields: InfiniteSet[str], existing: Optional[FrameData]
     ) -> FrameData:

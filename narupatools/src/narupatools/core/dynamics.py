@@ -322,6 +322,7 @@ class SimulationDynamics(
         """Potential energy in kilojoules per mole."""
         raise AttributeError
 
+    @override(FrameSourceWithNotify.on_fields_changed)
     @property
     def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
         return self._on_fields_changed

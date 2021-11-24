@@ -30,11 +30,9 @@ from narupa.trajectory import FrameData
 from openmm import CustomExternalForce, System
 from openmm.app import Simulation
 
-from narupatools.frame import (
-    DynamicStructureMethods,
-    ParticlePositions,
-    ParticleVelocities,
-)
+from narupatools.core.dynamics import SimulationDynamics
+from narupatools.frame import DynamicStructureMethods
+from narupatools.frame.fields import ParticlePositions, ParticleVelocities
 from narupatools.imd import InteractiveSimulationDynamics, SetAndClearInteractionFeature
 from narupatools.override import override
 from narupatools.physics.typing import (
@@ -228,6 +226,7 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         return OpenMMDynamics(simulation)
 
     @classmethod
+    @override(SimulationDynamics.create_from_object)
     def _create_from_object(cls, obj: Any) -> OpenMMDynamics:
         if isinstance(obj, Simulation):
             return OpenMMDynamics.from_simulation(obj)
@@ -285,6 +284,7 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
     def _system_size(self) -> int:
         return len(self.dynamics.masses)
 
+    @override(SetAndClearInteractionFeature._on_post_step)
     def _on_post_step(self, **kwargs: Any) -> None:
         for interaction in self.current_interactions.values():
             interaction.mark_positions_dirty()

@@ -180,6 +180,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         """Underlying Narupa application."""
         return self._server
 
+    @override(SharedStateMixin.shared_state)
     @property
     def shared_state(self) -> SessionSharedState:
         """Shared state of the session."""

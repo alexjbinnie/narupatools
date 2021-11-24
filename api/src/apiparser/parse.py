@@ -65,6 +65,7 @@ def parse_function(func):
 def parse_class(clss):
     info = ClassInfo(clss)
 
+    # Run the module analyzer provided in Sphinx
     analyzer = ModuleAnalyzer.for_module(clss.__module__)
     analyzer.analyze()
 
@@ -128,16 +129,17 @@ def parse_class(clss):
         member_info.annotation = analyzer.annotations[(classname, varname)]
         info.members.append(member_info)
 
-    for varname in analysis.class_instancevar_assigns[info.name]:
-        if any(member.name == varname for member in info.members):
-            continue
-        if any(member.name == varname for member in info.properties):
-            continue
-        if any(member.name == varname for member in info.methods):
-            continue
-        member_info = MemberInfo(info, varname)
-        member_info.is_instancevar = True
-        info.members.append(member_info)
+    if info.name in analysis.class_instancevar_assigns:
+        for varname in analysis.class_instancevar_assigns[info.name]:
+            if any(member.name == varname for member in info.members):
+                continue
+            if any(member.name == varname for member in info.properties):
+                continue
+            if any(member.name == varname for member in info.methods):
+                continue
+            member_info = MemberInfo(info, varname)
+            member_info.is_instancevar = True
+            info.members.append(member_info)
 
     return info
 

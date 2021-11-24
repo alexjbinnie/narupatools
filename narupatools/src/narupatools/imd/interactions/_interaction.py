@@ -220,7 +220,7 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
         self._previous_positions = _current_positions
 
-    def create_feeback(self) -> InteractionFeedback:
+    def create_feedback(self) -> InteractionFeedback:
         """Create a feedback object describing the state of the interaction."""
         feedback = self._feedback_type()
         feedback.interaction_type = self.interaction_type

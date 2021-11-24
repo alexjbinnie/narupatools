@@ -9,12 +9,12 @@ from infinite_sets import InfiniteSet
 from MDAnalysis.topology.tables import SYMB2Z, Z2SYMB, masses
 from narupa.trajectory import FrameData
 
-from narupatools.frame import (
+from narupatools.frame import FrameSource
+from narupatools.frame.fields import (
     BondCount,
     BondPairs,
     ChainCount,
     ChainNames,
-    FrameSource,
     ParticleCount,
     ParticleElements,
     ParticleNames,

@@ -6,8 +6,8 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 from ase.geometry import find_mic
 
-from narupatools.frame import FrameData, ParticlePositions, convert, select
-from narupatools.frame.fields import BoxVectors, ParticleCharges
+from narupatools.frame import FrameData, convert, select
+from narupatools.frame.fields import BoxVectors, ParticleCharges, ParticlePositions
 from narupatools.physics.units import UnitsNarupa
 
 from ._units import get_unit_system

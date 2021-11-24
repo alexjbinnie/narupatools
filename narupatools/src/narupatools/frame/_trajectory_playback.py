@@ -63,7 +63,7 @@ class TrajectoryPlayback(Playable, FrameSourceWithNotify):
         self._index = 0
         self._on_fields_changed = Event(OnFieldsChangedCallback)
 
-    @override
+    @override(FrameSourceWithNotify.on_fields_changed)
     @property
     def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
         return self._on_fields_changed

@@ -30,12 +30,9 @@ from ase.optimize import LBFGS
 from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.frame import (
-    DynamicStructureMethods,
-    DynamicStructureProperties,
-    ParticlePositions,
-    ParticleVelocities,
-)
+from narupatools.core.dynamics import SimulationDynamics
+from narupatools.frame import DynamicStructureMethods, DynamicStructureProperties
+from narupatools.frame.fields import ParticlePositions, ParticleVelocities
 from narupatools.imd import (
     Interaction,
     InteractionFeature,
@@ -317,6 +314,7 @@ class ASEDynamics(
         return get_torques(self.atoms) * _NarupaToASE.torque
 
     @classmethod
+    @override(SimulationDynamics._create_from_object)
     def _create_from_object(cls, obj: Any) -> ASEDynamics:
         if isinstance(obj, MolecularDynamics):
             return ASEDynamics.from_ase_dynamics(obj)
