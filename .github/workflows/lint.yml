@@ -35,18 +35,13 @@ jobs:
           environment-file: gitlab-environment.yml
           use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
-      - name: Run isort
-        run: |
-          isort --check-only narupatools stubs
-
-      - name: Run black
-        run: |
-          black --check narupatools stubs
-
-      - name: Run flake8
-        run: |
-          flake8 narupatools stubs
-
-      - name: Run mypy
-        run: |
-          mypy --install-types --non-interactive narupatools/src narupatools/tests
+      - name: Run linters
+          uses: wearerequired/lint-action@v1
+          with:
+            black: true
+            black_args: narupatools stubs
+            flake8: true
+            flake8_args: narupatools stubs
+            mypy: true
+            mypy_args: --install-types --non-interactive narupatools/src narupatools/tests
+            auto_fix: true
