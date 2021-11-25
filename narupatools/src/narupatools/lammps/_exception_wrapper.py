@@ -13,6 +13,7 @@ from narupatools.lammps.exceptions import (
     LAMMPSWarning,
     MissingInputScriptError,
     UnknownCommandError,
+    UnknownDataTypeError,
     UnknownPropertyNameError,
     UnrecognizedStyleError,
 )
@@ -77,6 +78,8 @@ def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
                 raise AtomIDsNotDefinedError(func_name="scatter_atoms")
             elif warning.startswith("lammps_gather_atoms: unknown property name"):
                 raise UnknownPropertyNameError(warning)
+            elif warning.startswith("lammps_gather_atoms: unsupported data type"):
+                raise UnknownDataTypeError(warning)
             else:
                 warnings.warn(LAMMPSWarning(warning))
         elif line.startswith("ERROR: "):

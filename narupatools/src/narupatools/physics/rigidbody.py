@@ -378,21 +378,3 @@ def distribute_angular_velocity(
         o = np.asfarray(origin)
     velocities = [np.cross(angular_velocity, position - o) for position in positions]
     return np.asfarray(velocities)  # type: ignore
-
-
-def kinetic_energy(*, masses: ScalarArrayLike, velocities: Vector3ArrayLike) -> float:
-    r"""
-    Calculate the total kinetic energy of a set of particles.
-
-    This is given by:
-
-    .. math:: K = \frac{1}{2} \sum_i m_i v_i^2
-
-    :param masses: List of masses :math:`m_i` of each particle.
-    :param velocities: List of velocities :math:`v_i` of each particle.
-    :return: Kinetic energy :math:`K` in units of [distance] / [time].
-    """
-    return sum(
-        0.5 * mass * sqr_magnitude(velocity)
-        for mass, velocity in zip(masses, velocities)
-    )

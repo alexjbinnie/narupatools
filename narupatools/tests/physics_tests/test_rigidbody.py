@@ -14,7 +14,6 @@ from narupatools.physics.rigidbody import (
     center_of_mass_acceleration,
     center_of_mass_velocity,
     distribute_angular_velocity,
-    kinetic_energy,
     moment_of_inertia_tensor,
     orbital_angular_momentum,
     spin_angular_momentum,
@@ -254,13 +253,3 @@ def test_distribute_angular_velocity_no_origin_or_mass(positions, angular_veloci
         _ = distribute_angular_velocity(
             angular_velocity=angular_velocity, positions=positions
         )
-
-
-def test_kinetic_energy(masses, velocities):
-    energy = kinetic_energy(masses=masses, velocities=velocities)
-
-    energy_calc = 0.0
-    for mass, velocity in zip(masses, velocities):
-        energy_calc += 0.5 * mass * sqr_magnitude(velocity)
-
-    assert energy == pytest.approx(energy_calc)

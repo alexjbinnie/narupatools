@@ -45,7 +45,7 @@ from narupatools.lammps.exceptions import (
     VariableNotFoundError,
 )
 
-SUPPORTED_VERSION = datetime.date(2020, 10, 29)
+SUPPORTED_VERSION = datetime.date(2021, 9, 29)
 
 NULL_POINTER_ACCESS_MESSAGE = "NULL pointer access"
 
@@ -469,11 +469,11 @@ class LAMMPSWrapper:
             if datatype in [VariableType.DOUBLE, VariableType.DOUBLE_ARRAY]:
                 dtype: npt.DTypeLike = np.float64
                 ctype: Any = ctypes.c_double
-                datatype = VariableType.DOUBLE
+                datatype = 1
             elif datatype in [VariableType.INTEGER, VariableType.INTEGER_ARRAY]:
                 dtype = np.int32
                 ctype = ctypes.c_int
-                datatype = VariableType.INTEGER
+                datatype = 0
             else:
                 raise LAMMPSError(f"Invalid variable type {datatype}")
             with catch_lammps_warnings_and_exceptions():
@@ -511,6 +511,13 @@ class LAMMPSWrapper:
             else:
                 raise
         return self.gather("c_" + compute_id, ncols)
+
+    def extract_box(self) -> np.ndarray:
+        boxlo, boxhi, xy, yz, xz, periodicity, box_change = tuple(
+            self.__lammps.extract_box()  # type: ignore
+        )
+        sides = np.array(boxhi) - np.array(boxlo)
+        return np.diag(sides)  # type: ignore
 
     def gather_fix(self, fix_id: str) -> npt.NDArray[np.float64]:
         """

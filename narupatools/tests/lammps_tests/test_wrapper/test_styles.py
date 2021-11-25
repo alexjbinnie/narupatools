@@ -42,7 +42,7 @@ _VALID_OPTIONS = [
     "lj/cut",
     "harmonic",
     "charmm",
-    "class2",
+    "harmonic",
     "cossq",
     "ewald",
     "angle",

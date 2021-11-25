@@ -54,6 +54,10 @@ class UnknownPropertyNameError(LAMMPSError):
     """Error raised when lammps_gather_atoms encounters an unknown property name."""
 
 
+class UnknownDataTypeError(LAMMPSError):
+    """Error raised when lammps_gather_atoms encounters an unknown data type."""
+
+
 class AtomIDsNotDefinedError(LAMMPSError):
     """Error raised when gather/scatter commands are used without atom ids."""
 

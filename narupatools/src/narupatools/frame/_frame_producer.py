@@ -176,7 +176,8 @@ class FrameProducer(Playable):
             frame = self._produce(fields=self._dirty_fields)
             self._on_frame_produced.invoke(frame=frame, fields=self._dirty_fields)
             self._is_dirty = False
-            self._dirty_fields = set()
+            if not self._always_dirty:
+                self._dirty_fields = set()
         return True
 
     @override(Playable._restart)

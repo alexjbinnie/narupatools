@@ -27,7 +27,7 @@ from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload
 import numpy as np
 import numpy.typing as npt
 import quaternion
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 import narupatools.lammps.atom_properties as PROPERTIES
@@ -36,6 +36,8 @@ import narupatools.lammps.globals as GLOBALS
 import narupatools.lammps.settings as SETTINGS
 from narupatools.frame.fields import (
     BondPairs,
+    BoxVectors,
+    KineticEnergy,
     ParticleCharges,
     ParticleCount,
     ParticleElements,
@@ -53,6 +55,8 @@ from narupatools.physics.units import UnitsNarupa, UnitSystem, degree, radian
 from narupatools.physics.vector import magnitude, normalized, vector
 from narupatools.util import mass_to_element
 
+from ..frame import FrameSource
+from ..physics.energy import kinetic_energy
 from ._constants import VariableDimension, VariableType
 from ._exception_wrapper import catch_lammps_warnings_and_exceptions
 from ._wrapper import Extractable, LAMMPSWrapper
@@ -62,7 +66,7 @@ from .regions import Region, RegionSpecification
 _TReturnType = TypeVar("_TReturnType")
 
 
-class LAMMPSSimulation:
+class LAMMPSSimulation(FrameSource):
     """Wrapper around a LAMMPS simulation."""
 
     def __init__(self, lammps: LAMMPSWrapper, units: Optional[UnitSystem] = None):
@@ -450,7 +454,10 @@ class LAMMPSSimulation:
         self._needs_pre_run = True
 
     def get_frame(
-        self, *, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+        self,
+        *,
+        fields: InfiniteSet[str] = everything(),
+        existing: Optional[FrameData] = None,
     ) -> FrameData:
         """
         Create a Narupa FrameData of the LAMMPS simulation.
@@ -488,6 +495,14 @@ class LAMMPSSimulation:
         if PotentialEnergy in fields:
             frame[PotentialEnergy] = (
                 self.potential_energy * self._lammps_to_narupa.energy
+            )
+        if KineticEnergy in fields:
+            frame[KineticEnergy] = kinetic_energy(
+                velocities=self.velocities, masses=self.masses
+            )
+        if BoxVectors in fields:
+            frame[BoxVectors] = (
+                self.__lammps.extract_box() * self._lammps_to_narupa.length
             )
 
         if BondPairs in fields and self[SETTINGS.AtomStylesIncludesMolecularTopology]:
