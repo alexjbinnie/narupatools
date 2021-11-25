@@ -25,8 +25,8 @@ jobs:
 
       - name: Append dev versioning
         run: |
-          echo "${GITHUB_REF#*/}"
-          if [ "develop" == ${GITHUB_REF#*/} ]; then
+          echo "${GITHUB_REF##*/}"
+          if [ "develop" == ${GITHUB_REF##*/} ]; then
             echo "Development Version"
             echo ".dev${GITHUB_RUN_ID}" >> narupatools/src/narupatools/VERSION
           fi
