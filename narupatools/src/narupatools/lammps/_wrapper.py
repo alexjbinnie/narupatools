@@ -512,7 +512,8 @@ class LAMMPSWrapper:
                 raise
         return self.gather("c_" + compute_id, ncols)
 
-    def extract_box(self) -> np.ndarray:
+    def extract_box_vectors(self) -> np.ndarray:
+        """Extract the simulation box vectors."""
         boxlo, boxhi, xy, yz, xz, periodicity, box_change = tuple(
             self.__lammps.extract_box()  # type: ignore
         )

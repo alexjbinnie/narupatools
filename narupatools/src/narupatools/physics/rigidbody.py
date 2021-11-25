@@ -36,7 +36,7 @@ from .typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from .vector import sqr_magnitude, zero_vector
+from .vector import zero_vector
 
 
 def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> Vector3:

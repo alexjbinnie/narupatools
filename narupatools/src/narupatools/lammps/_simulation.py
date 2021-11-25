@@ -34,6 +34,7 @@ import narupatools.lammps.atom_properties as PROPERTIES
 import narupatools.lammps.computes as COMPUTES
 import narupatools.lammps.globals as GLOBALS
 import narupatools.lammps.settings as SETTINGS
+from narupatools.frame import FrameSource
 from narupatools.frame.fields import (
     BondPairs,
     BoxVectors,
@@ -49,14 +50,13 @@ from narupatools.frame.fields import (
     PotentialEnergy,
 )
 from narupatools.lammps._units import get_unit_system
+from narupatools.physics.energy import kinetic_energy
 from narupatools.physics.transformation import Rotation
 from narupatools.physics.typing import Vector3
 from narupatools.physics.units import UnitsNarupa, UnitSystem, degree, radian
 from narupatools.physics.vector import magnitude, normalized, vector
 from narupatools.util import mass_to_element
 
-from ..frame import FrameSource
-from ..physics.energy import kinetic_energy
 from ._constants import VariableDimension, VariableType
 from ._exception_wrapper import catch_lammps_warnings_and_exceptions
 from ._wrapper import Extractable, LAMMPSWrapper
@@ -502,7 +502,7 @@ class LAMMPSSimulation(FrameSource):
             )
         if BoxVectors in fields:
             frame[BoxVectors] = (
-                self.__lammps.extract_box() * self._lammps_to_narupa.length
+                self.__lammps.extract_box_vectors() * self._lammps_to_narupa.length
             )
 
         if BondPairs in fields and self[SETTINGS.AtomStylesIncludesMolecularTopology]:
