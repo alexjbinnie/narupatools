@@ -36,12 +36,12 @@ jobs:
           use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
       - name: Run linters
-          uses: wearerequired/lint-action@v1
-          with:
-            black: true
-            black_args: narupatools stubs
-            flake8: true
-            flake8_args: narupatools stubs
-            mypy: true
-            mypy_args: --install-types --non-interactive narupatools/src narupatools/tests
-            auto_fix: true
+        uses: wearerequired/lint-action@v1
+        with:
+          black: true
+          black_args: narupatools stubs
+          flake8: true
+          flake8_args: narupatools stubs
+          mypy: true
+          mypy_args: --install-types --non-interactive narupatools/src narupatools/tests
+          auto_fix: true
