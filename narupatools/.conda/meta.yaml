@@ -22,7 +22,7 @@ requirements:
     - lxml>=4.*
     - infinite-sets==1.*
     - quaternion
-    - openmm<=7.5.*
+    - openmm>=7.5.*
 
 about:
   home: https://github.com/alexjbinnie/narupatools
