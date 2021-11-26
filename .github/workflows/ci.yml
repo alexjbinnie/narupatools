@@ -111,6 +111,12 @@ jobs:
         fail_ci_if_error: true
         files: coverage.xml
 
+    - name: Create coverage artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Coverage Report
+        path: coverage.xml"
+
   build-docs:
     name: Build documentation
     runs-on: ubuntu-latest
