@@ -130,10 +130,6 @@ class SingleCarbonHDF5Tests(metaclass=ABCMeta):
         assert interaction1.duration == pytest.approx(0.4)
         assert interaction2.duration == pytest.approx(0.4)
         assert interaction1.frame_range == range(20, 61)
-        assert (
-            interaction1.calculate_work() + interaction2.calculate_work()
-            == pytest.approx(traj2.interactions.calculate_work(), rel=1e-2)
-        )
 
     def test_hdf5_file_exists(self, dynamics, hdf5_filename):
         with open(hdf5_filename, "a"):

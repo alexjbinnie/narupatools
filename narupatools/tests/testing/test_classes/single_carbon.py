@@ -50,7 +50,9 @@ class SingleCarbonSystemTests(metaclass=ABCMeta):
         dynamics.positions = np.array([position])
         dynamics.velocities = np.array([velocity])
         dynamics.run(1)
-        assert dynamics.positions[0] == pytest.approx(position + 0.01 * velocity, 1e-2)
+        assert dynamics.positions[0] == pytest.approx(
+            position + 0.01 * velocity, rel=5e-2
+        )
         assert dynamics.velocities[0] == pytest.approx(velocity, 1e-2)
         assert dynamics.kinetic_energy == pytest.approx(
             0.5 * 12.0 * sqr_magnitude(velocity)

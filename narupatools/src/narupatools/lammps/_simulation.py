@@ -19,8 +19,7 @@
 from __future__ import annotations
 
 import contextlib
-import sys
-import uuid
+import ctypes
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload
 
@@ -209,13 +208,13 @@ class LAMMPSSimulation(FrameSource):
             atom_property.key, atom_property.datatype, atom_property.components, value
         )
 
-    def run(self, steps: int = 1) -> None:
+    def run(self, steps: int = 1, pre: bool = False) -> None:
         """
         Run the simulation for a given number of steps.
 
         :param steps: Number of steps to run.
         """
-        pre = "yes" if self._needs_pre_run else "no"
+        pre = "yes" if (self._needs_pre_run or pre) else "no"
         self.__lammps.command(f"run {steps} pre {pre} post no")
         self._needs_pre_run = False
 
@@ -356,93 +355,45 @@ class LAMMPSSimulation(FrameSource):
             )
         return self._bond_energy_compute.extract()
 
-    @staticmethod
-    def _inject_python_function(func: Any) -> str:
+    def setup_imd(self, callback: Any) -> None:
         """
-        Inject a given function into the __main__ module and generate a unique name.
+        Setup IMD for this simulation.
 
-        This allows a function to then be called by LAMMPS in a callback.
-
-        :param func: Function to be called.
+        The callback must take no parameters and return a tuple of the energy, forces and torques, all in
+        internal LAMMPS units. Both the forces and the torques may be zero if they do not exist.
         """
-        name = "_narupatools_lammps_func_" + str(uuid.uuid4())
-        setattr(sys.modules["__main__"], name, func)
-        return name
+        self._imd_calculate = callback
+        self._setup_imd_forces()
 
-    def _update_torques(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Updates the torques of the simulation.
+    def _setup_imd_forces(self) -> None:
+        self.command("fix imd_force all external pf/callback 1 1")
+        self._wrapper._lammps.set_fix_external_callback(  # type: ignore
+            "imd_force", self._imd_callback, self._wrapper._lammps
+        )
 
-        This needs to be called when forces are recalculated.
-        """
-        if self._imd_torques is not None:
-            self.scatter_atoms(PROPERTIES.Torque, self._imd_torques)
-
-    def _update_forces(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Updates the forces of the simulation.
-
-        This needs to be called when forces are recalculated.
-        """
-        if self._imd_forces is not None:
-            self.scatter_atoms(
-                PROPERTIES.Force,
-                (self.forces + self._imd_forces),
+    def _imd_callback(
+        self,
+        lmp: Any,
+        ntimestep: int,
+        nlocal: int,
+        ids: np.ndarray,
+        x: np.ndarray,
+        f: np.ndarray,
+    ) -> None:
+        """Invoked by the IMD fix external to apply forces."""
+        energy, forces, torques = self._imd_calculate()
+        if forces is not None:
+            f[ids - 1] = forces[ids - 1]
+        lmp.fix_external_set_energy_global("imd_force", energy)
+        if torques is not None:
+            lmp.scatter_atoms_subset(
+                "torque",
+                VariableType.DOUBLE_ARRAY,
+                3,
+                len(ids),
+                ids.ctypes.data_as(ctypes.POINTER(lmp.c_tagint)),
+                torques[ids - 1].ctypes.data_as(ctypes.c_void_p),
             )
-
-    def add_imd_torque(self) -> None:
-        """Define an IMD torque for the LAMMPS simulation."""
-        self._imd_torques = np.zeros(shape=(len(self), 3))
-        func_name = self._inject_python_function(self._update_torques)
-        self.command(
-            f"fix _narupatools_torque_callback all python/invoke 1 post_force {func_name}"
-        )
-
-    def add_imd_force(self) -> None:
-        """Define an IMD force for the LAMMPS simulation."""
-        self._imd_forces = np.zeros(shape=(len(self), 3))
-        func_name = self._inject_python_function(self._update_forces)
-        self.command(
-            f"fix _narupatools_force_callback all python/invoke 1 post_force {func_name}"
-        )
-
-    def get_imd_forces(self) -> npt.NDArray[np.float64]:
-        """Get the IMD forces on each atom in kilojoules per mole per angstrom."""
-        if self._imd_forces is None:
-            raise ValueError("IMD Force not defined.")
-        return self._imd_forces
-
-    def set_imd_torque(self, index: int, torque: Vector3) -> None:
-        """
-        Set the IMD force on a specific atom.
-
-        :param index: Index of the particle to set.
-        :param torque: IMD torque to apply, in kilojoules per mole.
-        """
-        if self._imd_torques is None:
-            self.add_imd_torque()
-        self._imd_torques[index] = torque  # type: ignore[index]
-
-    def set_imd_force(self, index: int, force: Vector3) -> None:
-        """
-        Set the IMD force on a specific atom.
-
-        :param index: Index of the particle to set.
-        :param force: IMD force to apply, in kilojoules per mole per nanometer.
-        """
-        if self._imd_forces is None:
-            self.add_imd_force()
-        self._imd_forces[index] = force  # type: ignore
-
-    def clear_imd_force(self, index: int) -> None:
-        """
-        Clear the IMD force on a specific atom.
-
-        :param index: Index of the particle to clear.
-        """
-        if self._imd_forces is None:
-            return
-        self._imd_forces[index] = vector(0, 0, 0)
 
     def command(self, command: str) -> None:
         """

@@ -67,6 +67,9 @@ class LAMMPSWrapper:
         self.__lammps_clib = pylammps.lmp.lib
         self.__lammps_handle = pylammps.lmp.lmp
 
+        self._pylammps = self.__pylammps
+        self._lammps = self.__lammps
+
         self._command_lock = Lock()
 
         self._check_version()

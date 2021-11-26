@@ -18,19 +18,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Optional, Tuple
 
 import numpy as np
-from infinite_sets import InfiniteSet, everything
+from infinite_sets import InfiniteSet
 from narupa.trajectory import FrameData
 
-from narupatools.imd import InteractiveSimulationDynamics, SetAndClearInteractionFeature
-from narupatools.physics.typing import (
-    ScalarArray,
-    Vector3,
-    Vector3Array,
-    Vector3ArrayLike,
-)
+from narupatools.imd import InteractionFeature, InteractiveSimulationDynamics
+from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLike
 from narupatools.physics.units import UnitsNarupa, UnitSystem
 
 from ._simulation import LAMMPSSimulation
@@ -59,7 +54,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         self._lammps_to_narupa = self._simulation.unit_system >> UnitsNarupa
         self._narupa_to_lammps = UnitsNarupa >> self._simulation.unit_system
 
-        simulation.add_imd_force()
+        simulation.setup_imd(self._imd.calculate_imd)
 
     @property
     def imd(self) -> LAMMPSIMDFeature:  # noqa:D102
@@ -137,25 +132,36 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         return cls(simulation)
 
 
-class LAMMPSIMDFeature(SetAndClearInteractionFeature[LAMMPSDynamics]):
+class LAMMPSIMDFeature(InteractionFeature[LAMMPSDynamics]):
     """Interactive molecular dynamics for use with LAMMPS."""
 
     def __init__(self, dynamics: LAMMPSDynamics):
         super().__init__(dynamics)
 
-    def _on_pre_step(self, **kwargs: Any) -> None:
-        super()._on_pre_step(**kwargs)
-        self._calculate_and_apply_interactions()
-
-    def _set_forces(self, forces: Dict[int, Vector3], /) -> None:
-        for index, force in forces.items():
-            self._dynamics.simulation.set_imd_force(
-                index, force * self.dynamics._lammps_to_narupa.force
-            )
-
-    def _clear_forces(self, indices: InfiniteSet[int] = everything(), /) -> None:
-        for index in set(range(self._system_size)) & indices:  # type: ignore[operator]
-            self._dynamics.simulation.clear_imd_force(index)
+    def calculate_imd(self) -> Tuple[float, Optional[np.ndarray], Optional[np.ndarray]]:
+        """Calculate the energy, forces and torques to be applied."""
+        if not self.current_interactions:
+            return 0, None, None
+        energy = 0.0
+        forces = np.zeros(shape=(self._system_size, 3))
+        torques = np.zeros(shape=(self._system_size, 3))
+        has_torques = False
+        for interaction in self.current_interactions.values():
+            interaction.mark_positions_dirty()
+            energy += interaction.potential_energy
+            forces[interaction.particle_indices] += interaction.forces
+            try:
+                torques[interaction.particle_indices] += interaction.torques
+                has_torques = True
+            except AttributeError:
+                pass
+        return (
+            energy * self.dynamics.simulation._narupa_to_lammps.energy,
+            forces * self.dynamics.simulation._narupa_to_lammps.force,
+            torques * self.dynamics.simulation._narupa_to_lammps.torque
+            if has_torques
+            else None,
+        )
 
     @property
     def _system_size(self) -> int:

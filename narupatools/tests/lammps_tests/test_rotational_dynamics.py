@@ -16,6 +16,7 @@
 
 import random
 
+import numpy as np
 import pytest
 
 lammps = pytest.importorskip("lammps")
@@ -111,11 +112,15 @@ def test_spherical_angmom(
 def test_spherical_torque(simulation, mass, radius, spherical_atom, n_steps):
     torque = random_vector(max_magnitude=10.0)
 
-    simulation.set_imd_torque(0, torque)
+    def callback():
+        return 0, None, np.array([torque])
+
+    simulation.setup_imd(callback)
+    simulation.run(0, pre=True)
 
     simulation.run(n_steps)
 
-    angmom_calc = ((n_steps - 0.5) * simulation.timestep) * torque
+    angmom_calc = (n_steps * simulation.timestep) * torque
     angmom_act = simulation.angular_momenta[0]
 
-    assert angmom_calc == pytest.approx(angmom_act)
+    assert angmom_act == pytest.approx(angmom_calc)
