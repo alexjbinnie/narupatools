@@ -115,7 +115,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Coverage Report
-        path: coverage.xml"
+        path: coverage.xml
 
   build-docs:
     name: Build documentation
