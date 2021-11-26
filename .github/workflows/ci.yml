@@ -196,7 +196,7 @@ jobs:
           path: "${{ env.conda_package }}"
 
   publish-conda-dev:
-    name: Build Conda Development package
+    name: Publish Conda development package
     needs: [lint, test, build-docs, build-conda]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -218,5 +218,8 @@ jobs:
         with:
           name: Conda Package
 
-      - name: List files
-        run: ls
+      - name: Upload
+        run: |
+          conda install anaconda
+          file="$(ls  narupatools*.dev*.tar.gz | sort -V | tail -n1)"
+          anaconda upload $file --label dev --token ${{ secrets.ANACONDA_TOKEN }}
