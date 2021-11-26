@@ -703,11 +703,15 @@ class HDF5Trajectory(DynamicStructureMethods, TrajectorySource, _HDF5EditableObj
         flush_every: int = 1,
         title: Optional[str] = None,
         close_file_after: bool = False,
+        overwrite_existing: bool = False,
     ) -> Generator[HDF5Trajectory, None, None]:
         """Record dynamics to a single trajectory, stopping if it is reset."""
         if filename is not None:
             traj = cls.new_file(
-                filename=filename, expected_frames=expected_frames, title=title
+                filename=filename,
+                expected_frames=expected_frames,
+                title=title,
+                overwrite_existing=overwrite_existing,
             )
         else:
             traj = cls.in_memory(expected_frames=expected_frames, title=title)

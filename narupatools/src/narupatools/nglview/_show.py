@@ -93,6 +93,12 @@ def show(obj: Any) -> NGLWidget:
         return show_narupa(obj)
     if isinstance(obj, FrameSource):
         return show_narupa(obj.get_frame(fields=everything()))
+    if isinstance(obj, TrajectorySource):
+        return show_trajectory(obj)
+    as_traj = TrajectorySource.create_from_object(obj)
+    if as_traj is not None:
+        return show_trajectory(as_traj)
     if isinstance(obj, list) and isinstance(obj[0], FrameData):
         return NGLWidget(FrameDataTrajectory(obj))
+
     raise ValueError(f"Cannot work out how to show object {obj} using nglview")

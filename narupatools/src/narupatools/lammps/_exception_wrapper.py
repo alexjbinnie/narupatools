@@ -86,4 +86,5 @@ def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
             error = line[7:]
             _handle_error(error)
         else:
-            print(line)
+            with contextlib.suppress(BrokenPipeError):
+                print(line)

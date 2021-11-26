@@ -21,6 +21,7 @@ from __future__ import annotations
 import contextlib
 import ctypes
 from abc import ABCMeta, abstractmethod
+from threading import Lock
 from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload
 
 import numpy as np
@@ -47,6 +48,7 @@ from narupatools.frame.fields import (
     ParticleResidues,
     ParticleVelocities,
     PotentialEnergy,
+    ResidueCount,
 )
 from narupatools.lammps._units import get_unit_system
 from narupatools.physics.energy import kinetic_energy
@@ -89,6 +91,8 @@ class LAMMPSSimulation(FrameSource):
         self.indexing = LAMMPSIndexing(self)
         self.bond_compute: Optional[COMPUTES.ComputeReference] = None
 
+        self._run_lock = Lock()
+
         self._needs_pre_run = True
 
         self._mass_compute = COMPUTES.AtomProperty(
@@ -116,9 +120,6 @@ class LAMMPSSimulation(FrameSource):
         self.atoms = AtomArray(self)
         self.types = TypeArray(self)
         self.mols = MolArray(self)
-
-        self._imd_torques: Optional[npt.NDArray[np.float64]] = None
-        self._imd_forces: Optional[npt.NDArray[np.float64]] = None
 
         self._quat_compute: Optional[
             COMPUTES.ComputeAtomReference[npt.NDArray[np.float64]]
@@ -214,9 +215,10 @@ class LAMMPSSimulation(FrameSource):
 
         :param steps: Number of steps to run.
         """
-        pre = "yes" if (self._needs_pre_run or pre) else "no"
-        self.__lammps.command(f"run {steps} pre {pre} post no")
-        self._needs_pre_run = False
+        with self._run_lock:
+            should_pre = "yes" if (self._needs_pre_run or pre) else "no"
+            self.__lammps.command(f"run {steps} pre {should_pre} post no")
+            self._needs_pre_run = False
 
     @property
     def potential_energy(self) -> float:
@@ -368,7 +370,7 @@ class LAMMPSSimulation(FrameSource):
     def _setup_imd_forces(self) -> None:
         self.command("fix imd_force all external pf/callback 1 1")
         self._wrapper._lammps.set_fix_external_callback(  # type: ignore
-            "imd_force", self._imd_callback, self._wrapper._lammps
+            "imd_force", self._imd_callback
         )
 
     def _imd_callback(
@@ -381,9 +383,12 @@ class LAMMPSSimulation(FrameSource):
         f: np.ndarray,
     ) -> None:
         """Invoked by the IMD fix external to apply forces."""
+        if lmp is None:
+            lmp = self._wrapper._lammps
         energy, forces, torques = self._imd_calculate()
+        f[:, :] = 0
         if forces is not None:
-            f[ids - 1] = forces[ids - 1]
+            f[:] = forces[ids - 1]
         lmp.fix_external_set_energy_global("imd_force", energy)
         if torques is not None:
             lmp.scatter_atoms_subset(
@@ -422,64 +427,74 @@ class LAMMPSSimulation(FrameSource):
         else:
             frame = existing
 
-        if ParticleCount in fields:
-            frame[ParticleCount] = len(self)
-        if ParticlePositions in fields:
-            frame[ParticlePositions] = self.positions * self._lammps_to_narupa.length
-        if ParticleVelocities in fields:
-            frame[ParticleVelocities] = (
-                self.velocities * self._lammps_to_narupa.velocity
-            )
-        if ParticleMasses in fields:
-            frame[ParticleMasses] = self.masses * self._lammps_to_narupa.mass
-        if ParticleElements in fields:
-            elements = np.vectorize(mass_to_element)(
-                self.masses * self._lammps_to_narupa.mass
-            )
-            if not np.any(np.equal(elements, None)):  # type: ignore[call-overload]
-                frame[ParticleElements] = elements
-        if ParticleCharges in fields:
-            with contextlib.suppress(AttributeError):
-                frame[ParticleCharges] = self.charges * self._lammps_to_narupa.charge
-        if ParticleForces in fields:
-            frame[ParticleForces] = self.forces * self._lammps_to_narupa.force
-        if PotentialEnergy in fields:
-            frame[PotentialEnergy] = (
-                self.potential_energy * self._lammps_to_narupa.energy
-            )
-        if KineticEnergy in fields:
-            frame[KineticEnergy] = kinetic_energy(
-                velocities=self.velocities, masses=self.masses
-            )
-        if BoxVectors in fields:
-            frame[BoxVectors] = (
-                self.__lammps.extract_box_vectors() * self._lammps_to_narupa.length
-            )
-
-        if BondPairs in fields and self[SETTINGS.AtomStylesIncludesMolecularTopology]:
-            self.indexing.recompute()
-            if self.bond_compute is None:
-                self.bond_compute = COMPUTES.LocalProperty(
-                    self.__lammps,
-                    compute_id="bonds",
-                    properties=["btype", "batom1", "batom2"],
+        if self._run_lock:
+            if ParticleCount in fields:
+                frame[ParticleCount] = len(self)
+            if ParticlePositions in fields:
+                frame[ParticlePositions] = (
+                    self.positions * self._lammps_to_narupa.length
                 )
-            bonds = self.bond_compute.extract()
-            frame[BondPairs] = self.indexing.atom_id_to_ordered(bonds[:, 1:])
+            if ParticleVelocities in fields:
+                frame[ParticleVelocities] = (
+                    self.velocities * self._lammps_to_narupa.velocity
+                )
+            if ParticleMasses in fields:
+                frame[ParticleMasses] = self.masses * self._lammps_to_narupa.mass
+            if ParticleElements in fields:
+                elements = np.vectorize(mass_to_element)(
+                    self.masses * self._lammps_to_narupa.mass
+                )
+                if not np.any(np.equal(elements, None)):  # type: ignore[call-overload]
+                    frame[ParticleElements] = elements
+            if ParticleCharges in fields:
+                with contextlib.suppress(AttributeError):
+                    frame[ParticleCharges] = (
+                        self.charges * self._lammps_to_narupa.charge
+                    )
+            if ParticleForces in fields:
+                frame[ParticleForces] = self.forces * self._lammps_to_narupa.force
+            if PotentialEnergy in fields:
+                frame[PotentialEnergy] = (
+                    self.potential_energy * self._lammps_to_narupa.energy
+                )
+            if KineticEnergy in fields:
+                frame[KineticEnergy] = kinetic_energy(
+                    velocities=self.velocities, masses=self.masses
+                )
+            if BoxVectors in fields:
+                frame[BoxVectors] = (
+                    self.__lammps.extract_box_vectors() * self._lammps_to_narupa.length
+                )
 
-        if (
-            ParticleResidues in fields
-            and self[SETTINGS.AtomStylesIncludesMolecularTopology]
-        ):
-            self.indexing.recompute()
-            mol_ids = self.gather_atoms(PROPERTIES.MoleculeID)
+            if (
+                BondPairs in fields
+                and self[SETTINGS.AtomStylesIncludesMolecularTopology]
+            ):
+                self.indexing.recompute()
+                if self.bond_compute is None:
+                    self.bond_compute = COMPUTES.LocalProperty(
+                        self.__lammps,
+                        compute_id="bonds",
+                        properties=["btype", "batom1", "batom2"],
+                    )
+                bonds = self.bond_compute.extract()
+                frame[BondPairs] = self.indexing.atom_id_to_ordered(bonds[:, 1:])
 
-            unique_mol_ids = np.unique(mol_ids)
-            mol_id_to_index = {
-                mol_id: mol_index
-                for mol_index, mol_id in zip(np.argsort(unique_mol_ids), unique_mol_ids)
-            }
-            frame[ParticleResidues] = np.vectorize(mol_id_to_index.get)(mol_ids)
+            if (ParticleResidues in fields or ResidueCount in fields) and self[
+                SETTINGS.AtomStylesIncludesMolecularTopology
+            ]:
+                self.indexing.recompute()
+                mol_ids = self.gather_atoms(PROPERTIES.MoleculeID)
+
+                unique_mol_ids = np.unique(mol_ids)
+                mol_id_to_index = {
+                    mol_id: mol_index
+                    for mol_index, mol_id in zip(
+                        np.argsort(unique_mol_ids), unique_mol_ids
+                    )
+                }
+                frame[ParticleResidues] = np.vectorize(mol_id_to_index.get)(mol_ids)
+                frame[ResidueCount] = len(unique_mol_ids)
 
         return frame
 
