@@ -221,5 +221,5 @@ jobs:
       - name: Upload
         run: |
           conda install anaconda
-          file="$(ls  narupatools*.dev*.tar.gz | sort -V | tail -n1)"
+          file="$(ls narupatools*.dev*.tar.bz2 | sort -V | tail -n1)"
           anaconda upload $file --label dev --token ${{ secrets.ANACONDA_TOKEN }}
