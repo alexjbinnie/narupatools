@@ -198,6 +198,7 @@ jobs:
   publish-conda-dev:
     name: Publish Conda development package
     needs: [lint, test, build-docs, build-conda]
+    environment: anaconda
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
