@@ -97,7 +97,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest -m "(not openmm) and (not lammps)" --junit-xml pytest.xml --cov=./ --cov-report=xml narupatools
+        pytest -m "(not openmm) and (not lammps)" --junit-xml pytest.xml --cov=narupatools/ --cov-report=xml narupatools
 
     - name: Publish results
       uses: EnricoMi/publish-unit-test-result-action@v1
@@ -109,7 +109,6 @@ jobs:
       uses: codecov/codecov-action@v2
       with:
         fail_ci_if_error: true
-        files: coverage.xml
 
     - name: Create coverage artifact
       uses: actions/upload-artifact@v2
