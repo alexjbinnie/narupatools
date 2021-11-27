@@ -30,6 +30,8 @@ from narupatools.physics.vector import vector
 if "ASPHERE" not in INSTALLED_PACKAGES:
     pytest.skip("Requires ASPHERE package.", allow_module_level=True)
 
+if "CG-DNA" not in INSTALLED_PACKAGES:
+    pytest.skip("Requires CG-DNA package.", allow_module_level=True)
 
 @pytest.fixture(params=range(20))
 def seed(request):
