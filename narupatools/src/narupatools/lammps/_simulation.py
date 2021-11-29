@@ -48,7 +48,8 @@ from narupatools.frame.fields import (
     ParticleResidues,
     ParticleVelocities,
     PotentialEnergy,
-    ResidueCount, BoxPeriodic,
+    ResidueCount,
+    BoxPeriodic,
 )
 from narupatools.lammps._units import get_unit_system
 from narupatools.physics.energy import kinetic_energy
@@ -461,7 +462,7 @@ class LAMMPSSimulation(FrameSource):
                 frame[KineticEnergy] = kinetic_energy(
                     velocities=self.velocities, masses=self.masses
                 )
-            if {BoxVectors, BoxPeriodic} & fields:
+            if fields & {BoxVectors, BoxPeriodic}:
                 box, periodic = self.__lammps.extract_box_vectors()
                 if BoxVectors in fields:
                     frame[BoxVectors] = box * self._lammps_to_narupa.length

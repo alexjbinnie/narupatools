@@ -543,7 +543,7 @@ class LAMMPSWrapper:
         mat[2, 1] = yz  # yz
 
         periodicity = np.array(periodicity)
-        return mat, periodicity  # type: ignore
+        return mat, periodicity
 
     def gather_fix(self, fix_id: str) -> npt.NDArray[np.float64]:
         """

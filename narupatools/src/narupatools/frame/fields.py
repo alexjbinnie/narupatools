@@ -370,14 +370,13 @@ class _BoxPeriodicKey(_IntegerArrayKey):
         return self.convert(frame_data.raw.arrays[self.key].index_values.values)
 
     @override(FrameKey._set)
-    def _set(self, frame_data: FrameData, value: AssignableToIndexArray):
+    def _set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
         array = np.asarray(value, dtype=int)
-        frame_data.set_index_array(self.key, value)
+        frame_data.set_index_array(self.key, array)
 
     @override(FrameKey.convert)
     def convert(self, value: AssignableToIndexArray) -> np.ndarray:
         return np.asarray(value, dtype=int)
-
 
 
 ParticlePositions = _ThreeByNFloatArrayKey(PARTICLE_POSITIONS)

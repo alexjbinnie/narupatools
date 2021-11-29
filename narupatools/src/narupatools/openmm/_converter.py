@@ -49,7 +49,8 @@ from narupatools.frame.fields import (
     ResidueChains,
     ResidueCount,
     ResidueIds,
-    ResidueNames, BoxPeriodic,
+    ResidueNames,
+    BoxPeriodic,
 )
 from narupatools.openmm._units import UnitsOpenMM
 from narupatools.override import override
