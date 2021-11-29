@@ -52,7 +52,7 @@ from narupatools.frame.fields import (
     PotentialEnergy,
     ResidueChains,
     ResidueCount,
-    ResidueNames,
+    ResidueNames, BoxPeriodic,
 )
 from narupatools.frame.util import calculate_residue_entities
 from narupatools.mdanalysis import UnitsMDAnalysis
@@ -220,6 +220,14 @@ def ase_atoms_to_frame(
 
     if BoxVectors in fields:
         frame[BoxVectors] = atoms.get_cell() * _ASEToNarupa.length
+
+    if BoxPeriodic in fields:
+        periodicity = atoms.get_pbc()
+        if isinstance(periodicity, [bool, int]):
+            p = 1 if periodicity else 0
+            frame[BoxPeriodic] = [p, p, p]
+        else:
+            frame[BoxPeriodic] = [1 if p else 0 for p in periodicity]
 
     if KineticEnergy in fields:
         frame[KineticEnergy] = atoms.get_kinetic_energy() * _ASEToNarupa.energy

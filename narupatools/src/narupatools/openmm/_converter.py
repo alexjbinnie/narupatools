@@ -49,7 +49,7 @@ from narupatools.frame.fields import (
     ResidueChains,
     ResidueCount,
     ResidueIds,
-    ResidueNames,
+    ResidueNames, BoxPeriodic,
 )
 from narupatools.openmm._units import UnitsOpenMM
 from narupatools.override import override
@@ -223,6 +223,10 @@ def openmm_simulation_to_frame(
 
     if ParticleMasses in fields:
         frame[ParticleMasses] = get_openmm_masses(simulation.system)
+
+    if BoxPeriodic in fields:
+        is_periodic = 1 if simulation.system.usesPeriodicBoundaryConditions() else 0
+        frame[BoxPeriodic] = [is_periodic, is_periodic, is_periodic]
 
     openmm_topology_to_frame(simulation.topology, fields=fields, existing=frame)
     openmm_context_to_frame(simulation.context, fields=fields, existing=frame)
