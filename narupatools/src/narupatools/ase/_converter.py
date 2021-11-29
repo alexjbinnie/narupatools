@@ -37,6 +37,7 @@ from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondPairs,
     BondTypes,
+    BoxPeriodic,
     BoxVectors,
     ChainCount,
     KineticEnergy,
@@ -53,7 +54,6 @@ from narupatools.frame.fields import (
     ResidueChains,
     ResidueCount,
     ResidueNames,
-    BoxPeriodic,
 )
 from narupatools.frame.util import calculate_residue_entities
 from narupatools.mdanalysis import UnitsMDAnalysis

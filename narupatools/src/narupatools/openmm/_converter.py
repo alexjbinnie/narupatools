@@ -33,6 +33,7 @@ from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondCount,
     BondPairs,
+    BoxPeriodic,
     BoxVectors,
     ChainCount,
     ChainNames,
@@ -50,7 +51,6 @@ from narupatools.frame.fields import (
     ResidueCount,
     ResidueIds,
     ResidueNames,
-    BoxPeriodic,
 )
 from narupatools.openmm._units import UnitsOpenMM
 from narupatools.override import override

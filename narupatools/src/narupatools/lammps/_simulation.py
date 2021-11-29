@@ -37,6 +37,7 @@ import narupatools.lammps.settings as SETTINGS
 from narupatools.frame import FrameSource
 from narupatools.frame.fields import (
     BondPairs,
+    BoxPeriodic,
     BoxVectors,
     KineticEnergy,
     ParticleCharges,
@@ -49,7 +50,6 @@ from narupatools.frame.fields import (
     ParticleVelocities,
     PotentialEnergy,
     ResidueCount,
-    BoxPeriodic,
 )
 from narupatools.lammps._units import get_unit_system
 from narupatools.physics.energy import kinetic_energy
