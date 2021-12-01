@@ -19,6 +19,12 @@ from typing import Union
 
 import numpy as np
 
+from narupatools.physics.integrate import (
+    cumulative_vector_line_integral,
+    vector_line_integral,
+    vector_line_integral_per_step,
+)
+
 
 def kinetic_energy(
     *, masses: np.ndarray, velocities: np.ndarray
@@ -54,9 +60,7 @@ def total_work(
     :param positions: Velocities :math:`\vec r_i` of each particle.
     :param time_axis: Axis of the forces and positions arrays that represent time.
     """
-    return work_per_step(forces=forces, positions=positions, time_axis=time_axis).sum(  # type: ignore
-        axis=1 + time_axis
-    )
+    return vector_line_integral(forces, positions, 1 + time_axis)
 
 
 def work_per_step(
@@ -86,13 +90,12 @@ def work_per_step(
     """
     if time_axis > -1:
         raise ValueError("Axis must be less than or equal to -2.")
-    end_indices = -1 - time_axis
-    last_axes = [np.s_[:]] * end_indices
-    step_start = (..., np.s_[:-1], *last_axes)
-    step_end = (..., np.s_[1:], *last_axes)
-    F = forces[step_start] + forces[step_end]
-    dS = positions[step_end] - positions[step_start]
-    return np.insert(0.5 * (F * dS).sum(axis=-1), 0, 0, axis=1 + time_axis)  # type: ignore
+    return np.insert(  # type: ignore
+        vector_line_integral_per_step(forces, positions, axis=1 + time_axis),
+        0,
+        0,
+        axis=1 + time_axis,
+    )
 
 
 def cumulative_work(
@@ -113,7 +116,4 @@ def cumulative_work(
     :param positions: Velocities :math:`\vec r_i` of each particle.
     :param time_axis: Axis of the forces and positions arrays that represent time.
     """
-    return np.cumsum(
-        work_per_step(forces=forces, positions=positions, time_axis=time_axis),
-        axis=1 + time_axis,
-    )
+    return cumulative_vector_line_integral(forces, positions, axis=1 + time_axis)

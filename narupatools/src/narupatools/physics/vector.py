@@ -16,7 +16,6 @@
 
 """Utility methods for using vectors."""
 
-import math
 from typing import Optional, Union, overload
 
 import numpy as np
@@ -156,10 +155,10 @@ def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
     :param onto: Vector :math:`b` to project onto.
     :return: Vector projection :math:`a_1` of vector :math:`a` onto vector :math:`b`.
     """
-    dot = np.dot(onto, onto)
-    if dot == 0.0:
-        return zero_vector()
-    return np.dot(vector, onto) / dot * np.asfarray(onto)  # type: ignore
+    vector = np.asfarray(vector)
+    onto = np.asfarray(onto)
+    dot = (onto * onto).sum(axis=-1)
+    return ((vector * onto).sum(axis=-1) / dot)[..., np.newaxis] * onto  # type: ignore
 
 
 def vector_rejection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
@@ -197,10 +196,12 @@ def distance(vector1: Vector3Like, vector2: Optional[Vector3Like] = None, /) -> 
                 "Cannot take distances of array without second last axes being shape 2."
             )
         return np.linalg.norm(vector1[..., 1, :] - vector1[..., 0, :], axis=-1)  # type: ignore
-    return np.linalg.norm(np.subtract(vector1, vector2))  # type: ignore
+    return np.sqrt(((vector1[..., :] - vector2[..., :]) ** 2).sum(axis=-1))  # type: ignore
 
 
-def sqr_distance(point1: Vector3Like, point2: Vector3Like, /) -> float:
+def sqr_distance(
+    point1: Vector3Like, point2: Vector3Like, /
+) -> Union[float, np.ndarray]:
     r"""
     Calculate the square distance between two points :math:`a` and :math:`b`.
 
@@ -208,11 +209,10 @@ def sqr_distance(point1: Vector3Like, point2: Vector3Like, /) -> float:
     :param point2: Point :math:`b`.
     :return: Square distance between the two points.
     """
-    offset = np.subtract(point1, point2)
-    return np.dot(offset, offset)  # type: ignore
+    return ((point1[..., :] - point2[..., :]) ** 2).sum(axis=-1)  # type: ignore
 
 
-def angle(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
+def angle(vector1: Vector3Like, vector2: Vector3Like, /) -> Union[float, np.ndarray]:
     r"""
     Calculate the angle in radians between two vectors :math:`a` and  :math:`b`.
 
@@ -225,13 +225,11 @@ def angle(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
     :raises ValueError: One of the vectors is zero.
     :return: Angle between the two vectors in radians.
     """
-    norm1 = np.linalg.norm(vector1)
-    if norm1 == 0.0:
-        raise ValueError("Cannot calculate angle if one vector is zero.")
-    norm2 = np.linalg.norm(vector2)
-    if norm2 == 0.0:
-        raise ValueError("Cannot calculate angle if one vector is zero.")
-    return math.acos(np.dot(vector1, vector2) / (norm1 * norm2))
+    a = np.asfarray(vector1)
+    b = np.asfarray(vector2)
+    return np.arccos(  # type: ignore
+        (a * b).sum(axis=-1) / np.sqrt((a * a).sum(axis=-1) * (b * b).sum(axis=-1))
+    )
 
 
 def cross_product_matrix(vector: Vector3Like, /) -> Matrix3x3:
@@ -301,7 +299,7 @@ def left_vector_triple_product_matrix(a: Vector3Like, b: Vector3Like, /) -> Matr
     return np.matmul(cross_product_matrix(a), cross_product_matrix(b))  # type: ignore
 
 
-def outer_product(a: Vector3Like, b: Vector3Like, /) -> Matrix3x3:
+def outer_product(a: Vector3Like, b: Vector3Like, /) -> np.ndarray:
     r"""
     Calculate the outer product of two vectors :math:`a` and :math:`b`.
 
@@ -314,4 +312,4 @@ def outer_product(a: Vector3Like, b: Vector3Like, /) -> Matrix3x3:
     :param b: Vector :math:`b`.
     :return: Matrix formed by the outer product of :math:`a` and :math:`b`.
     """
-    return np.outer(a, b)
+    return np.einsum("...i,...j->...ij", a, b)  # type: ignore
