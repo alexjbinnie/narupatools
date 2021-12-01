@@ -33,6 +33,7 @@ if "ASPHERE" not in INSTALLED_PACKAGES:
 if "CG-DNA" not in INSTALLED_PACKAGES:
     pytest.skip("Requires CG-DNA package.", allow_module_level=True)
 
+
 @pytest.fixture(params=range(20))
 def seed(request):
     random.seed(request.param)
