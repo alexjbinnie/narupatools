@@ -121,6 +121,6 @@ def test_interaction_per_particle_work_shape(nanotube_traj):
 
 def test_interaction_work_is_cumulative(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
-        assert (
-            interaction.calculate_cumulative_work()[-1] == interaction.calculate_work()
+        assert interaction.calculate_cumulative_work()[-1] == pytest.approx(
+            interaction.calculate_work()
         )
