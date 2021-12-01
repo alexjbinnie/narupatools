@@ -465,6 +465,7 @@ class LAMMPSWrapper:
         :raises UnknownAtomPropertyError: Property was not found in the simulation.
         :return: Value of the atom property.
         """
+        print(f"Gathering {key}...")
         datatype = self.__lammps.extract_atom_datatype(key)
         if datatype == -1:
             raise UnknownAtomPropertyError(key)
