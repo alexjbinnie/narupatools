@@ -603,7 +603,7 @@ class LAMMPSSimulation(FrameSource):
         self.close()
 
     def file(self, filename: str) -> None:
-        """Runn all commands found in the provided input file."""
+        """Run all commands found in the provided input file."""
         with catch_lammps_warnings_and_exceptions():
             self.__lammps.file(filename)
 

@@ -637,6 +637,9 @@ class LAMMPSWrapper:
         """Close the LAMMPS instance."""
         self.__pylammps.close()
 
+    def __enter__(self) -> LAMMPSWrapper:
+        return self
+
     def __exit__(self) -> None:
         self.__pylammps.close()
 
