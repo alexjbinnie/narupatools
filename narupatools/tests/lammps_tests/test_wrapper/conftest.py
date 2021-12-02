@@ -26,4 +26,5 @@ def lammps():
     pylammps = PyLammps()
     pylammps.file("in.peptide")
     pylammps.__getattr__("run")(0)
-    return LAMMPSWrapper(pylammps)
+    with LAMMPSWrapper(pylammps) as wrapper:
+        yield wrapper

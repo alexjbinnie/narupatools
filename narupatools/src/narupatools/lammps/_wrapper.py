@@ -637,6 +637,9 @@ class LAMMPSWrapper:
         """Close the LAMMPS instance."""
         self.__pylammps.close()
 
+    def __exit__(self) -> None:
+        self.__pylammps.close()
+
     def file(self, filename: str) -> None:
         """See :meth:`PyLammps.file`."""
         self.__pylammps.file(filename)

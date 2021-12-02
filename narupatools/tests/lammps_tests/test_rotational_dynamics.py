@@ -52,12 +52,12 @@ def timestep(seed):
 
 @pytest.fixture
 def simulation(timestep):
-    simulation = LAMMPSSimulation.create_new("nano")
-    simulation.command("atom_style ellipsoid")
-    simulation.create_box(n_types=1, region=Box.from_size(size=vector(10, 10, 10)))
-    simulation.timestep = timestep
-    simulation.command("fix integrate all nve/dot")
-    return simulation
+    with LAMMPSSimulation.create_new("nano") as simulation:
+        simulation.command("atom_style ellipsoid")
+        simulation.create_box(n_types=1, region=Box.from_size(size=vector(10, 10, 10)))
+        simulation.timestep = timestep
+        simulation.command("fix integrate all nve/dot")
+        yield simulation
 
 
 @pytest.fixture

@@ -23,9 +23,10 @@ from narupatools.lammps import LAMMPSSimulation
 from narupatools.physics.units import calorie, electronvolt, kilo, mole
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def simulation():
-    return LAMMPSSimulation.from_file("./in.peptide")
+    with LAMMPSSimulation.from_file("./in.peptide") as simulation:
+        yield simulation
 
 
 @pytest.fixture
