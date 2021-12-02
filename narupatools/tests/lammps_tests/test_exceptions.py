@@ -32,7 +32,9 @@ from narupatools.lammps.exceptions import (
 
 
 def test_missing_input_file():
-    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(MissingInputScriptError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        MissingInputScriptError
+    ):
         simulation.file("in.missing")
 
 
@@ -67,7 +69,9 @@ def test_present_data_file():
 
 
 def test_unrecognized_atom_style():
-    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(UnrecognizedStyleError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        UnrecognizedStyleError
+    ):
         simulation.command("atom_style unknown")
 
 
@@ -77,7 +81,9 @@ def test_valid_atom_style():
 
 
 def test_unrecognized_pair_style():
-    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(UnrecognizedStyleError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        UnrecognizedStyleError
+    ):
         simulation.command("pair_style unknown")
 
 
@@ -94,12 +100,16 @@ def test_valid_bond_style():
 
 
 def test_unknown_command():
-    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(UnknownCommandError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        UnknownCommandError
+    ):
         simulation.command("missing_command 2.0")
 
 
 def test_illegal_command():
-    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(IllegalCommandError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        IllegalCommandError
+    ):
         simulation.command("atom_modify map blah")
 
 
