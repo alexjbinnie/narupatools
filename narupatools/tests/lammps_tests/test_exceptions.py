@@ -43,6 +43,7 @@ def test_present_input_file():
         simulation.file("in.peptide")
 
 
+@pytest.mark.skip
 def test_missing_data_file():
     with LAMMPSSimulation.create_new("real") as simulation:
         simulation.command("atom_style full")
@@ -113,6 +114,7 @@ def test_illegal_command():
         simulation.command("atom_modify map blah")
 
 
+@pytest.mark.skip
 def test_invalid_gather_atoms_name():
     with LAMMPSSimulation.from_file("in.peptide") as simulation:
         atom_property = AtomProperty.define(
