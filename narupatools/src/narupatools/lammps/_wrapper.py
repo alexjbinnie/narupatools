@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Low-level wrapper around PyLAMMPS to expose some methods in a more pythonic way."""
+"""Low-level wrapper around PyLAMMPS to expose some methods in a more Pythonic way."""
+
+from __future__ import annotations
 
 import abc
 import ctypes
