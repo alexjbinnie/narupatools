@@ -593,6 +593,9 @@ class LAMMPSSimulation(FrameSource):
         """Close the underlying LAMMPS instance."""
         self.__lammps.close()
 
+    def __enter__(self) -> LAMMPSSimulation:
+        return self
+
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()
 
