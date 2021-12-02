@@ -642,7 +642,7 @@ class LAMMPSWrapper:
     def __enter__(self) -> LAMMPSWrapper:
         return self
 
-    def __exit__(self) -> None:
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.__pylammps.close()
 
     def file(self, filename: str) -> None:
