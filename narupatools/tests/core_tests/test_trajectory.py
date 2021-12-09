@@ -30,7 +30,9 @@ class TestTrajectory(TrajectorySource):
     def __len__(self) -> int:
         return 5
 
-    def get_frame(self, *, index: int, fields: InfiniteSet[str]) -> FrameData:
+    def get_frame(
+        self, *, index: int, fields: InfiniteSet[str] = everything()
+    ) -> FrameData:
         data = FrameData()
         data.values["index"] = index
         return data

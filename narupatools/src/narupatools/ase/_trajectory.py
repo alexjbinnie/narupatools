@@ -23,7 +23,7 @@
 from typing import Sequence
 
 from ase.atoms import Atoms
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.ase import ase_atoms_to_frame
@@ -31,7 +31,7 @@ from narupatools.frame import TrajectorySource
 
 
 class ASETrajectory(TrajectorySource):
-    """Trajectory playback using one ore more  ASE `Atoms` objects."""
+    """Trajectory playback using one or more  ASE `Atoms` objects."""
 
     def __init__(self, trajectory: Sequence[Atoms]):
         self._trajectory = trajectory
@@ -40,6 +40,6 @@ class ASETrajectory(TrajectorySource):
         return len(self._trajectory)
 
     def get_frame(  # noqa: D102
-        self, *, index: int, fields: InfiniteSet[str]
+        self, *, index: int, fields: InfiniteSet[str] = everything()
     ) -> FrameData:
         return ase_atoms_to_frame(self._trajectory[index], fields=fields)
