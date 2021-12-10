@@ -21,7 +21,7 @@ from typing import Any
 from ase.atoms import Atoms
 from infinite_sets import everything
 from narupa.trajectory import FrameData
-from nglview import NGLWidget
+from nglview import NGLWidget, show_file
 
 from narupatools.app import Client, Session
 from narupatools.core.dynamics import SimulationDynamics
@@ -100,5 +100,7 @@ def show(obj: Any) -> NGLWidget:
         return show_trajectory(as_traj)
     if isinstance(obj, list) and isinstance(obj[0], FrameData):
         return NGLWidget(FrameDataTrajectory(obj))
+    if isinstance(obj, str):
+        loaded = load_trajectory(obj)
 
     raise ValueError(f"Cannot work out how to show object {obj} using nglview")

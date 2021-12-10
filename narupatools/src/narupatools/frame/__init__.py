@@ -33,6 +33,7 @@ from ._select import select
 from ._simple_trajectory import SimpleTrajectory
 from ._state import StateData
 from ._trajectory_playback import TrajectoryPlayback
+from ._read import Reader, load_frame, load_trajectory
 
 __all__ = [
     "convert",
@@ -50,4 +51,7 @@ __all__ = [
     "DynamicStructureProperties",
     "StateData",
     "SimpleTrajectory",
+    "Reader",
+    "load_frame",
+    "load_trajectory"
 ]
