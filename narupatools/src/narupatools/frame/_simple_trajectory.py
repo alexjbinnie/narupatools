@@ -14,40 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Adapts a MDTraj trajectory for trajectory playback."""
-
-from __future__ import annotations
-
-from typing import Any
-
+import numpy as np
 from infinite_sets import InfiniteSet, everything
-from mdtraj import Trajectory
 from narupa.trajectory import FrameData
 
-from narupatools.frame import TrajectorySource
+from ._frame_source import TrajectorySource
+from .fields import ParticlePositions
 
-from ._converter import mdtraj_trajectory_to_frame
 
+class SimpleTrajectory(TrajectorySource):
+    """Simple trajectory defined by a Narupa FrameData and a list of coordinates."""
 
-class MDTrajTrajectory(TrajectorySource):
-    """MDTraj trajectory playback."""
+    def __init__(self, frame: FrameData, coordinates: np.ndarray):
+        self._frame = frame
+        self._coordinates = coordinates
 
-    def __init__(self, trajectory: Trajectory, /):
-        super().__init__()
-        self._trajectory = trajectory
+    def __len__(self) -> int:
+        return len(self._coordinates)
 
     def get_frame(  # noqa: D102
         self, *, index: int, fields: InfiniteSet[str] = everything()
     ) -> FrameData:
-        return mdtraj_trajectory_to_frame(
-            self._trajectory, frame_index=index, fields=fields
-        )
-
-    def __len__(self) -> int:
-        return len(self._trajectory)
-
-    @classmethod
-    def _create_from_object(cls, obj: Any) -> MDTrajTrajectory:
-        if isinstance(obj, Trajectory):
-            return MDTrajTrajectory(obj)
-        raise NotImplementedError
+        frame = self._frame.copy()
+        frame[ParticlePositions] = self._coordinates[index]
+        return frame  # type: ignore

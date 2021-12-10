@@ -21,7 +21,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Any, List, Optional, Protocol, Type
 
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import EventListener
@@ -63,7 +63,9 @@ class TrajectorySource(metaclass=ABCMeta):
     """Base class for object which can create multiple FrameData."""
 
     @abstractmethod
-    def get_frame(self, *, index: int, fields: InfiniteSet[str]) -> FrameData:
+    def get_frame(
+        self, *, index: int, fields: InfiniteSet[str] = everything()
+    ) -> FrameData:
         """
         Create a FrameData representation, with the given fields present if available.
 
