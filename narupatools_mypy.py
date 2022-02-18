@@ -10,7 +10,7 @@ from mypy.nodes import (
     FuncDef,
     NameExpr,
     OverloadedFuncDef,
-    Var,
+    Var, ArgKind,
 )
 from mypy.plugin import ClassDefContext, Plugin
 
@@ -69,16 +69,16 @@ class NarupatoolsPlugin(Plugin):
             name="__setitem__",
             arguments=[
                 Argument(
-                    variable=Var("self"), type_annotation=None, initializer=None, kind=0
+                    variable=Var("self"), type_annotation=None, initializer=None, kind=ArgKind.ARG_POS
                 ),
                 Argument(
-                    variable=Var("key"), type_annotation=None, initializer=None, kind=0
+                    variable=Var("key"), type_annotation=None, initializer=None, kind=ArgKind.ARG_POS
                 ),
                 Argument(
                     variable=Var("value"),
                     type_annotation=None,
                     initializer=None,
-                    kind=0,
+                    kind=ArgKind.ARG_POS,
                 ),
             ],
             body=Block(body=[]),
@@ -90,10 +90,10 @@ class NarupatoolsPlugin(Plugin):
             name="__getitem__",
             arguments=[
                 Argument(
-                    variable=Var("self"), type_annotation=None, initializer=None, kind=0
+                    variable=Var("self"), type_annotation=None, initializer=None, kind=ArgKind.ARG_POS
                 ),
                 Argument(
-                    variable=Var("key"), type_annotation=None, initializer=None, kind=0
+                    variable=Var("key"), type_annotation=None, initializer=None, kind=ArgKind.ARG_POS
                 ),
             ],
             body=Block(body=[]),

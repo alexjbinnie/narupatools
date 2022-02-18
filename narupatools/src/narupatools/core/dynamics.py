@@ -327,7 +327,7 @@ class SimulationDynamics(
         return self._on_fields_changed
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)  # type: ignore
+        super().__init_subclass__(**kwargs)
         if cls != SimulationDynamics:
             _DYNAMICS_SUBCLASSES.append(cls)
 

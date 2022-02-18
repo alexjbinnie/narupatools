@@ -16,7 +16,7 @@
 
 """Calculate numeric integrals and line integrals."""
 
-from typing import Union
+from typing import Any, List, Union
 
 import numpy as np
 
@@ -42,10 +42,10 @@ def integral(
     # How many axes exist between the samples column and the final column (the components)
     # The default (-1) indicates there is only one axis (the components)
     end_indices = -1 - axis
-    last_axes = [np.s_[:]] * end_indices
+    last_axes: List[slice] = [np.s_[:]] * end_indices
     # Index selection for the starts and ends of each segment
-    step_start = (..., np.s_[:-1], *last_axes)
-    step_end = (..., np.s_[1:], *last_axes)
+    step_start: Any = (..., np.s_[:-1], *last_axes)
+    step_end: Any = (..., np.s_[1:], *last_axes)
 
     return 0.5 * (  # type: ignore
         (integrand[step_start] + integrand[step_end])
@@ -105,7 +105,7 @@ def cumulative_vector_line_integral(
     cumm = np.cumsum(
         vector_line_integral_per_step(integrand, variable, axis=axis), axis=axis
     )
-    return np.insert(cumm, 0, 0, axis)  # type: ignore
+    return np.insert(cumm, 0, 0, axis)
 
 
 def vector_line_integral_per_step(
@@ -143,10 +143,10 @@ def vector_line_integral_per_step(
     # How many axes exist between the samples column and the final column (the components)
     # The default (-1) indicates there is only one axis (the components)
     end_indices = -axis
-    last_axes = [np.s_[:]] * end_indices
+    last_axes: List[slice] = [np.s_[:]] * end_indices
     # Index selection for the starts and ends of each segment
-    step_start = (..., np.s_[:-1], *last_axes)
-    step_end = (..., np.s_[1:], *last_axes)
+    step_start: Any = (..., np.s_[:-1], *last_axes)
+    step_end: Any = (..., np.s_[1:], *last_axes)
 
     return 0.5 * (  # type: ignore
         (integrand[step_start] + integrand[step_end])

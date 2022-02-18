@@ -84,6 +84,6 @@ class Calculator(ASECalculator, metaclass=ABCMeta):
         atoms: Atoms,
         *,
         properties: Collection[str] = ("forces", "energy"),
-        system_changes: List[str] = all_changes
+        system_changes: List[str] = all_changes,
     ) -> None:
         pass

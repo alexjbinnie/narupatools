@@ -408,7 +408,7 @@ class LAMMPSWrapper:
                 raw_ptr[0], POINTER(ctypes.c_double * (shape[0] * shape[1]))
             )
 
-        array = np.frombuffer(ptr.contents)
+        array = np.frombuffer(ptr.contents)  # type: ignore
         array.shape = shape
         array.flags.writeable = False
         return array  # type: ignore

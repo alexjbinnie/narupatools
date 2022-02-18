@@ -68,7 +68,7 @@ class Unit:
         return NotImplemented
 
     def __pow__(self, power: Any, modulo: Optional[Any] = None) -> "Unit":
-        return Unit(self.value ** power)
+        return Unit(self.value**power)
 
     def __repr__(self) -> str:
         return f"Unit({self.value})"
@@ -297,7 +297,7 @@ class UnitSystem:
             self._units[name] = Unit(value)
         with contextlib.suppress(AttributeError):
             self._add_if_missing(
-                "time", (self.mass * self.length ** 2 / self.energy) ** 0.5
+                "time", (self.mass * self.length**2 / self.energy) ** 0.5
             )
         with contextlib.suppress(AttributeError):
             self._add_if_missing("velocity", Unit(self.length / self.time))
@@ -322,9 +322,9 @@ class UnitSystem:
         with contextlib.suppress(AttributeError):
             self._add_if_missing("dynamic_viscosity", Unit(self.pressure * self.time))
         with contextlib.suppress(AttributeError):
-            self._add_if_missing("density", Unit(self.mass / (self.length ** 3)))
+            self._add_if_missing("density", Unit(self.mass / (self.length**3)))
         with contextlib.suppress(AttributeError):
-            self._add_if_missing("density2d", Unit(self.mass / (self.length ** 2)))
+            self._add_if_missing("density2d", Unit(self.mass / (self.length**2)))
         with contextlib.suppress(AttributeError):
             self._add_if_missing("momentum", Unit(self.mass * self.velocity))
         with contextlib.suppress(AttributeError):
@@ -334,7 +334,7 @@ class UnitSystem:
                 "moment_inertia", Unit(self.mass * self.length * self.length)
             )
         with contextlib.suppress(AttributeError):
-            self._add_if_missing("angular_velocity", Unit(self.time ** -1))
+            self._add_if_missing("angular_velocity", Unit(self.time**-1))
 
     def __rshift__(self, other: "UnitSystem") -> "UnitConversion":
         return UnitConversion(self, other)

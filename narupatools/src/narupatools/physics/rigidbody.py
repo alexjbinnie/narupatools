@@ -278,8 +278,8 @@ def moment_of_inertia_tensor(
     positions = np.asfarray(positions)
     masses = np.asfarray(masses)
 
-    positions = positions - origin[..., np.newaxis, :]  # type: ignore
-    return (masses * (positions ** 2).sum(-1)).sum(-1)[  # type: ignore
+    positions = positions - origin[..., np.newaxis, :]
+    return (masses * (positions**2).sum(-1)).sum(-1)[  # type: ignore
         ..., np.newaxis, np.newaxis
     ] * np.eye(3) - (
         masses[..., np.newaxis, np.newaxis]
@@ -308,7 +308,7 @@ def principal_moments_and_axes(
     eigvals, eigvecs = np.linalg.eig(inertia)
     idx = eigvals.argsort()[..., ::-1]
     return eigvals[idx], np.take_along_axis(
-        transpose(eigvecs), idx[..., np.newaxis], axis=-2
+        transpose(eigvecs), idx[..., np.newaxis], axis=-2  # type: ignore
     )
 
 
@@ -344,7 +344,7 @@ def angular_velocity(
     """
     L = spin_angular_momentum(masses=masses, positions=positions, velocities=velocities)
     inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
-    return inv(inertia) @ L  # type: ignore
+    return inv(inertia) @ L
 
 
 def distribute_angular_velocity(
@@ -377,4 +377,4 @@ def distribute_angular_velocity(
     else:
         o = np.asfarray(origin)
     velocities = [np.cross(angular_velocity, position - o) for position in positions]
-    return np.asfarray(velocities)  # type: ignore
+    return np.asfarray(velocities)

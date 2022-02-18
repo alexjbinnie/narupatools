@@ -159,7 +159,7 @@ def test_gaussian_force_zero_offset(depth, sigma):
 def test_gaussian_energy(offset, depth, sigma):
     _, energy = gaussian_force_and_energy(offset=offset, depth=depth, sigma=sigma)
     assert energy == pytest.approx(
-        -depth * math.exp(-sqr_magnitude(offset) / (2 * sigma ** 2))
+        -depth * math.exp(-sqr_magnitude(offset) / (2 * sigma**2))
     )
 
 
@@ -168,8 +168,8 @@ def test_gaussian_force(offset, depth, sigma):
     assert force == pytest.approx(
         -depth
         * offset
-        * math.exp(-sqr_magnitude(offset) / (2 * sigma ** 2))
-        / (sigma ** 2)
+        * math.exp(-sqr_magnitude(offset) / (2 * sigma**2))
+        / (sigma**2)
     )
 
 

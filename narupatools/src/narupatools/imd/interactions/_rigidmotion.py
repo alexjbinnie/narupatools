@@ -144,7 +144,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             particle_angular_momenta = None
 
         try:
-            return inv(inertia_tensor) @ angular_momentum  # type: ignore
+            return inv(inertia_tensor) @ angular_momentum
         except LinAlgError:
             return -2.0 * angular_momentum / np.trace(inertia_tensor)  # type: ignore
 

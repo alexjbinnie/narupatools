@@ -23,7 +23,7 @@ class Render(SubgraphObject):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderBallAndStick:
         """
         Classic ball and stick representation.
@@ -42,7 +42,7 @@ class Render(SubgraphObject):
             color=color,
             opacity=opacity,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -55,7 +55,7 @@ class Render(SubgraphObject):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderCycles:
         """
         Liquorice renderer with solid filled-in cycles.
@@ -74,7 +74,7 @@ class Render(SubgraphObject):
             opacity=opacity,
             bond_scale=bond_scale,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -89,7 +89,7 @@ class Render(SubgraphObject):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderRibbon:
         """
 
@@ -112,7 +112,7 @@ class Render(SubgraphObject):
             color=color,
             opacity=opacity,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -126,7 +126,7 @@ class Render(SubgraphObject):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderGeometricRibbon:
         """
 
@@ -147,7 +147,7 @@ class Render(SubgraphObject):
             opacity=opacity,
             bond_scale=bond_scale,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -157,7 +157,7 @@ class Render(SubgraphObject):
         scale: Optional[float] = None,
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderGoodsell:
         """
         Goodsell style renderer which draws unshaded spheres with outlines between distant residues.
@@ -179,7 +179,7 @@ class Render(SubgraphObject):
         scale: Optional[float] = None,
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderHydrogenBondCaps:
         """
         Render cones to indicate directions which hydrogen bonds should exist.
@@ -200,7 +200,7 @@ class Render(SubgraphObject):
             scale=scale,
             color=color,
             opacity=opacity,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -213,7 +213,7 @@ class Render(SubgraphObject):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderHyperballs:
         """
         Draws spheres connected by hyperboloids.
@@ -232,7 +232,7 @@ class Render(SubgraphObject):
             opacity=opacity,
             bond_scale=bond_scale,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -244,7 +244,7 @@ class Render(SubgraphObject):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderLiquorice:
         """
         Render stick representation with rounded bonds.
@@ -261,7 +261,7 @@ class Render(SubgraphObject):
             opacity=opacity,
             bond_scale=bond_scale,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -272,7 +272,7 @@ class Render(SubgraphObject):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderNoodles:
         """
         Liquorice-like renderer with bonds curved based on neighbouring bonds.
@@ -287,7 +287,7 @@ class Render(SubgraphObject):
             color=color,
             opacity=opacity,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -299,7 +299,7 @@ class Render(SubgraphObject):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderPeptidePlanes:
         """
         Render solid planes aligned with the peptide bonds.
@@ -316,7 +316,7 @@ class Render(SubgraphObject):
             opacity=opacity,
             bond_scale=bond_scale,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -329,7 +329,7 @@ class Render(SubgraphObject):
         scale: Optional[float] = None,
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderSpheres:
         """
         Render spheres without bonds.
@@ -348,7 +348,7 @@ class Render(SubgraphObject):
             scale=scale,
             color=color,
             opacity=opacity,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -359,7 +359,7 @@ class Render(SubgraphObject):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> RenderTube:
         """
         Render solid curved tube through alpha carbons.
@@ -374,7 +374,7 @@ class Render(SubgraphObject):
             color=color,
             opacity=opacity,
             edge_sharpness=edge_sharpness,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -392,7 +392,7 @@ class RenderBallAndStick(Render):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Classic ball and stick representation.
@@ -463,7 +463,7 @@ class RenderCycles(Render):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Liquorice renderer with solid filled-in cycles.
@@ -536,7 +536,7 @@ class RenderRibbon(Render):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
 
@@ -628,7 +628,7 @@ class RenderGeometricRibbon(Render):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
 
@@ -704,7 +704,7 @@ class RenderGoodsell(Render):
         scale: Optional[float] = None,
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Goodsell style renderer which draws unshaded spheres with outlines between distant residues.
@@ -752,7 +752,7 @@ class RenderHydrogenBondCaps(Render):
         scale: Optional[float] = None,
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Render cones to indicate directions which hydrogen bonds should exist.
@@ -831,7 +831,7 @@ class RenderHyperballs(Render):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Draws spheres connected by hyperboloids.
@@ -901,7 +901,7 @@ class RenderLiquorice(Render):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Render stick representation with rounded bonds.
@@ -962,7 +962,7 @@ class RenderNoodles(Render):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Liquorice-like renderer with bonds curved based on neighbouring bonds.
@@ -1016,7 +1016,7 @@ class RenderPeptidePlanes(Render):
         opacity: Optional[float] = None,
         bond_scale: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Render solid planes aligned with the peptide bonds.
@@ -1085,7 +1085,7 @@ class RenderSpheres(Render):
         scale: Optional[float] = None,
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Render spheres without bonds.
@@ -1158,7 +1158,7 @@ class RenderTube(Render):
         color: Optional[SingleColor] = None,
         opacity: Optional[float] = None,
         edge_sharpness: Optional[float] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Render solid curved tube through alpha carbons.

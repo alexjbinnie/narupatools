@@ -102,7 +102,7 @@ def test_spherical_angmom(
     simulation.run(n_steps)
 
     # Moment of inertia of a sphere
-    moment_inertia = 0.4 * mass * (radius ** 2)
+    moment_inertia = 0.4 * mass * (radius**2)
 
     angular_displacement = (
         n_steps * simulation.timestep * angular_momentum / moment_inertia

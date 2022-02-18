@@ -90,7 +90,7 @@ def test_lammps_real():
 
     # Check inconsistency of units
     assert 1.0 * units.energy != pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -117,7 +117,7 @@ def test_lammps_metal():
 
     # Check inconsistency of units
     assert 1.0 * units.energy != pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -137,12 +137,12 @@ def test_lammps_si():
     assert 1.0 * units.charge == pytest.approx(1.0 * coulomb)
     assert 1.0 * units.dipole_moment == pytest.approx(1.0 * coulomb * meter)
     assert 1.0 * units.electric_field == pytest.approx(1.0 * volt / meter)
-    assert 1.0 * units.density == pytest.approx(1.0 * kilo * gram / (meter ** 3))
-    assert 1.0 * units.density2d == pytest.approx(1.0 * kilo * gram / (meter ** 2))
+    assert 1.0 * units.density == pytest.approx(1.0 * kilo * gram / (meter**3))
+    assert 1.0 * units.density2d == pytest.approx(1.0 * kilo * gram / (meter**2))
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -170,7 +170,7 @@ def test_lammps_cgs():
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -191,7 +191,7 @@ def test_lammps_electron():
 
     # Check inconsistency of units
     assert 1.0 * units.energy != pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -234,7 +234,7 @@ def test_lammps_micro():
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -275,7 +275,7 @@ def test_lammps_nano():
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 

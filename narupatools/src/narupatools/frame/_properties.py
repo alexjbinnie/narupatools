@@ -309,7 +309,7 @@ class SelectionView(
     @override(DynamicStructureProperties.masses)
     @property
     def masses(self) -> ScalarArray:  # noqa: D102
-        return self._source.masses[..., self._selection]  # type: ignore
+        return self._source.masses[..., self._selection]
 
     @masses.setter
     def masses(self, value: ScalarArray) -> None:
@@ -320,7 +320,7 @@ class SelectionView(
     @override(DynamicStructureProperties.positions)
     @property
     def positions(self) -> Vector3Array:  # noqa: D102
-        return self._source.positions[..., self._selection, :]  # type: ignore
+        return self._source.positions[..., self._selection, :]
 
     @positions.setter
     def positions(self, value: Vector3Array) -> None:
@@ -331,7 +331,7 @@ class SelectionView(
     @override(DynamicStructureProperties.velocities)  # type: ignore
     @property
     def velocities(self) -> Vector3Array:  # type: ignore  # noqa: D102
-        return self._source.velocities[..., self._selection, :]  # type: ignore
+        return self._source.velocities[..., self._selection, :]
 
     @velocities.setter
     def velocities(self, value: Vector3Array) -> None:
@@ -342,7 +342,7 @@ class SelectionView(
     @override(DynamicStructureProperties.orientations)
     @property
     def orientations(self) -> npt.NDArray[quaternion]:  # noqa: D102
-        return self._source.orientations[..., self._selection, :]  # type: ignore
+        return self._source.orientations[..., self._selection, :]
 
     @override(DynamicStructureProperties.moments_of_inertia)
     @property

@@ -129,10 +129,7 @@ class HDF5Topology(FrameSource):
                                     atom.element = atom_json["element"]
                                 if "name" in atom_json:
                                     atom.name = atom_json["name"]
-                                if "mass" in atom_json:
-                                    atom.mass = atom_json["mass"]
-                                else:
-                                    atom.mass = masses[Z2SYMB[atom.atomic_number]]  # type: ignore
+                                atom.mass = atom_json.get("mass", masses[Z2SYMB[atom.atomic_number]])  # type: ignore
         return topology
 
     def get_frame(self, *, fields: InfiniteSet[str]) -> FrameData:  # noqa: D102
