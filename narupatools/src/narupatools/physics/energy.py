@@ -90,7 +90,7 @@ def work_per_step(
     """
     if time_axis > -1:
         raise ValueError("Axis must be less than or equal to -2.")
-    return np.insert(  # type: ignore
+    return np.insert(
         vector_line_integral_per_step(forces, positions, axis=1 + time_axis),
         0,
         0,

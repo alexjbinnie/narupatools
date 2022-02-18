@@ -216,7 +216,7 @@ class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
     @override(FrameKey.convert)
     def convert(self, value: AssignableToFloatArray) -> np.ndarray:
-        return np.asfarray(value)  # type: ignore
+        return np.asfarray(value)
 
     @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:

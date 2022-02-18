@@ -56,7 +56,7 @@ def matrix_inverse(matrix: Matrix3x3Like) -> Matrix3x3:
     :return: Inverse of the matrix :math:`M`
     """
     try:
-        return np.linalg.inv(matrix)  # type: ignore
+        return np.linalg.inv(matrix)
     except np.linalg.LinAlgError as e:
         raise ValueError("Matrix is singular and hence cannot be inverted.") from e
 

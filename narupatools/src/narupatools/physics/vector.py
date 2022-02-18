@@ -133,7 +133,7 @@ def normalized(
     else:
         mag = np.sqrt((arr**2).sum(axis=-1))
         if isinstance(mag, float):
-            return np.nan_to_num(arr / mag)  # type: ignore
+            return np.nan_to_num(arr / mag)
         else:
             return np.nan_to_num(arr / mag[:, np.newaxis])  # type: ignore
 
@@ -178,7 +178,7 @@ def vector_rejection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
     :param onto: Vector :math:`b` to reject from.
     :return: Vector rejection :math:`a_2` of vector :math:`a` from vector :math:`b`.
     """
-    return np.asfarray(vector) - vector_projection(vector, onto)  # type: ignore
+    return np.asfarray(vector) - vector_projection(vector, onto)
 
 
 def distance(vector1: Vector3Like, vector2: Optional[Vector3Like] = None, /) -> float:
