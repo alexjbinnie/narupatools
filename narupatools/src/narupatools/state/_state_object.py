@@ -127,7 +127,7 @@ class SharedStateObject(SerializableObject):
     @override(SerializableObject.deserialize)
     def deserialize(cls: Type[_TClass], value: Serializable) -> _TClass:  # noqa: D102
         if isinstance(value, Mapping):
-            return cls(**value)  # type: ignore
+            return cls(**value)
         raise ValueError
 
     @override(SerializableObject.serialize)

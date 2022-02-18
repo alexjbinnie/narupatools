@@ -79,7 +79,7 @@ class TrajectorySource(metaclass=ABCMeta):
         pass
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)  # type: ignore
+        super().__init_subclass__(**kwargs)
         if cls != TrajectorySource:
             _TRAJ_SOURCE_SUBCLASSES.append(cls)
 
