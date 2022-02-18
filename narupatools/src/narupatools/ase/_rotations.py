@@ -151,7 +151,7 @@ def calculate_angular_velocity(
 ) -> Vector3Array:
     """Calculate per-particle angular velocity."""
     if len(principal_moments.shape) == 1:
-        return np.nan_to_num(angular_momenta / principal_moments)  # type: ignore
+        return np.nan_to_num(angular_momenta / principal_moments)
     else:
         # todo
         raise ValueError

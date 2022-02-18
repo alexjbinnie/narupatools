@@ -272,10 +272,7 @@ def _add_ase_atoms_particles_to_frame(
         frame[ParticleVelocities] = atoms.get_velocities() * _ASEToNarupa.velocity
 
     if ParticleNames in fields:
-        if "atomtypes" in atoms.arrays:
-            frame[ParticleNames] = atoms.arrays["atomtypes"]
-        else:
-            frame[ParticleNames] = list(atoms.symbols)
+        frame[ParticleNames] = atoms.arrays.get("atomtypes", list(atoms.symbols))
 
 
 def _add_ase_atoms_calculated_properties_to_frame(

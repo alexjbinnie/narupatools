@@ -6,18 +6,18 @@ channels:
   - conda-forge
 dependencies:
 # Black formatter
-  - black=21.*
+  - black=22.*
 # Import soring
   - isort=5.*
 # Flake8 and extensions
-  - flake8=3.9.*
-  - flake8-bugbear=21.*
+  - flake8=4.0.*
+  - flake8-bugbear=22.*
   - flake8-comprehensions=3.*
   - flake8-docstrings=1.*
-  - flake8-pyi=20.*
+  - flake8-pyi=22.*
   - flake8-rst-docstrings=0.2.*
-  - flake8-simplify=0.14.*
+  - flake8-simplify=0.17.*
   - flake8-builtins=1.5.*
 # Mypy and extensions
-  - mypy=0.910
+  - mypy=0.931
   - mypy_extensions=0.4.*

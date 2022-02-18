@@ -39,7 +39,7 @@ def kinetic_energy(
     :param masses: Masses :math:`m_i` of each particle.
     :param velocities: Velocities :math:`\vec v_i` of each particle.
     """
-    return 0.5 * (masses * (velocities ** 2).sum(axis=-1)).sum(axis=-1)  # type: ignore
+    return 0.5 * (masses * (velocities**2).sum(axis=-1)).sum(axis=-1)  # type: ignore
 
 
 def total_work(
@@ -90,7 +90,7 @@ def work_per_step(
     """
     if time_axis > -1:
         raise ValueError("Axis must be less than or equal to -2.")
-    return np.insert(  # type: ignore
+    return np.insert(
         vector_line_integral_per_step(forces, positions, axis=1 + time_axis),
         0,
         0,

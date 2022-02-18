@@ -104,7 +104,7 @@ class LAMMPSDataFile:
         if isinstance(arg, str):
             return select(self._frame, arg)
         else:
-            return np.where(self._atom_type_assignments == arg)[0]  # type: ignore
+            return np.where(self._atom_type_assignments == arg)[0]
 
     def output(self, *, comment: str) -> None:
         """Generate the data file."""

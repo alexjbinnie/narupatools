@@ -21,14 +21,7 @@ class MemoryReader:
     def __init__(
         self,
         coordinate_array: np.ndarray,
-        order: Union[
-            Literal["afc"],
-            Literal["acf"],
-            Literal["caf"],
-            Literal["fac"],
-            Literal["fca"],
-            Literal["cfa"],
-        ] = ...,
+        order: Literal["afc", "acf", "caf", "fac", "fca", "cfa"] = ...,
         dimensions: Optional[np.ndarray] = ...,
         dt: float = ...,
         filename: Optional[str] = ...,

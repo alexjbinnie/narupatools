@@ -53,7 +53,7 @@ def _scatter_rectangles(rectangles: npt.ArrayLike) -> np.ndarray:
 
         r = np.random.random_sample(dim) - 0.5
         r /= bounding_box[1]
-        r /= np.sqrt(np.max(r ** 2))
+        r /= np.sqrt(np.max(r**2))
 
         points[i] = (
             bounding_box[0]
