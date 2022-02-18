@@ -39,7 +39,7 @@ def kinetic_energy(
     :param masses: Masses :math:`m_i` of each particle.
     :param velocities: Velocities :math:`\vec v_i` of each particle.
     """
-    return 0.5 * (masses * (velocities ** 2).sum(axis=-1)).sum(axis=-1)  # type: ignore
+    return 0.5 * (masses * (velocities**2).sum(axis=-1)).sum(axis=-1)  # type: ignore
 
 
 def total_work(

@@ -35,8 +35,8 @@ def test_samples():
 
 
 INTEGRALS = [
-    (lambda x: x ** 2, 0, 1, 100, 0.33335034),
-    (lambda x: x ** 2, 2, 4, 5, 18.75),
+    (lambda x: x**2, 0, 1, 100, 0.33335034),
+    (lambda x: x**2, 2, 4, 5, 18.75),
     (lambda x: math.sin(x), 0, math.pi, 50, 1.9993148),
     (lambda x: math.exp(x), -3, 3, 80, 20.04538),
     (lambda x: math.cosh(x), -4, -2, 11, 23.741881),
@@ -66,7 +66,7 @@ def test_integral_equals_np_trapz(integrand, start, end, sample_count, result):
 LINE_INTEGRALS = [
     (lambda t: [t, 0], lambda t: [0.5 * t, 0], 0, 1, 10, 0.25),
     (lambda t: [math.sin(t), 0], lambda t: [t, t], 1, 3, 50, 1.5300823),
-    (lambda t: [t ** 2, -t], lambda t: [math.cos(t), 0], -4, 7, 500, 29.33303),
+    (lambda t: [t**2, -t], lambda t: [math.cos(t), 0], -4, 7, 500, 29.33303),
 ]
 
 

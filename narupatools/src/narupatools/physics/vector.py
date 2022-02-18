@@ -131,7 +131,7 @@ def normalized(
     if arr.dtype == quaternion:
         return np.normalized(arr)  # type: ignore
     else:
-        mag = np.sqrt((arr ** 2).sum(axis=-1))
+        mag = np.sqrt((arr**2).sum(axis=-1))
         if isinstance(mag, float):
             return np.nan_to_num(arr / mag)  # type: ignore
         else:

@@ -44,7 +44,7 @@ class Renderer(SharedStateObject):
         width: Optional[Union[float, Scale]] = None,
         render: Optional[Render] = None,
         sequence: Optional[Sequence] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> Renderer:
         """
         Create a new custom visualiser.
@@ -61,5 +61,5 @@ class Renderer(SharedStateObject):
             width=width,
             sequence=sequence,
             render=render,
-            **kwargs
+            **kwargs,
         )

@@ -279,7 +279,7 @@ def moment_of_inertia_tensor(
     masses = np.asfarray(masses)
 
     positions = positions - origin[..., np.newaxis, :]  # type: ignore
-    return (masses * (positions ** 2).sum(-1)).sum(-1)[  # type: ignore
+    return (masses * (positions**2).sum(-1)).sum(-1)[  # type: ignore
         ..., np.newaxis, np.newaxis
     ] * np.eye(3) - (
         masses[..., np.newaxis, np.newaxis]

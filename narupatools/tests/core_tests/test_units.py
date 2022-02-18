@@ -59,19 +59,19 @@ from narupatools.physics.units import (
 
 
 def test_general():
-    assert 1.0 * newton == pytest.approx(1.0 * kilo * gram * meter / (second ** 2))
-    assert 1.0 * pascal == pytest.approx(1.0 * newton / (meter ** 2))
+    assert 1.0 * newton == pytest.approx(1.0 * kilo * gram * meter / (second**2))
+    assert 1.0 * pascal == pytest.approx(1.0 * newton / (meter**2))
     assert 1.0 * joule == pytest.approx(1.0 * newton * meter)
 
     assert 1.0 * hartree == pytest.approx(4.3597447222071e-18 * joule)
 
     assert 1.0 * volt == pytest.approx(1.0 * joule / coulomb)
     assert 1.0 * volt == pytest.approx(
-        1.0 * kilo * gram * meter * meter / (second ** 3) / amp
+        1.0 * kilo * gram * meter * meter / (second**3) / amp
     )
 
     assert 1.0 * erg == pytest.approx(
-        1.0 * gram * ((centi * meter) ** 2) / (second ** 2)
+        1.0 * gram * ((centi * meter) ** 2) / (second**2)
     )
     assert 1.0 * erg == pytest.approx(1.0 * joule * 1e-7)
 
@@ -79,7 +79,7 @@ def test_general():
     assert 1.0 * statcoulomb == pytest.approx(3.33564095198e-10 * coulomb)
 
     assert 1.0 * poise == pytest.approx(
-        0.1 * (meter ** -1) * kilo * gram * (second ** -1)
+        0.1 * (meter**-1) * kilo * gram * (second**-1)
     )
     assert 1.0 * poise == pytest.approx(0.1 * pascal * second)
 
@@ -120,7 +120,7 @@ def test_narupa():
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -134,21 +134,21 @@ def test_ase():
     assert 1.0 * units.time == pytest.approx(1.0 * ase_time)
     assert 1.0 * units.energy == pytest.approx(1.0 * electronvolt)
     assert 1.0 * units.velocity == pytest.approx(1.0 * angstrom / ase_time)
-    assert 1.0 * units.force == pytest.approx(1.0 * amu * angstrom / (ase_time ** 2))
+    assert 1.0 * units.force == pytest.approx(1.0 * amu * angstrom / (ase_time**2))
     assert 1.0 * units.force == pytest.approx(1.0 * electronvolt / angstrom)
     assert 1.0 * units.torque == pytest.approx(1.0 * electronvolt)
     assert 1.0 * units.temperature == pytest.approx(1.0 * kelvin)
-    assert 1.0 * units.pressure == pytest.approx(1.0 * electronvolt / (angstrom ** 3))
+    assert 1.0 * units.pressure == pytest.approx(1.0 * electronvolt / (angstrom**3))
     assert 1.0 * units.charge == pytest.approx(1.0 * elementary_charge)
     assert 1.0 * units.dipole_moment == pytest.approx(
         1.0 * elementary_charge * angstrom
     )
-    assert 1.0 * units.density == pytest.approx(1.0 * amu / (angstrom ** 3))
-    assert 1.0 * units.density2d == pytest.approx(1.0 * amu / (angstrom ** 2))
+    assert 1.0 * units.density == pytest.approx(1.0 * amu / (angstrom**3))
+    assert 1.0 * units.density2d == pytest.approx(1.0 * amu / (angstrom**2))
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -162,7 +162,7 @@ def test_mdtraj():
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -177,11 +177,11 @@ def test_mdanalysis():
     assert 1.0 * units.angle == pytest.approx(1.0 * degree)
     assert 1.0 * units.velocity == pytest.approx(1.0 * angstrom / (pico * second))
     assert 1.0 * units.charge == pytest.approx(1.0 * elementary_charge)
-    assert 1.0 * units.density == pytest.approx(1.0 * amu / (angstrom ** 3))
+    assert 1.0 * units.density == pytest.approx(1.0 * amu / (angstrom**3))
 
     # Check inconsistency of units
     assert 1.0 * units.energy != pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -198,7 +198,7 @@ def test_openmm():
 
     # Check consistency of units
     assert 1.0 * units.energy == pytest.approx(
-        1.0 * units.mass * (units.length ** 2) / (units.time ** 2)
+        1.0 * units.mass * (units.length**2) / (units.time**2)
     )
 
 
@@ -302,11 +302,11 @@ def test_unit_sqrt():
 
 
 def test_unit_power():
-    assert isinstance(meter ** 3, Unit)
+    assert isinstance(meter**3, Unit)
 
 
 def test_unit_inverse_power():
-    assert isinstance(meter ** -2, Unit)
+    assert isinstance(meter**-2, Unit)
 
 
 def test_unit_add():
