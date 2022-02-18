@@ -21,11 +21,17 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
-from narupatools.lammps import LAMMPSSimulation
+from narupatools.lammps import INSTALLED_PACKAGES, LAMMPSSimulation
 from narupatools.lammps.regions import Box
 from narupatools.physics.random import random_float, random_integer, random_vector
 from narupatools.physics.transformation import Rotation
 from narupatools.physics.vector import vector
+
+if "ASPHERE" not in INSTALLED_PACKAGES:
+    pytest.skip("Requires ASPHERE package.", allow_module_level=True)
+
+if "CG-DNA" not in INSTALLED_PACKAGES:
+    pytest.skip("Requires CG-DNA package.", allow_module_level=True)
 
 
 @pytest.fixture(params=range(20))
@@ -46,12 +52,12 @@ def timestep(seed):
 
 @pytest.fixture
 def simulation(timestep):
-    simulation = LAMMPSSimulation.create_new("nano")
-    simulation.command("atom_style ellipsoid")
-    simulation.create_box(n_types=1, region=Box.from_size(size=vector(10, 10, 10)))
-    simulation.timestep = timestep
-    simulation.command("fix integrate all nve/dot")
-    return simulation
+    with LAMMPSSimulation.create_new("nano") as simulation:
+        simulation.command("atom_style ellipsoid")
+        simulation.create_box(n_types=1, region=Box.from_size(size=vector(10, 10, 10)))
+        simulation.timestep = timestep
+        simulation.command("fix integrate all nve/dot")
+        yield simulation
 
 
 @pytest.fixture

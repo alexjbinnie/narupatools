@@ -23,9 +23,32 @@ from .exceptions import LAMMPSError, LAMMPSWarning
 has_lammps = importlib.util.find_spec("lammps") is not None
 
 if has_lammps:
+    import lammps
+
     from ._converter import LAMMPSConverter  # noqa: F401
     from ._dynamics import LAMMPSDynamics
     from ._simulation import LAMMPSSimulation
+
+    lmp = lammps.lammps()
+    INSTALLED_PACKAGES = set(lmp.installed_packages)
+    """Set of packages currently installed with LAMMPS."""
+    INSTALLED_ATOM_STYLES = set(lmp.available_styles("atom"))
+    INSTALLED_INTEGRATE_STYLES = set(lmp.available_styles("integrate"))
+    INSTALLED_MINIMIZE_STYLES = set(lmp.available_styles("minimize"))
+    INSTALLED_PAIR_STYLES = set(lmp.available_styles("pair"))
+    INSTALLED_BOND_STYLES = set(lmp.available_styles("bond"))
+    INSTALLED_ANGLE_STYLES = set(lmp.available_styles("angle"))
+    INSTALLED_DIHEDRAL_STYLES = set(lmp.available_styles("dihedral"))
+    INSTALLED_IMPROPER_STYLES = set(lmp.available_styles("improper"))
+    INSTALLED_KSPACE_STYLES = set(lmp.available_styles("kspace"))
+    INSTALLED_COMPUTE_STYLES = set(lmp.available_styles("compute"))
+    INSTALLED_FIX_STYLES = set(lmp.available_styles("fix"))
+    INSTALLED_REGION_STYLES = set(lmp.available_styles("region"))
+    INSTALLED_DUMP_STYLES = set(lmp.available_styles("dump"))
+    INSTALLED_COMMAND_STYLES = set(lmp.available_styles("command"))
+
+    lmp.close()
+
 
 from ._datafile import LAMMPSDataFile
 from ._units import (
@@ -53,4 +76,19 @@ __all__ = [
     "LAMMPSWarning",
     "LAMMPSDynamics",
     "LAMMPSDataFile",
+    "INSTALLED_PACKAGES",
+    "INSTALLED_ATOM_STYLES",
+    "INSTALLED_INTEGRATE_STYLES",
+    "INSTALLED_MINIMIZE_STYLES",
+    "INSTALLED_PAIR_STYLES",
+    "INSTALLED_BOND_STYLES",
+    "INSTALLED_ANGLE_STYLES",
+    "INSTALLED_DIHEDRAL_STYLES",
+    "INSTALLED_IMPROPER_STYLES",
+    "INSTALLED_KSPACE_STYLES",
+    "INSTALLED_COMPUTE_STYLES",
+    "INSTALLED_FIX_STYLES",
+    "INSTALLED_REGION_STYLES",
+    "INSTALLED_DUMP_STYLES",
+    "INSTALLED_COMMAND_STYLES",
 ]

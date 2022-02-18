@@ -42,6 +42,7 @@ def villin_simulation_original(villin_pdbfile) -> Simulation:
     integrator = LangevinIntegrator(300 * kelvin, 1 / picosecond, 0.005 * picoseconds)
     simulation = Simulation(villin_pdbfile.topology, system, integrator)
     simulation.context.setPositions(villin_pdbfile.positions)
+    print(f"OpenMM platform: {simulation.context.getPlatform().getName()}")
     return simulation
 
 

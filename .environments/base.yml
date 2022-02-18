@@ -19,6 +19,7 @@ dependencies:
   - mdtraj=1.*
   - openmm>=7.6
   - rdkit=2021.*
+  - lammps=2021.09.29
 # Packages required to run jupyter notebooks
   - plotly=5.*
   - nglview=3.*

@@ -43,6 +43,7 @@ CANNOT_OPEN_FILE_REGEX = re.compile(
     r"cannot open file [\w.]+: No such file or directory", re.IGNORECASE
 )
 UNRECOGNIZED_STYLE_REGEX = re.compile(r"Unrecognized \w+ style", re.IGNORECASE)
+RAISE_WARNING_AS_ERROR = False
 
 
 def _handle_error(message: str) -> None:
@@ -88,16 +89,16 @@ def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
     for line in output.splitlines():
         if line.startswith("WARNING: "):
             warning = line[9:]
-            if warning.startswith("Library error in lammps_gather_atoms"):
-                raise AtomIDsNotDefinedError(func_name="gather_atoms")
-            elif warning.startswith("Library error in lammps_scatter_atoms"):
-                raise AtomIDsNotDefinedError(func_name="scatter_atoms")
-            elif warning.startswith("lammps_gather_atoms: unknown property name"):
-                raise UnknownPropertyNameError(warning)
-            elif warning.startswith("lammps_gather_atoms: unsupported data type"):
-                raise UnknownDataTypeError(warning)
-            else:
-                warnings.warn(LAMMPSWarning(warning))
+            if RAISE_WARNING_AS_ERROR:
+                if warning.startswith("Library error in lammps_gather_atoms"):
+                    raise AtomIDsNotDefinedError(func_name="gather_atoms")
+                elif warning.startswith("Library error in lammps_scatter_atoms"):
+                    raise AtomIDsNotDefinedError(func_name="scatter_atoms")
+                elif warning.startswith("lammps_gather_atoms: unknown property name"):
+                    raise UnknownPropertyNameError(warning)
+                elif warning.startswith("lammps_gather_atoms: unsupported data type"):
+                    raise UnknownDataTypeError(warning)
+            warnings.warn(LAMMPSWarning(warning))
         elif line.startswith("ERROR: "):
             error = line[7:]
             _handle_error(error)

@@ -32,86 +32,93 @@ from narupatools.lammps.exceptions import (
 
 
 def test_missing_input_file():
-    simulation = LAMMPSSimulation.create_new("real")
-    with pytest.raises(MissingInputScriptError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        MissingInputScriptError
+    ):
         simulation.file("in.missing")
 
 
 def test_present_input_file():
-    simulation = LAMMPSSimulation.create_new("real")
-    simulation.file("in.peptide")
+    with LAMMPSSimulation.create_new("real") as simulation:
+        simulation.file("in.peptide")
 
 
+@pytest.mark.skip
 def test_missing_data_file():
-    simulation = LAMMPSSimulation.create_new("real")
-    simulation.command("atom_style full")
-    simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
-    simulation.command("bond_style harmonic")
-    simulation.command("angle_style charmm")
-    simulation.command("dihedral_style charmm")
-    simulation.command("improper_style harmonic")
-    simulation.command("kspace_style pppm 0.0001")
-    with pytest.raises(CannotOpenFileError):
-        simulation.command("read_data data.missing")
+    with LAMMPSSimulation.create_new("real") as simulation:
+        simulation.command("atom_style full")
+        simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
+        simulation.command("bond_style harmonic")
+        simulation.command("angle_style charmm")
+        simulation.command("dihedral_style charmm")
+        simulation.command("improper_style harmonic")
+        simulation.command("kspace_style pppm 0.0001")
+        with pytest.raises(CannotOpenFileError):
+            simulation.command("read_data data.missing")
 
 
 def test_present_data_file():
-    simulation = LAMMPSSimulation.create_new("real")
-    simulation.command("atom_style full")
-    simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
-    simulation.command("bond_style harmonic")
-    simulation.command("angle_style charmm")
-    simulation.command("dihedral_style charmm")
-    simulation.command("improper_style harmonic")
-    simulation.command("kspace_style pppm 0.0001")
-    simulation.command("read_data data.peptide")
+    with LAMMPSSimulation.create_new("real") as simulation:
+        simulation.command("atom_style full")
+        simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
+        simulation.command("bond_style harmonic")
+        simulation.command("angle_style charmm")
+        simulation.command("dihedral_style charmm")
+        simulation.command("improper_style harmonic")
+        simulation.command("kspace_style pppm 0.0001")
+        simulation.command("read_data data.peptide")
 
 
 def test_unrecognized_atom_style():
-    simulation = LAMMPSSimulation.create_new("real")
-    with pytest.raises(UnrecognizedStyleError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        UnrecognizedStyleError
+    ):
         simulation.command("atom_style unknown")
 
 
 def test_valid_atom_style():
-    simulation = LAMMPSSimulation.create_new("real")
-    simulation.command("atom_style full")
+    with LAMMPSSimulation.create_new("real") as simulation:
+        simulation.command("atom_style full")
 
 
 def test_unrecognized_pair_style():
-    simulation = LAMMPSSimulation.create_new("real")
-    with pytest.raises(UnrecognizedStyleError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        UnrecognizedStyleError
+    ):
         simulation.command("pair_style unknown")
 
 
 def test_valid_pair_style():
-    simulation = LAMMPSSimulation.create_new("real")
-    simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
+    with LAMMPSSimulation.create_new("real") as simulation:
+        simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
 
 
 def test_valid_bond_style():
-    simulation = LAMMPSSimulation.create_new("real")
-    simulation.command("atom_style full")
-    simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
-    simulation.command("bond_style harmonic")
+    with LAMMPSSimulation.create_new("real") as simulation:
+        simulation.command("atom_style full")
+        simulation.command("pair_style lj/charmm/coul/long 8.0 10.0 10.0")
+        simulation.command("bond_style harmonic")
 
 
 def test_unknown_command():
-    simulation = LAMMPSSimulation.create_new("real")
-    with pytest.raises(UnknownCommandError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        UnknownCommandError
+    ):
         simulation.command("missing_command 2.0")
 
 
 def test_illegal_command():
-    simulation = LAMMPSSimulation.create_new("real")
-    with pytest.raises(IllegalCommandError):
+    with LAMMPSSimulation.create_new("real") as simulation, pytest.raises(
+        IllegalCommandError
+    ):
         simulation.command("atom_modify map blah")
 
 
+@pytest.mark.skip
 def test_invalid_gather_atoms_name():
-    simulation = LAMMPSSimulation.from_file("in.peptide")
-    atom_property = AtomProperty.define(
-        "unknown_key", datatype=VariableType.DOUBLE, components=3
-    )
-    with pytest.raises(UnknownAtomPropertyError):
-        simulation.gather_atoms(atom_property)
+    with LAMMPSSimulation.from_file("in.peptide") as simulation:
+        atom_property = AtomProperty.define(
+            "unknown_key", datatype=VariableType.DOUBLE, components=3
+        )
+        with pytest.raises(UnknownAtomPropertyError):
+            simulation.gather_atoms(atom_property)

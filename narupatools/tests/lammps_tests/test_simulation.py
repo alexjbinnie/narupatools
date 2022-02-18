@@ -23,14 +23,10 @@ from narupatools.lammps._simulation import LAMMPSSimulation
 from narupatools.lammps.atom_properties import AtomID
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def simulation():
-    return LAMMPSSimulation.from_file("./in.peptide")
-
-
-@pytest.fixture(scope="module")
-def simulation_dynamic():
-    return LAMMPSSimulation.from_file("./in.peptide")
+    with LAMMPSSimulation.from_file("./in.peptide") as simulation:
+        yield simulation
 
 
 def test_energy(simulation):
@@ -70,9 +66,9 @@ def test_ids_sorted(simulation):
     assert np.all(np.diff(simulation.gather_atoms(AtomID)) >= 1)
 
 
-def test_set_positions(simulation_dynamic):
-    positions = simulation_dynamic.positions.copy()
+def test_set_positions(simulation):
+    positions = simulation.positions.copy()
     positions[0] += [10.0, 0.0, 0.0]
-    simulation_dynamic.positions = positions
-    new_positions = simulation_dynamic.positions
+    simulation.positions = positions
+    new_positions = simulation.positions
     assert new_positions[0] == pytest.approx(positions[0])

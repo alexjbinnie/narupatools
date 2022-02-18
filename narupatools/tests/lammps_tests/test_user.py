@@ -24,18 +24,18 @@ from narupatools.lammps import LAMMPSDynamics, LAMMPSSimulation
 
 
 def test_ase_lammps():
-    simulation = LAMMPSSimulation.from_file("in.peptide")
+    with LAMMPSSimulation.from_file("in.peptide") as simulation:
 
-    atoms = atoms_from_lammps_simulation(simulation)
+        atoms = atoms_from_lammps_simulation(simulation)
 
-    dynamics = ASEDynamics.create_velocity_verlet(atoms, timestep=0.002)
+        dynamics = ASEDynamics.create_velocity_verlet(atoms, timestep=0.002)
 
-    dynamics.run(100)
+        dynamics.run(100)
 
 
 def test_lammps():
-    simulation = LAMMPSSimulation.from_file("in.peptide")
+    with LAMMPSSimulation.from_file("in.peptide") as simulation:
 
-    dynamics = LAMMPSDynamics(simulation)
+        dynamics = LAMMPSDynamics(simulation)
 
-    dynamics.run(100)
+        dynamics.run(100)
