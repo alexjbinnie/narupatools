@@ -37,10 +37,10 @@ class MDTrajTrajectory(TrajectorySource):
         self._trajectory = trajectory
 
     def get_frame(  # noqa: D102
-        self, *, index: int, fields: InfiniteSet[str]
+        self, *, index: int, fields: InfiniteSet[str] = everything()
     ) -> FrameData:
         return mdtraj_trajectory_to_frame(
-            self._trajectory, frame_index=index, fields=everything()
+            self._trajectory, frame_index=index, fields=fields
         )
 
     def __len__(self) -> int:

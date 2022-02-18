@@ -13,14 +13,28 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-import numpy as np
 
-class Rotation:
-    @classmethod
-    def from_quat(cls, quat: np.ndarray) -> Rotation: ...
-    def as_matrix(self) -> np.ndarray: ...
-    @classmethod
-    def from_rotvec(cls, rotvec: np.ndarray, degrees: bool = ...): ...
-    @classmethod
-    def random(cls) -> Rotation: ...
-    def apply(self, vector: np.ndarray) -> np.ndarray: ...
+import numpy as np
+from infinite_sets import InfiniteSet, everything
+from narupa.trajectory import FrameData
+
+from ._frame_source import TrajectorySource
+from .fields import ParticlePositions
+
+
+class SimpleTrajectory(TrajectorySource):
+    """Simple trajectory defined by a Narupa FrameData and a list of coordinates."""
+
+    def __init__(self, frame: FrameData, coordinates: np.ndarray):
+        self._frame = frame
+        self._coordinates = coordinates
+
+    def __len__(self) -> int:
+        return len(self._coordinates)
+
+    def get_frame(  # noqa: D102
+        self, *, index: int, fields: InfiniteSet[str] = everything()
+    ) -> FrameData:
+        frame = self._frame.copy()
+        frame[ParticlePositions] = self._coordinates[index]
+        return frame  # type: ignore
