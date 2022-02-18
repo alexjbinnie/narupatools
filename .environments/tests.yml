@@ -7,4 +7,5 @@ dependencies:
   - pytest=6.*
   - pytest-xdist=2.*
   - pytest-timeout=2.*
+  - pytest-cov=3.*
   - hypothesis=6.*
