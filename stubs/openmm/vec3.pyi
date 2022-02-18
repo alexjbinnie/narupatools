@@ -15,7 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import namedtuple
-from typing import Sequence, Any
+from typing import Any, Sequence
 
 class Vec3(namedtuple("Vec3", ["x", "y", "z"])):
     def __add__(self, other: Any) -> Vec3: ...
