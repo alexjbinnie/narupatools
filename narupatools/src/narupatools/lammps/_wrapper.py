@@ -406,7 +406,7 @@ class LAMMPSWrapper:
                 raw_ptr[0], POINTER(ctypes.c_double * (shape[0] * shape[1]))
             )
 
-        array = np.frombuffer(ptr.contents)
+        array = np.frombuffer(ptr.contents)  # type: ignore
         array.shape = shape
         array.flags.writeable = False
         return array  # type: ignore
@@ -515,13 +515,35 @@ class LAMMPSWrapper:
                 raise
         return self.gather("c_" + compute_id, ncols)
 
-    def extract_box_vectors(self) -> np.ndarray:
-        """Extract the simulation box vectors."""
+    def extract_box_vectors(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Extract the simulation box vectors and periodicity.
+
+        The simulation box is in standard Narupa format, either of the form
+        [x_axis, y_axis, z_axis] or [x_axis, y_axis, z_axis, origin].
+
+        The periodicity is a 3-length array of integers, with 1 indicating
+        the system is periodic in that direction and 0 indicating it is not.
+        """
         boxlo, boxhi, xy, yz, xz, periodicity, box_change = tuple(
             self.__lammps.extract_box()  # type: ignore
         )
+        origin = np.array(boxlo)
         sides = np.array(boxhi) - np.array(boxlo)
-        return np.diag(sides)  # type: ignore
+
+        if any(origin != 0):
+            mat = np.zeros((4, 3))
+            mat[:3, :3] = np.diag(sides)
+            mat[3, :] = origin
+        else:
+            mat = np.diag(sides)
+
+        mat[1, 0] = xy  # xy
+        mat[2, 0] = xz  # xz
+        mat[2, 1] = yz  # yz
+
+        periodicity = np.array(periodicity)
+        return mat, periodicity
 
     def gather_fix(self, fix_id: str) -> npt.NDArray[np.float64]:
         """

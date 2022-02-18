@@ -18,7 +18,7 @@ class Color(SubgraphObject):
         cls,
         *,
         scheme: Optional[Union[str, Mapping[Element, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> ColorByElement:
         """
         Color particles by their atomic element.
@@ -32,7 +32,7 @@ class Color(SubgraphObject):
         cls,
         *,
         scheme: Optional[Union[str, Mapping[str, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> ColorByParticleType:
         """
         Color by the particle type.
@@ -46,7 +46,7 @@ class Color(SubgraphObject):
         cls,
         *,
         scheme: Optional[Union[str, Mapping[str, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> ColorByResidueName:
         """
         Color by reside name.
@@ -60,7 +60,7 @@ class Color(SubgraphObject):
         cls,
         *,
         scheme: Optional[Union[str, Mapping[str, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> ColorBySecondaryStructure:
         """
         Color by secondary structure assignment.
@@ -77,7 +77,7 @@ class Color(SubgraphObject):
         minimum: Optional[float] = None,
         maximum: Optional[float] = None,
         gradient: Optional[Gradient] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> ColorByFloatGradient:
         """
         Color by an arbitrary field such as particle charge.
@@ -134,7 +134,7 @@ class ColorByElement(Color):
         self,
         *,
         scheme: Optional[Union[str, Mapping[Element, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Color particles by their atomic element.
@@ -160,7 +160,7 @@ class ColorByParticleType(Color):
         self,
         *,
         scheme: Optional[Union[str, Mapping[str, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Color by the particle type.
@@ -186,7 +186,7 @@ class ColorByResidueName(Color):
         self,
         *,
         scheme: Optional[Union[str, Mapping[str, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Color by reside name.
@@ -212,7 +212,7 @@ class ColorBySecondaryStructure(Color):
         self,
         *,
         scheme: Optional[Union[str, Mapping[str, SingleColor]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Color by secondary structure assignment.
@@ -241,7 +241,7 @@ class ColorByFloatGradient(Color):
         minimum: Optional[float] = None,
         maximum: Optional[float] = None,
         gradient: Optional[Gradient] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Color by an arbitrary field such as particle charge.

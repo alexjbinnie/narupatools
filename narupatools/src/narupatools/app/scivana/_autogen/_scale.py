@@ -28,7 +28,7 @@ class Scale(SubgraphObject):
         cls,
         *,
         scheme: Optional[Union[str, Mapping[str, float]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ) -> ScaleBySecondaryStructure:
         """
         Scale each particle by its secondary structure assignment.
@@ -79,7 +79,7 @@ class ScaleBySecondaryStructure(Scale):
         self,
         *,
         scheme: Optional[Union[str, Mapping[str, float]]] = None,
-        **kwargs: Serializable
+        **kwargs: Serializable,
     ):
         """
         Scale each particle by its secondary structure assignment.

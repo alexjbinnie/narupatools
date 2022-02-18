@@ -1,3 +1,18 @@
+# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
+# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+#
+# narupatools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# narupatools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 from pathlib import Path
 
 import pytest
@@ -121,6 +136,6 @@ def test_interaction_per_particle_work_shape(nanotube_traj):
 
 def test_interaction_work_is_cumulative(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
-        assert (
-            interaction.calculate_cumulative_work()[-1] == interaction.calculate_work()
+        assert interaction.calculate_cumulative_work()[-1] == pytest.approx(
+            interaction.calculate_work()
         )

@@ -37,6 +37,7 @@ from narupatools.frame import FrameConverter
 from narupatools.frame.fields import (
     BondPairs,
     BondTypes,
+    BoxPeriodic,
     BoxVectors,
     ChainCount,
     KineticEnergy,
@@ -221,6 +222,10 @@ def ase_atoms_to_frame(
     if BoxVectors in fields:
         frame[BoxVectors] = atoms.get_cell() * _ASEToNarupa.length
 
+    if BoxPeriodic in fields:
+        periodicity = atoms.get_pbc()
+        frame[BoxPeriodic] = [1 if p else 0 for p in periodicity]
+
     if KineticEnergy in fields:
         frame[KineticEnergy] = atoms.get_kinetic_energy() * _ASEToNarupa.energy
 
@@ -267,10 +272,7 @@ def _add_ase_atoms_particles_to_frame(
         frame[ParticleVelocities] = atoms.get_velocities() * _ASEToNarupa.velocity
 
     if ParticleNames in fields:
-        if "atomtypes" in atoms.arrays:
-            frame[ParticleNames] = atoms.arrays["atomtypes"]
-        else:
-            frame[ParticleNames] = list(atoms.symbols)
+        frame[ParticleNames] = atoms.arrays.get("atomtypes", list(atoms.symbols))
 
 
 def _add_ase_atoms_calculated_properties_to_frame(

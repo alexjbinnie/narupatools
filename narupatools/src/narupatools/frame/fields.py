@@ -55,6 +55,7 @@ PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
 BOND_COUNT = "bond.count"
 BOND_TYPES = "bond.types"
+BOX_PERIODIC = "system.box.periodic"
 
 _TFrom = TypeVar("_TFrom")
 _TTo = TypeVar("_TTo")
@@ -215,7 +216,7 @@ class _FloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
     @override(FrameKey.convert)
     def convert(self, value: AssignableToFloatArray) -> np.ndarray:
-        return np.asfarray(value)  # type: ignore
+        return np.asfarray(value)
 
     @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
@@ -363,6 +364,21 @@ class _ChainCountKey(_IntegerKey):
         raise KeyError
 
 
+class _BoxPeriodicKey(_IntegerArrayKey):
+    @override(FrameKey._get)
+    def _get(self, frame_data: FrameData) -> np.ndarray:
+        return self.convert(frame_data.raw.arrays[self.key].index_values.values)
+
+    @override(FrameKey._set)
+    def _set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
+        array = np.asarray(value, dtype=int)
+        frame_data.set_index_array(self.key, array)
+
+    @override(FrameKey.convert)
+    def convert(self, value: AssignableToIndexArray) -> np.ndarray:
+        return np.asarray(value, dtype=int)
+
+
 ParticlePositions = _ThreeByNFloatArrayKey(PARTICLE_POSITIONS)
 """
 Array of particle positions in nanometers, as a NumPy N by 3 array of floats.
@@ -503,6 +519,12 @@ Array of box vectors in nanometers indicating the simulation box, as a NumPy 3 b
 If a 3 x 3 matrix is provided, the columns give the directions and magnitudes of the
 three box vectors. If a fourth column is present, this indicates the translation of the
 box.
+"""
+
+BoxPeriodic = _BoxPeriodicKey(BOX_PERIODIC)
+"""
+Indicates whether each dimension of a system is periodic or not. This is an array of 3 integers,
+with 0 indicating non-periodicity in that box direction and 1 indicating periodicity.
 """
 
 DYNAMIC_FIELDS = frozenset(

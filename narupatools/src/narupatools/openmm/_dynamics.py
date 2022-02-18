@@ -67,7 +67,8 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def _get_frame(
         self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
     ) -> FrameData:
-        return self._simulation.get_frame(fields=fields, existing=existing)
+        with self._simulation_lock:
+            return self._simulation.get_frame(fields=fields, existing=existing)
 
     def __init__(
         self,

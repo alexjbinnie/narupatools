@@ -18,7 +18,7 @@
 
 from typing import Any
 
-from infinite_sets import InfiniteSet
+from infinite_sets import InfiniteSet, everything
 from MDAnalysis import Universe
 from narupa.trajectory import FrameData
 
@@ -33,7 +33,7 @@ class MDAnalysisTrajectory(TrajectorySource):
         self.universe = universe
 
     def get_frame(  # noqa: D102
-        self, *, index: int, fields: InfiniteSet[str]
+        self, *, index: int, fields: InfiniteSet[str] = everything()
     ) -> FrameData:
         _ = self.universe.trajectory[index]
         return mdanalysis_atomgroup_to_frame(self.universe.atoms, fields=fields)
