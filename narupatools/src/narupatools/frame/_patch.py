@@ -84,6 +84,15 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     potential_energy = PotentialEnergy  # type: ignore
     box_vectors = BoxVectors  # type: ignore
 
+    def set_float_array(self, key: str, value: Any):
+        if isinstance(value, np.ndarray) and value.dtype == np.float:
+            array = self.raw.arrays[key].float_values.values
+            array._values = value.flatten().tolist()
+            if not array._message_listener.dirty:
+                array._message_listener.Modified()
+        else:
+            self.raw.arrays[key].float_values.values[:] = value
+
     def copy(self) -> FrameData:
         frame = FrameData()
         for key, value in self.raw.arrays.items():
