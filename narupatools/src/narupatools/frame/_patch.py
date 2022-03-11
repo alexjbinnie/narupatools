@@ -102,6 +102,15 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
         else:
             self.raw.arrays[key].index_values.values[:] = value
 
+    def set_string_array(self, key: str, value: Any):
+        if isinstance(value, np.ndarray):
+            array = self.raw.arrays[key].string_values.values
+            array._values = value.flatten().astype(dtype="U").tolist()
+            if not array._message_listener.dirty:
+                array._message_listener.Modified()
+        else:
+            self.raw.arrays[key].string_values.values[:] = value
+
     def copy(self) -> FrameData:
         frame = FrameData()
         for key, value in self.raw.arrays.items():
