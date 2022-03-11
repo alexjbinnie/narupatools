@@ -417,7 +417,7 @@ def _get_openmm_topology_residue_info(
     if ResidueIds in fields:
         frame[ResidueIds] = [residue.id for residue in topology.residues()]
     if ResidueChains in fields:
-        frame[ResidueChains] = [residue.chain.index for residue in topology.residues()]
+        frame[ResidueChains] = np.fromiter((residue.chain.index for residue in topology.residues()), dtype=np.uint32)
     if ResidueCount in fields:
         frame[ResidueCount] = topology.getNumResidues()
 

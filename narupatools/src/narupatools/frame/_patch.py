@@ -85,13 +85,22 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     box_vectors = BoxVectors  # type: ignore
 
     def set_float_array(self, key: str, value: Any):
-        if isinstance(value, np.ndarray) and value.dtype == np.float:
+        if isinstance(value, np.ndarray):
             array = self.raw.arrays[key].float_values.values
-            array._values = value.flatten().tolist()
+            array._values = value.flatten().astype(dtype=np.float32).tolist()
             if not array._message_listener.dirty:
                 array._message_listener.Modified()
         else:
             self.raw.arrays[key].float_values.values[:] = value
+
+    def set_index_array(self, key: str, value: Any):
+        if isinstance(value, np.ndarray):
+            array = self.raw.arrays[key].index_values.values
+            array._values = value.flatten().astype(dtype=np.uint32).tolist()
+            if not array._message_listener.dirty:
+                array._message_listener.Modified()
+        else:
+            self.raw.arrays[key].index_values.values[:] = value
 
     def copy(self) -> FrameData:
         frame = FrameData()
