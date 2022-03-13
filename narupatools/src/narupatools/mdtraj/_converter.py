@@ -118,7 +118,7 @@ def mdtraj_trajectory_to_frame(
         )
     if ParticleCount in fields:
         frame[ParticleCount] = trajectory.n_atoms
-    if BoxVectors in fields:
+    if BoxVectors in fields and trajectory.unitcell_vectors is not None:
         BoxVectors.set(
             frame, trajectory.unitcell_vectors[frame_index] * _MDTrajToNarupa.length
         )
