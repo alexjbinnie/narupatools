@@ -19,6 +19,7 @@
 from typing import Any, Generator, ItemsView, KeysView, Union
 
 import numpy as np
+from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 from narupa.trajectory.frame_data import _FrameDataMeta
 from narupa.utilities.protobuf_utilities import value_to_object
@@ -84,12 +85,14 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     potential_energy = PotentialEnergy  # type: ignore
     box_vectors = BoxVectors  # type: ignore
 
-    def copy(self) -> FrameData:
+    def copy(self, fields: InfiniteSet[str] = everything()) -> FrameData:
         frame = FrameData()
         for key, value in self.raw.arrays.items():
-            frame.raw.arrays[key].CopyFrom(value)
+            if key in fields:
+                frame.raw.arrays[key].CopyFrom(value)
         for key, value in self.raw.values.items():
-            frame.raw.values[key].CopyFrom(value)
+            if key in fields:
+                frame.raw.values[key].CopyFrom(value)
         return frame
 
     def __repr__(self) -> str:
