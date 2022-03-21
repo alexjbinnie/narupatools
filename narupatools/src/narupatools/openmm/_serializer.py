@@ -25,6 +25,7 @@ from typing import Optional, Union
 
 from lxml import etree
 from lxml.etree import ElementBase
+from narupa.openmm.imd import create_imd_force, populate_imd_force
 from openmm import Integrator, Platform, System, XmlSerializer
 from openmm.app import PDBFile, Simulation
 
@@ -72,7 +73,9 @@ def serialize_simulation(simulation: Simulation) -> str:
 
 
 def deserialize_simulation(
-    contents: str, platform: Optional[Union[str, Platform]] = None
+    contents: str,
+    platform: Optional[Union[str, Platform]] = None,
+    add_imd_force: bool = False,
 ) -> Simulation:
     """
     Deserialize an XML string to an OpenMM simulation.
@@ -81,6 +84,8 @@ def deserialize_simulation(
     faster XML library.
 
     :param contents: Contents of the XML file.
+    :param platform: OpenMM platform to use.
+    :param add_imd_force: Whether to add an IMD force to the simulation.
     :return: OpenMM simulation read from the provided string.
     """
     document = etree.fromstring(contents)
@@ -92,6 +97,11 @@ def deserialize_simulation(
     system_node = _get_single_node(document, "System")
     system_content = etree.tostring(system_node, encoding="unicode", method="xml")
     system: System = XmlSerializer.deserialize(system_content)  # type: ignore
+
+    if add_imd_force:
+        imd_force = create_imd_force()
+        populate_imd_force(imd_force, system)
+        system.addForce(imd_force)
 
     integrator_node = _get_single_node(document, "Integrator")
     integrator_content = etree.tostring(

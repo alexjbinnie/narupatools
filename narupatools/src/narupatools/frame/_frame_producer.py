@@ -15,7 +15,8 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Loop which generates frame's from a source at a constant rate."""
-
+import copy
+from threading import Lock
 from typing import Collection, Protocol
 
 from infinite_sets import InfiniteSet, everything
@@ -104,23 +105,21 @@ class FrameProducer(Playable):
     """
 
     _produce: ProduceFrameCallback
-    _is_dirty: bool
     _always_dirty: bool
     _fields: InfiniteSet[str]
     _dirty_fields: InfiniteSet[str]
     _on_frame_produced: Event[OnFrameProducedCallback]
+    _dirty_lock: Lock
 
     def __init__(
         self,
         produce: ProduceFrameCallback,
         *,
         fields: Collection[str] = DEFAULT_FIELDS,
-        frame_interval: float = 1.0 / 30.0,
+        frame_interval: float = 1.0 / 24.0,
     ):
         super().__init__(playback_interval=frame_interval)
         self._produce = produce
-        self._is_dirty = True
-        """Have any fields been marked as dirty since the last frame was produced."""
         self._always_dirty = False
         """Should it be assumed that all fields have changed."""
         self._fields = set(fields)
@@ -128,6 +127,9 @@ class FrameProducer(Playable):
         self._dirty_fields = set(fields)
         """Fields which have been marked as dirty since the last frame was produced."""
         self._on_frame_produced = Event()
+        self._dirty_lock = Lock()
+        """Lock on marking things as dirty, as the frame producer may run on a different thread to that which
+        may dirty it."""
 
     @property
     def always_dirty(self) -> bool:
@@ -167,19 +169,22 @@ class FrameProducer(Playable):
 
         :param fields: Set of fields to mark as dirty.
         """
-        self._is_dirty = True
-        self._dirty_fields = self._dirty_fields | (self._fields & fields)
+        with self._dirty_lock:
+            self._dirty_fields = self._dirty_fields | (self._fields & fields)
 
     @override(Playable._advance)
     def _advance(self) -> bool:
-        if self._is_dirty or self._always_dirty:
-            frame = self._produce(fields=self._dirty_fields)
-            self._on_frame_produced.invoke(frame=frame, fields=self._dirty_fields)
-            self._is_dirty = False
-            if not self._always_dirty:
-                self._dirty_fields = set()
+        with self._dirty_lock:
+            dirty_fields = copy.deepcopy(self._dirty_fields)
+            self._dirty_fields = set()
+
+        if dirty_fields or self._always_dirty:
+            frame = self._produce(fields=dirty_fields)
+            self._on_frame_produced.invoke(frame=frame, fields=dirty_fields)
+
         return True
 
     @override(Playable._restart)
     def _restart(self) -> None:
-        self._dirty_fields = everything()
+        with self._dirty_lock:
+            self._dirty_fields = everything()

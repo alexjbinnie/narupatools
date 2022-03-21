@@ -261,7 +261,7 @@ def openmm_context_to_frame(
     need_positions = ParticlePositions in fields
     need_forces = ParticleForces in fields
     need_velocities = ParticleVelocities in fields
-    need_energy = PotentialEnergy in fields
+    need_energy = PotentialEnergy in fields or KineticEnergy in fields
 
     state = context.getState(
         getPositions=need_positions,
@@ -375,10 +375,10 @@ def _get_openmm_topology_bonds(
 ) -> None:
     numBonds = topology.getNumBonds()
     if BondPairs in fields:
-        bonds = np.empty(shape=2*numBonds, dtype=int)
+        bonds = np.empty(shape=2 * numBonds, dtype=int)
         for i, bond in enumerate(topology.bonds()):
-            bonds[2*i] = bond[0].index
-            bonds[2*i+1] = bond[1].index
+            bonds[2 * i] = bond[0].index
+            bonds[2 * i + 1] = bond[1].index
         frame[BondPairs] = bonds
     if BondCount in fields:
         frame[BondCount] = numBonds
@@ -443,7 +443,9 @@ def _get_openmm_topology_residue_info(
     if ResidueCount in fields:
         frame[ResidueCount] = numResidues
 
-from openmm import _openmm as openmm_internal
+
+from openmm import _openmm as openmm_internal  # type: ignore
+
 
 def get_openmm_masses(system: System) -> ScalarArray:
     """
@@ -454,6 +456,6 @@ def get_openmm_masses(system: System) -> ScalarArray:
     n = system.getNumParticles()
     masses = np.empty(shape=n, dtype=float)
     for i in range(n):
-        # Optimisation to skip creating Quantity, only to then ignore it.
+        # Optimisation to skip OpenMM creating a Quantity for each mass, only to then ignore it.
         masses[i] = openmm_internal.System_getParticleMass(system, i)
     return masses
