@@ -56,7 +56,7 @@ class _RDKitForcefield:
             )
         else:
             forces = self._forcefield.CalcGrad()
-        return -np.array(forces).reshape((-1, 3)) * _RDKitToNarupa.force  # type: ignore[no-any-return]
+        return -np.array(forces).reshape((-1, 3)) * _RDKitToNarupa.force
 
 
 class _MMFFForceField(_RDKitForcefield):

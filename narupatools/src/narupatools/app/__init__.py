@@ -18,21 +18,11 @@
 
 from ._client import Client, OnFrameReceivedCallback
 from ._session import Broadcastable, OnTargetChanged, Session
-from ._shared_state import (
-    OnSharedStateAddedCallback,
-    OnSharedStateChangedCallback,
-    OnSharedStateRemovedCallback,
-    SessionSharedState,
-)
 
 __all__ = [
     "OnFrameReceivedCallback",
     "Client",
     "Session",
-    "SessionSharedState",
     "Broadcastable",
     "OnTargetChanged",
-    "OnSharedStateAddedCallback",
-    "OnSharedStateRemovedCallback",
-    "OnSharedStateChangedCallback",
 ]
