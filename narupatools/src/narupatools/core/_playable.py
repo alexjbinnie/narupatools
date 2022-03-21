@@ -95,15 +95,19 @@ class Playable(HealthCheck, metaclass=ABCMeta):
     def playback_rate(self, value: float) -> None:
         self._playback_interval = 1.0 / value
 
-    def _yield_at_framerate(self) -> Generator[float, None, None]:
+    def _yield_at_framerate(self) -> Generator[None, None, None]:
         """Yields at intervals specified by the playback interval."""
-        last_yield = time.monotonic() - self.playback_interval
+        step_start = time.perf_counter() - self.playback_interval
+        overshoot = 0.0
         while True:
-            time_since_yield = time.monotonic() - last_yield
-            wait_duration = max(0.0, self.playback_interval - time_since_yield)
-            time.sleep(wait_duration)
-            yield time.monotonic() - last_yield
-            last_yield = time.monotonic()
+            time_left = (
+                self.playback_interval - (time.perf_counter() - step_start) - overshoot
+            )
+            if time_left > 0:
+                time.sleep(time_left)
+            overshoot += (time.perf_counter() - step_start) - self.playback_interval
+            step_start = time.perf_counter()
+            yield
 
     @property
     def is_running(self) -> bool:

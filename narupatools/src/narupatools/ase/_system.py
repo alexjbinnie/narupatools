@@ -119,7 +119,7 @@ class ASESystem(FrameSource, DynamicStructureProperties):
     @property
     @override(DynamicStructureProperties.positions)
     def positions(self) -> Vector3Array:  # noqa: D102
-        return self.atoms.positions * _ASEToNarupa.length  # type: ignore
+        return self.atoms.positions * _ASEToNarupa.length
 
     @positions.setter
     def positions(self, value: Vector3ArrayLike) -> None:
@@ -128,7 +128,7 @@ class ASESystem(FrameSource, DynamicStructureProperties):
     @property
     @override(DynamicStructureProperties.velocities)
     def velocities(self) -> Vector3Array:  # noqa: D102
-        return self.atoms.get_velocities() * _ASEToNarupa.velocity  # type: ignore
+        return self.atoms.get_velocities() * _ASEToNarupa.velocity
 
     @velocities.setter
     def velocities(self, value: Vector3ArrayLike) -> None:
@@ -137,12 +137,12 @@ class ASESystem(FrameSource, DynamicStructureProperties):
     @property
     @override(DynamicStructureProperties.forces)
     def forces(self) -> Vector3Array:  # noqa: D102
-        return self.atoms.get_forces() * _ASEToNarupa.force  # type: ignore
+        return self.atoms.get_forces() * _ASEToNarupa.force
 
     @property
     @override(DynamicStructureProperties.masses)
     def masses(self) -> ScalarArray:  # noqa: D102
-        return self.atoms.get_masses() * _ASEToNarupa.mass  # type: ignore
+        return self.atoms.arrays["masses"] * _ASEToNarupa.mass
 
     @masses.setter
     def masses(self, value: ScalarArray) -> None:

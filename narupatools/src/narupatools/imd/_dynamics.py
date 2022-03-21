@@ -52,6 +52,7 @@ class InteractiveSimulationDynamics(
             del self._shared_state[feedback_key]
 
     def _send_interaction_feedback(self, **kwargs: Any) -> None:
+        return
         for key, interaction in self.imd.current_interactions.items():
             feedback_key = "interaction_feedback." + key[12:]
             feedback = interaction.create_feeback()

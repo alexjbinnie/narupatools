@@ -261,7 +261,7 @@ def openmm_context_to_frame(
     need_positions = ParticlePositions in fields
     need_forces = ParticleForces in fields
     need_velocities = ParticleVelocities in fields
-    need_energy = PotentialEnergy in fields
+    need_energy = PotentialEnergy in fields or KineticEnergy in fields
 
     state = context.getState(
         getPositions=need_positions,
@@ -352,7 +352,7 @@ def openmm_topology_to_frame(
     _get_openmm_topology_residue_info(topology, fields=fields, frame=frame)
 
     if ChainNames in fields:
-        frame[ChainNames] = [str(chain.id) for chain in topology.chains()]
+        frame[ChainNames] = [chain.id for chain in topology.chains()]
     if ChainCount in fields:
         frame[ChainCount] = topology.getNumChains()
 
@@ -373,13 +373,15 @@ def openmm_topology_to_frame(
 def _get_openmm_topology_bonds(
     topology: Topology, /, *, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
+    numBonds = topology.getNumBonds()
     if BondPairs in fields:
-        bonds = []
-        for bond in topology.bonds():
-            bonds.append((bond[0].index, bond[1].index))
+        bonds = np.empty(shape=2 * numBonds, dtype=int)
+        for i, bond in enumerate(topology.bonds()):
+            bonds[2 * i] = bond[0].index
+            bonds[2 * i + 1] = bond[1].index
         frame[BondPairs] = bonds
     if BondCount in fields:
-        frame[BondCount] = topology.getNumBonds()
+        frame[BondCount] = numBonds
 
 
 def _get_openmm_topology_atom_info(
@@ -412,14 +414,37 @@ def _get_openmm_topology_atom_info(
 def _get_openmm_topology_residue_info(
     topology: Topology, /, *, fields: InfiniteSet[str], frame: FrameData
 ) -> None:
-    if ResidueNames in fields:
-        frame[ResidueNames] = [residue.name for residue in topology.residues()]
-    if ResidueIds in fields:
-        frame[ResidueIds] = [residue.id for residue in topology.residues()]
-    if ResidueChains in fields:
-        frame[ResidueChains] = [residue.chain.index for residue in topology.residues()]
+    needsResNames = ResidueNames in fields
+    needsResIds = ResidueIds in fields
+    needsResChains = ResidueChains in fields
+    numResidues = topology.getNumResidues()
+
+    if needsResNames or needsResIds or needsResChains:
+        if needsResNames:
+            resNames = np.empty(shape=numResidues, dtype=object)
+        if needsResIds:
+            resIds = np.empty(shape=numResidues, dtype=object)
+        if needsResChains:
+            resChains = np.empty(shape=numResidues, dtype=int)
+        for i, residue in enumerate(topology.residues()):
+            if needsResNames:
+                resNames[i] = residue.name
+            if needsResIds:
+                resIds[i] = residue.id
+            if needsResChains:
+                resChains[i] = residue.chain.index
+        if needsResNames:
+            frame[ResidueNames] = resNames
+        if needsResIds:
+            frame[ResidueIds] = resIds
+        if needsResChains:
+            frame[ResidueChains] = resChains
+
     if ResidueCount in fields:
-        frame[ResidueCount] = topology.getNumResidues()
+        frame[ResidueCount] = numResidues
+
+
+from openmm import _openmm as openmm_internal  # type: ignore
 
 
 def get_openmm_masses(system: System) -> ScalarArray:
@@ -429,4 +454,8 @@ def get_openmm_masses(system: System) -> ScalarArray:
     :param simulation: OpenMM simulation to extract masses from.
     """
     n = system.getNumParticles()
-    return np.array([system.getParticleMass(i)._value for i in range(n)], dtype=float)
+    masses = np.empty(shape=n, dtype=float)
+    for i in range(n):
+        # Optimisation to skip OpenMM creating a Quantity for each mass, only to then ignore it.
+        masses[i] = openmm_internal.System_getParticleMass(system, i)
+    return masses

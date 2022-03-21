@@ -21,7 +21,7 @@ from __future__ import annotations
 import warnings
 from contextlib import contextmanager
 from os import PathLike
-from threading import Lock
+from threading import RLock
 from typing import AbstractSet, Any, Dict, Generator, List, Optional, Union
 
 import numpy as np
@@ -32,10 +32,14 @@ from openmm.app import Simulation
 
 from narupatools.frame import (
     DynamicStructureMethods,
+    KineticEnergy,
+    ParticleForces,
     ParticlePositions,
     ParticleVelocities,
+    PotentialEnergy,
 )
 from narupatools.imd import InteractiveSimulationDynamics, SetAndClearInteractionFeature
+from narupatools.openmm import openmm_state_to_frame
 from narupatools.override import override
 from narupatools.physics.typing import (
     ScalarArray,
@@ -56,19 +60,44 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     def _step_internal(self) -> None:
         with self._simulation_lock:
             self._simulation.run(steps=1)
+            self._positions_dirty = True
 
     @override(InteractiveSimulationDynamics._reset_internal)
     def _reset_internal(self) -> None:
         with self._simulation_lock:
             self._simulation.load_checkpoint(self._checkpoint)
             self._simulation.context.reinitialize(preserveState=True)
+            self._positions_dirty = True
 
     @override(InteractiveSimulationDynamics._get_frame)
     def _get_frame(
         self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
     ) -> FrameData:
+        state_fields = {
+            ParticlePositions,
+            ParticleVelocities,
+            ParticleForces,
+            PotentialEnergy,
+            KineticEnergy,
+        }
+        if not (fields - state_fields):
+            # Only need state-based properties, so can extract state first!
+            need_positions = ParticlePositions in fields
+            need_forces = ParticleForces in fields
+            need_velocities = ParticleVelocities in fields
+            need_energy = PotentialEnergy in fields or KineticEnergy in fields
+            with self._simulation_lock:
+                state = self._simulation.context.getState(
+                    getPositions=need_positions,
+                    getForces=need_forces,
+                    getEnergy=need_energy,
+                    getVelocities=need_velocities,
+                )
+            return openmm_state_to_frame(state, fields=fields, existing=existing)
+
         with self._simulation_lock:
-            return self._simulation.get_frame(fields=fields, existing=existing)
+            frame = self._simulation.get_frame(fields=fields, existing=existing)
+            return frame
 
     def __init__(
         self,
@@ -82,9 +111,12 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
         self._masses = get_openmm_masses(self._simulation.system)
 
         self._imd = OpenMMIMDFeature(self)
-        self._simulation_lock = Lock()
+        self._simulation_lock = RLock()
 
-        self._checkpoint = self._simulation.create_checkpoint()
+        self._positions_dirty = True
+        self._positions = np.array([], dtype=float)
+
+        self._checkpoint: str = self._simulation.create_checkpoint()
 
     def set_reset_state(self) -> None:
         """Set the current state as the state that will be returned to on reset."""
@@ -132,14 +164,20 @@ class OpenMMDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     @property
     @override(InteractiveSimulationDynamics.positions)
     def positions(self) -> Vector3Array:  # noqa: D102
-        with self._simulation_lock:
-            state = self._simulation.context.getState(getPositions=True)
-        return state.getPositions(asNumpy=True)._value
+        if self._positions_dirty:
+            with self._simulation_lock:
+                state = self._simulation.context.getState(getPositions=True)
+                self._positions_dirty = False
+            self._positions = state.getPositions(asNumpy=True)._value
+        return self._positions
 
     @positions.setter
     def positions(self, value: Vector3ArrayLike) -> None:
+        v = np.asfarray(value)
         with self._simulation_lock:
-            self._simulation.context.setPositions(np.asfarray(value))
+            self._simulation.context.setPositions(v)
+            self._positions_dirty = False
+            self._positions = v
         for interaction in self._imd.current_interactions.values():
             interaction.mark_positions_dirty()
         self._on_fields_changed.invoke(fields={ParticlePositions})
@@ -263,7 +301,10 @@ class OpenMMIMDFeature(SetAndClearInteractionFeature[OpenMMDynamics]):
         super()._on_pre_step(**kwargs)
         self._calculate_and_apply_interactions()
         if self._forces_dirty:
-            self.imd_force.updateParametersInContext(self.dynamics._simulation.context)
+            with self.dynamics._simulation_lock:
+                self.imd_force.updateParametersInContext(
+                    self.dynamics._simulation.context
+                )
         self._forces_dirty = False
 
     @override(SetAndClearInteractionFeature._set_forces)

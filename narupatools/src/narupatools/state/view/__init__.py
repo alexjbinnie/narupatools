@@ -16,9 +16,11 @@
 
 """Code for dealing with views of shared states."""
 
+from ._cached_view import CachedSharedStateCollectionView
 from ._collection_view import SharedStateCollectionView
 from ._dictionary_view import SharedStateDictionaryView
 from ._reference import SharedStateReference
+from ._tracked_view import TrackedSharedStateView
 from ._wrappers import SharedStateClientWrapper, SharedStateServerWrapper
 
 __all__ = [
@@ -27,4 +29,6 @@ __all__ = [
     "SharedStateReference",
     "SharedStateClientWrapper",
     "SharedStateServerWrapper",
+    "TrackedSharedStateView",
+    "CachedSharedStateCollectionView",
 ]

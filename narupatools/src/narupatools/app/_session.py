@@ -51,7 +51,7 @@ from narupatools.frame import (
 from narupatools.override import override
 from narupatools.state.view import SharedStateServerWrapper
 
-from ._shared_state import SessionSharedState, SharedStateMixin
+from ._shared_state import SharedStateMixin, TrackedSharedStateView
 
 
 class OnTargetChanged(Protocol):
@@ -156,7 +156,9 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
 
         narupa_server = self._server.server
 
-        self._shared_state = SessionSharedState(SharedStateServerWrapper(narupa_server))
+        self._shared_state = TrackedSharedStateView(
+            SharedStateServerWrapper(narupa_server)
+        )
 
         narupa_server._state_service.state_dictionary.content_updated.add_callback(
             self._shared_state._on_dictionary_update
@@ -168,6 +170,8 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         narupa_server.register_command(RESET_COMMAND_KEY, self.restart)  # type: ignore
         narupa_server.register_command(STEP_COMMAND_KEY, self.step)  # type: ignore
         narupa_server.register_command(PAUSE_COMMAND_KEY, self.pause)  # type: ignore
+
+        super().__init__()
 
         if target is not None:
             self.show(target)
@@ -181,7 +185,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         return self._server
 
     @property
-    def shared_state(self) -> SessionSharedState:
+    def shared_state(self) -> TrackedSharedStateView:
         """Shared state of the session."""
         return self._shared_state
 

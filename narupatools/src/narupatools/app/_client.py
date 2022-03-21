@@ -36,7 +36,7 @@ from narupatools.override import override
 from narupatools.state.view import SharedStateClientWrapper
 
 from ._session import Session
-from ._shared_state import SessionSharedState, SharedStateMixin
+from ._shared_state import SharedStateMixin, TrackedSharedStateView
 
 
 class OnFrameReceivedCallback(Protocol):
@@ -83,7 +83,7 @@ class Client(NarupaImdClient, SharedStateMixin):
         """
         self._on_frame_received_event = Event()
 
-        self._shared_state = SessionSharedState(SharedStateClientWrapper(self))
+        self._shared_state = TrackedSharedStateView(SharedStateClientWrapper(self))
 
         super().__init__(**kwargs)
 
@@ -92,7 +92,7 @@ class Client(NarupaImdClient, SharedStateMixin):
         )
 
     @property
-    def shared_state(self) -> SessionSharedState:
+    def shared_state(self) -> TrackedSharedStateView:
         """Shared state as currently seen by the client."""
         return self._shared_state
 

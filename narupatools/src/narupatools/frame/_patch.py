@@ -19,6 +19,7 @@
 from typing import Any, Generator, ItemsView, KeysView, Union
 
 import numpy as np
+from google.protobuf.internal import api_implementation
 from narupa.trajectory import FrameData
 from narupa.trajectory.frame_data import _FrameDataMeta
 from narupa.utilities.protobuf_utilities import value_to_object
@@ -54,6 +55,8 @@ from .fields import (
     get_frame_key,
 )
 
+PROTOBUF_PYTHON_IMPLEMENTATION = api_implementation.Type() == "python"
+
 
 @monkeypatch(FrameData)
 class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameDataMeta):
@@ -83,6 +86,33 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     kinetic_energy = KineticEnergy  # type: ignore
     potential_energy = PotentialEnergy  # type: ignore
     box_vectors = BoxVectors  # type: ignore
+
+    def set_float_array(self, key: str, value: Any) -> None:
+        if PROTOBUF_PYTHON_IMPLEMENTATION and isinstance(value, np.ndarray):
+            array = self.raw.arrays[key].float_values.values
+            array._values = value.flatten().astype(dtype=np.float32).tolist()
+            if not array._message_listener.dirty:
+                array._message_listener.Modified()
+        else:
+            self.raw.arrays[key].float_values.values[:] = value
+
+    def set_index_array(self, key: str, value: Any) -> None:
+        if PROTOBUF_PYTHON_IMPLEMENTATION and isinstance(value, np.ndarray):
+            array = self.raw.arrays[key].index_values.values
+            array._values = value.flatten().astype(dtype=np.uint32).tolist()
+            if not array._message_listener.dirty:
+                array._message_listener.Modified()
+        else:
+            self.raw.arrays[key].index_values.values[:] = value
+
+    def set_string_array(self, key: str, value: Any) -> None:
+        if PROTOBUF_PYTHON_IMPLEMENTATION and isinstance(value, np.ndarray):
+            array = self.raw.arrays[key].string_values.values
+            array._values = value.flatten().astype(dtype="U").tolist()
+            if not array._message_listener.dirty:
+                array._message_listener.Modified()
+        else:
+            self.raw.arrays[key].string_values.values[:] = value
 
     def copy(self) -> FrameData:
         frame = FrameData()

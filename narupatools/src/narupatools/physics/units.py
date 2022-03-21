@@ -17,7 +17,7 @@
 """Core unit conversion system."""
 import contextlib
 import math
-from typing import Any, Generic, Optional, TypeVar, Union, overload
+from typing import Any, Dict, Generic, Optional, TypeVar, Union, overload
 
 TType = TypeVar("TType")
 
@@ -274,9 +274,16 @@ class UnitConversion:
     def __init__(self, a: "UnitSystem", b: "UnitSystem"):
         self._from = a
         self._to = b
+        self._conv: Dict[str, float] = {}
 
-    def __getattr__(self, name: str) -> Unit:
-        return getattr(self._from, name) / getattr(self._to, name)  # type: ignore
+    def __getattr__(self, name: str) -> float:
+        try:
+            return self._conv[name]
+        except KeyError:
+            self._conv[name] = (
+                getattr(self._from, name) / getattr(self._to, name)
+            ).value
+        return self._conv[name]
 
 
 class UnitSystem:

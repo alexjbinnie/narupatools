@@ -49,8 +49,10 @@ class SetAndClearInteractionFeature(
                 else:
                     forces[index] = force
         to_clear = self.current_indices - indices
-        self._clear_forces(to_clear)
-        self._set_forces(forces)
+        if to_clear:
+            self._clear_forces(to_clear)
+        if forces:
+            self._set_forces(forces)
         self.current_indices = indices
 
     @abstractmethod

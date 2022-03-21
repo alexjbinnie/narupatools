@@ -37,6 +37,9 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
     _feedback_type: Type[InteractionFeedback] = InteractionFeedback
 
+    position_dependent: bool = True
+    velocity_dependent: bool = False
+
     def __init__(
         self,
         *,
@@ -238,8 +241,10 @@ class Interaction(Generic[_TInteractionData], metaclass=ABCMeta):
 
     def mark_positions_dirty(self) -> None:
         """Mark positions as having changed."""
-        self._forces_energy_dirty = True
+        if self.position_dependent:
+            self._forces_energy_dirty = True
 
     def mark_velocities_dirty(self) -> None:
         """Mark velocities as having changed."""
-        self._forces_energy_dirty = True
+        if self.velocity_dependent:
+            self._forces_energy_dirty = True
