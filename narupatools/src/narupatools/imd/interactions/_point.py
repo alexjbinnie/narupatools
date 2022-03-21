@@ -22,12 +22,7 @@ import numpy as np
 
 from narupatools.imd.interactions._parameters import InteractionParameters
 from narupatools.override import override
-from narupatools.physics.force import (
-    gaussian_force_and_energy,
-    mass_weighted_forces,
-    spring_force_and_energy,
-)
-from narupatools.physics.rigidbody import center_of_mass
+from narupatools.physics.force import gaussian_force_and_energy, spring_force_and_energy
 from narupatools.physics.typing import Vector3, Vector3Array
 from narupatools.util import properties
 from narupatools.util.partial import partialclass
@@ -82,11 +77,12 @@ class PointInteraction(Interaction[PointInteractionData]):
     def calculate_forces_and_energy(self) -> None:  # noqa: D102
         positions = self.dynamics.positions[self.particle_indices]
         masses = self.dynamics.masses[self.particle_indices]
-        center = center_of_mass(positions=positions, masses=masses)
+        total_mass = masses.sum()
+        center = (masses[:, np.newaxis] * positions).sum(axis=-2) / total_mass
         force, energy = self._force_func(offset=center - self.position)
         force *= self.interaction_scale
         energy *= self.interaction_scale
-        self._forces = mass_weighted_forces(force=force, masses=masses)
+        self._forces = (masses[:, np.newaxis] * force) / total_mass
         self._energy = energy
 
 
