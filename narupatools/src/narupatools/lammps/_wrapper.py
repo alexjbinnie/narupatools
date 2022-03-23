@@ -59,9 +59,9 @@ class LAMMPSWrapper:
     instead of returning None when invalid keywords are used.
     """
 
-    def __init__(self, pylammps: Optional[PyLammps] = None):
+    def __init__(self, *, pylammps: Optional[PyLammps] = None, command_line: Optional[typing.List[str]] = None):
         if pylammps is None:
-            pylammps = PyLammps()
+            pylammps = PyLammps(cmdargs=command_line)
         self.__pylammps = pylammps
         self.__lammps = pylammps.lmp
         self.__lammps_clib = pylammps.lmp.lib

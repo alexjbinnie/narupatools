@@ -157,6 +157,9 @@ def frame_to_ase_atoms(
     if BoxVectors in fields:
         with contextlib.suppress(KeyError):
             kwargs["cell"] = BoxVectors.get(frame) * _NarupaToASE.length
+            # If the cell has an offset, ignore it
+            if kwargs["cell"].shape == (4, 3):
+                kwargs["cell"] = kwargs["cell"][:3, :3]
     if ParticleCharges in fields:
         with contextlib.suppress(KeyError):
             kwargs["charges"] = ParticleCharges.get(frame) * _NarupaToASE.charge

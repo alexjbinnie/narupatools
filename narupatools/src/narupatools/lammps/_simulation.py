@@ -22,7 +22,7 @@ import contextlib
 import ctypes
 from abc import ABCMeta, abstractmethod
 from threading import Lock
-from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload
+from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload, List
 
 import numpy as np
 import numpy.typing as npt
@@ -163,7 +163,7 @@ class LAMMPSSimulation(FrameSource):
 
     @classmethod
     def from_file(
-        cls, filename: str, units: Optional[UnitSystem] = None
+        cls, filename: str, *, units: Optional[UnitSystem] = None, command_line: Optional[List[str]] = None
     ) -> LAMMPSSimulation:
         """
         Load LAMMPS simulation from a file.
@@ -174,7 +174,7 @@ class LAMMPSSimulation(FrameSource):
         :param units: If the file uses LJ units, a UnitSystem must be provided.
         :return: LAMMPS simulation based on file.
         """
-        lammps = LAMMPSWrapper()
+        lammps = LAMMPSWrapper(command_line=command_line)
         with catch_lammps_warnings_and_exceptions():
             lammps.command("atom_modify map yes")
             lammps.file(filename)

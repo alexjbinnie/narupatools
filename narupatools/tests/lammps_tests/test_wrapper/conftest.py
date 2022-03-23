@@ -26,4 +26,4 @@ def lammps():
     pylammps = PyLammps()
     pylammps.file("in.peptide")
     pylammps.run(0)
-    return LAMMPSWrapper(pylammps)
+    return LAMMPSWrapper(pylammps=pylammps)
