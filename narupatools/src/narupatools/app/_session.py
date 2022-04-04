@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import time
 from contextlib import contextmanager
 from types import TracebackType
@@ -44,9 +45,11 @@ from narupatools.frame import (
     FrameProducer,
     FrameSource,
     FrameSourceWithNotify,
+    NoConversionDefinedError,
     OnFieldsChangedCallback,
     TrajectoryPlayback,
     TrajectorySource,
+    convert,
 )
 from narupatools.override import override
 from narupatools.state.view import SharedStateServerWrapper
@@ -91,9 +94,18 @@ class Broadcastable(Protocol):
 
 
 def _resolve_target(value: Any) -> Any:
-    if isinstance(value, FrameSourceWithNotify):
-        return value
-    if isinstance(value, Playable):
+    """
+    Resolve an object as something that can be displayed using a Session.
+
+    This attempts conversions in various ways. First, if it is already a narupatools class
+    that implements FrameSource or Playable, it can be used directly.
+
+    It is then checked to see if it can be interpreted as a SimulationDynamics or TrajectorySource
+    object.
+
+    Finally, if it is a FrameSource or convertible to a FrameData, a FrameData is returned.
+    """
+    if isinstance(value, (FrameSource, FrameSourceWithNotify, Playable)):
         return value
     dynamics = SimulationDynamics.create_from_object(value)
     if dynamics is not None:
@@ -101,6 +113,8 @@ def _resolve_target(value: Any) -> Any:
     traj_source = TrajectorySource.create_from_object(value)
     if traj_source is not None:
         return TrajectoryPlayback(traj_source)
+    with contextlib.suppress(NoConversionDefinedError):
+        return convert(value, FrameData)
     return value
 
 
@@ -269,6 +283,9 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         if isinstance(self._target, FrameSourceWithNotify):
             self._target.on_fields_changed.add_callback(self._on_target_fields_changed)
             self._frame_producer.always_dirty = False
+        elif isinstance(self._target, FrameData):
+            self._frame_producer.mark_dirty()
+            self._frame_producer.always_dirty = False
         else:
             self._frame_producer.always_dirty = True
         if isinstance(self._target, Broadcastable):
@@ -297,7 +314,7 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         if isinstance(self._target, FrameSource):
             return self._target.get_frame(fields=fields)
         if isinstance(self._target, FrameData):
-            return self._target.copy()  # type: ignore
+            return self._target.copy(fields=fields)  # type: ignore
         return FrameData()
 
     @staticmethod

@@ -18,7 +18,7 @@
 
 from narupa.trajectory import FrameData
 
-from ._converter import FrameConverter, convert
+from ._converter import FrameConverter, NoConversionDefinedError, convert
 from ._frame_producer import FrameProducer
 from ._frame_source import (
     FrameSource,
@@ -50,4 +50,5 @@ __all__ = [
     "DynamicStructureProperties",
     "StateData",
     "SimpleTrajectory",
+    "NoConversionDefinedError",
 ]
