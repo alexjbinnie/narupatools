@@ -14,12 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-import contextlib
 import re
 import warnings
-from typing import Generator
-
-from lammps import OutputCapture
 
 from narupatools.lammps import LAMMPSError
 from narupatools.lammps.exceptions import (
@@ -30,7 +26,6 @@ from narupatools.lammps.exceptions import (
     MissingInputScriptError,
     UnknownCommandError,
     UnknownDataTypeError,
-    UnknownPropertyNameError,
     UnrecognizedStyleError,
 )
 
@@ -59,48 +54,20 @@ def _handle_error(message: str) -> None:
     raise LAMMPSError(message)
 
 
-@contextlib.contextmanager
-def catch_lammps_warnings_and_exceptions() -> Generator[None, None, None]:
-    """
-    Capture output and raises logged warnings and errors in a pythonic way.
-
-    Any line starting with 'WARNING: ' will be raised as a LAMMPSWarning, except certain
-    warnings which are instead treated as errors.
-
-    Any line starting with 'ERROR:' will be raised as a LAMMPSError, unless a more
-    specific error message exists.
-
-    :raises AtomIDsNotDefinedError: Library error raises in gather/scatter atoms.
-    :raises LAMMPSError: An ERROR: is logged to the console by LAMMPS.
-    """
-    with OutputCapture() as o:
-        try:
-            yield
-        except Exception as e:
-            if isinstance(e, LAMMPSError):
-                raise
-            if e.args[0].startswith("ERROR on proc 0: "):
-                _handle_error(e.args[0][17:])
-            if e.args[0].startswith("ERROR: "):
-                _handle_error(e.args[0][7:])
-            raise LAMMPSError(e.args[0]) from e
-        output = o.output
-    for line in output.splitlines():
-        if line.startswith("WARNING: "):
-            warning = line[9:]
-            if warning.startswith("Library error in lammps_gather_atoms"):
-                raise AtomIDsNotDefinedError(func_name="gather_atoms")
-            elif warning.startswith("Library error in lammps_scatter_atoms"):
-                raise AtomIDsNotDefinedError(func_name="scatter_atoms")
-            elif warning.startswith("lammps_gather_atoms: unknown property name"):
-                raise UnknownPropertyNameError(warning)
-            elif warning.startswith("lammps_gather_atoms: unsupported data type"):
-                raise UnknownDataTypeError(warning)
-            else:
-                warnings.warn(LAMMPSWarning(warning))
-        elif line.startswith("ERROR: "):
-            error = line[7:]
-            _handle_error(error)
+def handle_lammps_output_line(line: str) -> None:
+    """Handle LAMMPS output and convert to errors if necessary."""
+    if line.startswith("WARNING: "):
+        warning = line[9:]
+        if warning.startswith("Library error in lammps_gather_atoms"):
+            raise AtomIDsNotDefinedError(func_name="gather_atoms")
+        elif warning.startswith("Library error in lammps_scatter_atoms"):
+            raise AtomIDsNotDefinedError(func_name="scatter_atoms")
+        # elif warning.startswith("lammps_gather_atoms: unknown property name"):
+        # raise UnknownPropertyNameError(warning)
+        elif warning.startswith("lammps_gather_atoms: unsupported data type"):
+            raise UnknownDataTypeError(warning)
         else:
-            with contextlib.suppress(BrokenPipeError):
-                print(line)
+            warnings.warn(LAMMPSWarning(warning))
+    elif line.startswith("ERROR: "):
+        error = line[7:]
+        _handle_error(error)

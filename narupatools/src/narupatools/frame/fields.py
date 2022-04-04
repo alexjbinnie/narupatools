@@ -23,6 +23,7 @@ from typing import Any, Dict, Generic, Iterable, TypeVar, Union
 
 import numpy as np
 import numpy.typing as npt
+import quaternion
 from narupa.trajectory.frame_data import (
     BOND_ORDERS,
     BOND_PAIRS,
@@ -53,6 +54,7 @@ from ._converter import convert
 PARTICLE_MASSES = "particle.masses"
 PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
+PARTICLE_ROTATIONS = "particle.rotations"
 BOND_COUNT = "bond.count"
 BOND_TYPES = "bond.types"
 BOX_PERIODIC = "system.box.periodic"
@@ -63,6 +65,15 @@ _TTo = TypeVar("_TTo")
 AssignableToFloatArray = npt.ArrayLike
 AssignableToIndexArray = npt.ArrayLike
 AssignableToStringArray = Iterable[str]
+
+
+def _to_n_by_4(value: npt.ArrayLike) -> np.ndarray:
+    """
+    Convert a generic float array to a 4 by N NumPy array.
+
+    :param value: Object that can be converted to a NumPy array.
+    """
+    return np.array(value).reshape((-1, 4))
 
 
 def _to_n_by_3(value: npt.ArrayLike) -> np.ndarray:
@@ -244,6 +255,27 @@ class _ThreeByNFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
         return self.convert(frame_data.raw.arrays[self.key].float_values.values)
 
 
+class _QuaternionFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
+    @override(FrameKey.convert)
+    def convert(self, value: AssignableToFloatArray) -> np.ndarray:
+        return quaternion.as_quat_array(np.array(value))
+
+    @override(FrameKey.set)
+    def _set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
+        if value.dtype == quaternion.quaternion:  # type: ignore
+            value = quaternion.as_float_array(value)  # type: ignore
+        array = _flatten_array(value)
+        if len(array) % 4 > 0:
+            raise TypeError(f"Cannot set {self.key} to array not divisible by 4.")
+        frame_data.set_float_array(self.key, array)
+
+    @override(FrameKey._get)
+    def _get(self, frame_data: FrameData) -> np.ndarray:
+        if self.key not in frame_data.raw.arrays.keys():
+            raise KeyError(f"{self.key} not present in FrameData")
+        return self.convert(frame_data.raw.arrays[self.key].float_values.values)
+
+
 class _IntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
     @override(FrameKey.set)
     def _set(self, frame_data: FrameData, value: AssignableToIndexArray) -> None:
@@ -384,6 +416,11 @@ ParticlePositions = _ThreeByNFloatArrayKey(PARTICLE_POSITIONS)
 Array of particle positions in nanometers, as a NumPy N by 3 array of floats.
 """
 
+ParticleRotations = _QuaternionFloatArrayKey(PARTICLE_ROTATIONS)
+"""
+Array of particle rotations as unit quaternions, as a NumPy N by 4 array of floats.
+"""
+
 ParticleVelocities = _ThreeByNFloatArrayKey(PARTICLE_VELOCITIES)
 """
 Array of particle velocities in nanometers per picosecond, as a NumPy N by 3 array of
@@ -466,9 +503,9 @@ BondPairs = _TwoByNIntegerArrayKey(BOND_PAIRS)
 Array of bonds as pairs of particle indices, as a N by 2 NumPy array of integers.
 """
 
-BondOrders = _IntegerArrayKey(BOND_ORDERS)
+BondOrders = _FloatArrayKey(BOND_ORDERS)
 """
-Array of bond orders, as a NumPy array of integers.
+Array of bond orders, as a NumPy array of floats.
 """
 
 BondTypes = _StringArrayKey(BOND_TYPES)
@@ -534,6 +571,7 @@ DYNAMIC_FIELDS = frozenset(
         KineticEnergy.key,
         ParticleVelocities.key,
         ParticleForces.key,
+        ParticleCharges.key,
         SimulationTotalSteps.key,
         SimulationTotalTime.key,
         SimulationElapsedTime.key,

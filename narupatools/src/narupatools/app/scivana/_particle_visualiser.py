@@ -14,13 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union
+from typing import Any, Union
 
 import numpy as np
 from narupa.trajectory import FrameData
 
 import narupatools.util.properties as properties
-from narupatools.app.scivana import Renderer
 from narupatools.state import SharedStateObject
 
 
@@ -40,7 +39,7 @@ class ParticleVisualisation(SharedStateObject):
         """
 
     @properties.auto
-    def renderer(self) -> Renderer:
+    def renderer(self) -> Any:
         """Renderer to be used to render the system."""
 
     @properties.boolean

@@ -17,6 +17,7 @@
 """Low-level wrapper around PyLAMMPS to expose some methods in a more pythonic way."""
 
 import abc
+import contextlib
 import ctypes
 import datetime
 import typing
@@ -31,7 +32,10 @@ from lammps import LMP_SIZE_COLS, LMP_SIZE_ROWS, LMP_VAR_ATOM, LMP_VAR_EQUAL, Py
 
 from narupatools.lammps import LAMMPSError
 from narupatools.lammps._constants import VariableDimension, VariableStyle, VariableType
-from narupatools.lammps._exception_wrapper import catch_lammps_warnings_and_exceptions
+from narupatools.lammps._exception_wrapper import (
+    _handle_error,
+    handle_lammps_output_line,
+)
 from narupatools.lammps.exceptions import (
     ComputeNotFoundError,
     FixNotFoundError,
@@ -44,6 +48,7 @@ from narupatools.lammps.exceptions import (
     UntestedVersionWarning,
     VariableNotFoundError,
 )
+from narupatools.util._pipe import PipedOutput
 
 SUPPORTED_VERSION = datetime.date(2021, 9, 29)
 
@@ -59,9 +64,10 @@ class LAMMPSWrapper:
     instead of returning None when invalid keywords are used.
     """
 
-    def __init__(self, pylammps: Optional[PyLammps] = None):
+    def __init__(self, *, pylammps: Optional[PyLammps] = None):
+        self._output = PipedOutput(self._catch_line)
         if pylammps is None:
-            pylammps = PyLammps()
+            pylammps = PyLammps(cmdargs=["-screen", self._output.filename])  # type: ignore
         self.__pylammps = pylammps
         self.__lammps = pylammps.lmp
         self.__lammps_clib = pylammps.lmp.lib
@@ -136,6 +142,23 @@ class LAMMPSWrapper:
 
         self.command_styles = _StyleCategory(self, "command")
         """Set of possible command styles."""
+
+    @contextlib.contextmanager
+    def catch_exceptions_and_warnings(self) -> typing.Generator[None, None, None]:
+        """Catch LAMMPS errors and rethrow them as more specific errors."""
+        try:
+            yield
+        except Exception as e:
+            if isinstance(e, LAMMPSError):
+                raise
+            if e.args[0].startswith("ERROR on proc 0: "):
+                _handle_error(e.args[0][17:])
+            if e.args[0].startswith("ERROR: "):
+                _handle_error(e.args[0][7:])
+            raise LAMMPSError(e.args[0]) from e
+
+    def _catch_line(self, line: str) -> None:
+        handle_lammps_output_line(line)
 
     @property
     def version_date(self) -> datetime.date:
@@ -300,7 +323,7 @@ class LAMMPSWrapper:
                                                   match dimension provided.
         :return: Value of the compute.
         """
-        with catch_lammps_warnings_and_exceptions():
+        with self.catch_exceptions_and_warnings():
             try:
                 value = self.__lammps.numpy.extract_compute(
                     compute_id, VariableStyle.GLOBAL, dimension
@@ -479,7 +502,7 @@ class LAMMPSWrapper:
                 datatype = 0
             else:
                 raise LAMMPSError(f"Invalid variable type {datatype}")
-            with catch_lammps_warnings_and_exceptions():
+            with self.catch_exceptions_and_warnings():
                 natoms = self.__lammps.get_natoms()
                 data = ((dimension * natoms) * ctype)()
 
@@ -589,7 +612,7 @@ class LAMMPSWrapper:
         else:
             raise LAMMPSError(f"Invalid variable type {datatype}")
 
-        with catch_lammps_warnings_and_exceptions():
+        with self.catch_exceptions_and_warnings():
             natoms = self.__lammps.get_natoms()
             data = ((dimension * natoms) * ctype)()
 
@@ -609,7 +632,7 @@ class LAMMPSWrapper:
     ) -> None:
         """See :meth:`lammps.scatter_atoms`."""
         n_atoms = self.__lammps.get_natoms()
-        with catch_lammps_warnings_and_exceptions():
+        with self.catch_exceptions_and_warnings():
             self.__lammps.scatter_atoms(
                 name, datatype, dimensions, _to_ctypes(value, n_atoms)
             )
@@ -684,7 +707,7 @@ class LAMMPSWrapper:
 
         :param command: LAMMPS command to run.
         """
-        with self._command_lock, catch_lammps_warnings_and_exceptions():
+        with self._command_lock, self.catch_exceptions_and_warnings():
             self.__pylammps.command(command)
 
 

@@ -13,17 +13,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
-import pytest
-
-
-@pytest.fixture
-def lammps():
-    from lammps import PyLammps
-
-    from narupatools.lammps._wrapper import LAMMPSWrapper
-
-    pylammps = PyLammps()
-    pylammps.file("in.peptide")
-    pylammps.run(0)
-    return LAMMPSWrapper(pylammps=pylammps)

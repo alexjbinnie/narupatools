@@ -14,16 +14,26 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
+import narupatools.util.patch as patch
 
 
-@pytest.fixture
-def lammps():
-    from lammps import PyLammps
+def test_patch():
+    class Object:
+        def func(self) -> str:
+            return "A"
 
-    from narupatools.lammps._wrapper import LAMMPSWrapper
+    unmodified = Object()
+    composed = Object()
+    replaced = Object()
 
-    pylammps = PyLammps()
-    pylammps.file("in.peptide")
-    pylammps.run(0)
-    return LAMMPSWrapper(pylammps=pylammps)
+    @patch.compose(composed.func)
+    def my_func2(self: Object, arg: str) -> str:
+        return arg + "B"
+
+    @patch.replace(replaced.func)
+    def my_func3(self: Object) -> str:
+        return "B"
+
+    assert unmodified.func() == "A"
+    assert composed.func() == "AB"
+    assert replaced.func() == "B"

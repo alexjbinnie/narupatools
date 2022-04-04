@@ -375,9 +375,14 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         This checks the health of the session every second to catch any exceptions
         occurring on one of the background threads.
         """
+        print("Potential Energy (kJ/mol)\t\tKinetic Energy (kJ/mol)")
         while True:
             try:
                 time.sleep(1)
                 self.health_check()
+                if isinstance(self._target, SimulationDynamics):
+                    print(
+                        f"{self._target.potential_energy:.2f}\t\t\t\t\t\t\t{self._target.kinetic_energy:.2f}"
+                    )
             except KeyboardInterrupt:
                 return

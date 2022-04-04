@@ -117,7 +117,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
 
     @classmethod
     def from_file(
-        cls, filename: str, units: Optional[UnitSystem] = None
+        cls, filename: str, *, units: Optional[UnitSystem] = None
     ) -> LAMMPSDynamics:
         """
         Load LAMMPS simulation from a file.
@@ -128,7 +128,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         :param units: If the file uses LJ units, a UnitSystem must be provided.
         :return: LAMMPS simulation based on file.
         """
-        simulation = LAMMPSSimulation.from_file(filename, units)
+        simulation = LAMMPSSimulation.from_file(filename, units=units)
         return cls(simulation)
 
 
