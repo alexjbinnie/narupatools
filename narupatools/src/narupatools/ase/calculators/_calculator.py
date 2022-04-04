@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections import Collection
+from collections.abc import Collection
 from typing import List, Optional, final
 
 from ase import Atoms

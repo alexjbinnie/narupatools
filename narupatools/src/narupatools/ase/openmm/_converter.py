@@ -15,7 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 import functools
 import logging
-from collections import Callable
+from collections.abc import Callable
 
 from ase.atoms import Atoms
 from ase.md import Langevin, VelocityVerlet
