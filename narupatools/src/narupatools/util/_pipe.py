@@ -17,7 +17,7 @@
 """Technique for piping output, for use with LAMMPS."""
 
 import os
-from tempfile import NamedTemporaryFile
+import tempfile
 from threading import Thread
 from typing import Any
 
@@ -26,8 +26,8 @@ class PipedOutput:
     """Creates a temporary file that allows file writes to be piped into Python."""
 
     def __init__(self, handle_line: Any):
-        self._temp_file = NamedTemporaryFile(delete=True)
-        os.mkfifo(self._temp_file.name)  # type: ignore
+        self._filename = os.path.join(tempfile.mkdtemp(), "fifo")
+        os.mkfifo(self.filename)
         self._thread = Thread(target=self._thread_run, daemon=True)
         self._thread.start()
         self._handle_line = handle_line
@@ -35,10 +35,10 @@ class PipedOutput:
     @property
     def filename(self) -> str:
         """Filename on the system that should be written to."""
-        return self._temp_file.name
+        return self._filename
 
     def _thread_run(self) -> None:
-        with open(self._temp_file, "r") as file:
+        with open(self.filename, "r") as file:
             line = ""
             while True:
                 data = file.read(1)
@@ -50,5 +50,4 @@ class PipedOutput:
 
     def close(self) -> None:
         """Close the pipe."""
-        os.unlink(self._temp_file.name)
-        self._temp_file.close()
+        os.unlink(self.filename)

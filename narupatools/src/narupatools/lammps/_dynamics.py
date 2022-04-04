@@ -18,7 +18,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple
 
 import numpy as np
 from infinite_sets import InfiniteSet
@@ -117,7 +117,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
 
     @classmethod
     def from_file(
-        cls, filename: str, *, units: Optional[UnitSystem] = None, command_line: Optional[List[str]] = None
+        cls, filename: str, *, units: Optional[UnitSystem] = None
     ) -> LAMMPSDynamics:
         """
         Load LAMMPS simulation from a file.
@@ -128,7 +128,7 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
         :param units: If the file uses LJ units, a UnitSystem must be provided.
         :return: LAMMPS simulation based on file.
         """
-        simulation = LAMMPSSimulation.from_file(filename, units=units, command_line=command_line)
+        simulation = LAMMPSSimulation.from_file(filename, units=units)
         return cls(simulation)
 
 

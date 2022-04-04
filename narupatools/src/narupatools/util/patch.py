@@ -14,16 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Techniques to patch existing functions."""
+
 import types
+from typing import Any
 
 
-def compose(to_patch_func):
+def compose(to_patch_func: Any) -> Any:
     """Alter an instance method of a class by compositing a second function."""
     if not isinstance(to_patch_func, types.MethodType):
         raise ValueError("Can't apply composition to non instance method.")
 
-    def patcher(patching_func):
-        def new_func(self, *args, **kwargs):
+    def patcher(patching_func: Any) -> Any:
+        def new_func(self: Any, *args: Any, **kwargs: Any) -> Any:
             return patching_func(self, to_patch_func(*args, **kwargs))
 
         dest_obj = to_patch_func.__self__
@@ -34,13 +37,13 @@ def compose(to_patch_func):
     return patcher
 
 
-def replace(to_replace_func):
+def replace(to_replace_func: Any) -> Any:
     """Replace the instance method of an object with a new function."""
     if not isinstance(to_replace_func, types.MethodType):
         raise ValueError("Can't apply composition to non instance method.")
 
-    def replacer(replacing_func):
-        def new_func(self, *args, **kwargs):
+    def replacer(replacing_func: Any) -> Any:
+        def new_func(self: Any, *args: Any, **kwargs: Any) -> Any:
             return replacing_func(self, *args, **kwargs)
 
         dest_obj = to_replace_func.__self__

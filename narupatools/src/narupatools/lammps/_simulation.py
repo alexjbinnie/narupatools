@@ -21,8 +21,8 @@ from __future__ import annotations
 import contextlib
 import ctypes
 from abc import ABCMeta, abstractmethod
-from threading import Lock
-from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload, List
+from threading import RLock
+from typing import Any, Dict, Literal, Optional, Set, TypeVar, Union, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -47,6 +47,8 @@ from narupatools.frame.fields import (
     ParticleMasses,
     ParticlePositions,
     ParticleResidues,
+    ParticleRotations,
+    ParticleTypes,
     ParticleVelocities,
     PotentialEnergy,
     ResidueCount,
@@ -60,7 +62,6 @@ from narupatools.physics.vector import magnitude, normalized, vector
 from narupatools.util import mass_to_element
 
 from ._constants import VariableDimension, VariableType
-from ._exception_wrapper import catch_lammps_warnings_and_exceptions
 from ._wrapper import Extractable, LAMMPSWrapper
 from .exceptions import UnknownAtomPropertyError
 from .regions import Region, RegionSpecification
@@ -92,7 +93,7 @@ class LAMMPSSimulation(FrameSource):
         self.indexing = LAMMPSIndexing(self)
         self.bond_compute: Optional[COMPUTES.ComputeReference] = None
 
-        self._run_lock = Lock()
+        self._run_lock = RLock()
 
         self._needs_pre_run = True
 
@@ -150,7 +151,7 @@ class LAMMPSSimulation(FrameSource):
         :return: LAMMPS simulation in provided units.
         """
         lammps = LAMMPSWrapper()
-        with catch_lammps_warnings_and_exceptions():
+        with lammps.catch_exceptions_and_warnings():
             lammps.command("atom_modify map yes")
             if isinstance(units, UnitSystem):
                 lammps.command("units lj")
@@ -163,7 +164,7 @@ class LAMMPSSimulation(FrameSource):
 
     @classmethod
     def from_file(
-        cls, filename: str, *, units: Optional[UnitSystem] = None, command_line: Optional[List[str]] = None
+        cls, filename: str, *, units: Optional[UnitSystem] = None
     ) -> LAMMPSSimulation:
         """
         Load LAMMPS simulation from a file.
@@ -174,8 +175,8 @@ class LAMMPSSimulation(FrameSource):
         :param units: If the file uses LJ units, a UnitSystem must be provided.
         :return: LAMMPS simulation based on file.
         """
-        lammps = LAMMPSWrapper(command_line=command_line)
-        with catch_lammps_warnings_and_exceptions():
+        lammps = LAMMPSWrapper()
+        with lammps.catch_exceptions_and_warnings():
             lammps.command("atom_modify map yes")
             lammps.file(filename)
             lammps.command("run 0")
@@ -231,7 +232,8 @@ class LAMMPSSimulation(FrameSource):
         includes contributions from pairs, bonds, angles, dihedrals, impropers, kspace
         and various fixes.
         """
-        return self._potential_energy_compute.extract()
+        with self._run_lock:
+            return self._potential_energy_compute.extract()
 
     @property
     def kinetic_energy(self) -> float:
@@ -428,7 +430,7 @@ class LAMMPSSimulation(FrameSource):
         else:
             frame = existing
 
-        if self._run_lock:
+        with self._run_lock:
             if ParticleCount in fields:
                 frame[ParticleCount] = len(self)
             if ParticlePositions in fields:
@@ -439,6 +441,16 @@ class LAMMPSSimulation(FrameSource):
                 frame[ParticleVelocities] = (
                     self.velocities * self._lammps_to_narupa.velocity
                 )
+
+            if ParticleRotations in fields:
+                with contextlib.suppress(AttributeError):
+                    frame[ParticleRotations] = self.orientations
+
+            if ParticleTypes in fields:
+                frame[ParticleTypes] = self.gather_atoms(PROPERTIES.AtomType).astype(
+                    "str"
+                )
+
             if ParticleMasses in fields:
                 frame[ParticleMasses] = self.masses * self._lammps_to_narupa.mass
             if ParticleElements in fields:
@@ -593,8 +605,8 @@ class LAMMPSSimulation(FrameSource):
         self.__lammps.close()
 
     def file(self, filename: str) -> None:
-        """Runn all commands found in the provided input file."""
-        with catch_lammps_warnings_and_exceptions():
+        """Run all commands found in the provided input file."""
+        with self.__lammps.catch_exceptions_and_warnings():
             self.__lammps.file(filename)
 
     def extract(self, obj: Extractable[_TReturnType]) -> _TReturnType:
