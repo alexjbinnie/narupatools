@@ -45,6 +45,7 @@ from .fields import (
     ParticleNames,
     ParticlePositions,
     ParticleResidues,
+    ParticleRotations,
     ParticleTypes,
     ParticleVelocities,
     PotentialEnergy,
@@ -64,6 +65,7 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     bond_count = BondCount
 
     particle_positions = ParticlePositions  # type: ignore
+    particle_rotations = ParticleRotations
     particle_elements = ParticleElements  # type: ignore
     particle_types = ParticleTypes  # type: ignore
     particle_names = ParticleNames  # type: ignore

@@ -36,6 +36,7 @@ from narupatools.frame.fields import (
     ParticleNames,
     ParticlePositions,
     ParticleResidues,
+    ParticleRotations,
     ParticleTypes,
     PotentialEnergy,
     ResidueChains,
@@ -73,6 +74,7 @@ class OnFrameProducedCallback(Protocol):
 
 DEFAULT_FIELDS = (
     ParticlePositions.key,
+    ParticleRotations.key,
     ParticleElements.key,
     ParticleNames.key,
     ParticleTypes.key,
