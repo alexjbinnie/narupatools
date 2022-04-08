@@ -22,6 +22,8 @@ dependencies:
   - sphinx-autodoc-typehints=1.12.*
   - nbsphinx=0.8.*
   - ipykernel
+# Pin jinja2 to avoid https://github.com/sphinx-doc/sphinx/issues/10291
+  - Jinja2<3.1
 # Packages required to run jupyter notebooks
   - plotly=5.*
   - nglview=3.*
