@@ -26,7 +26,8 @@ from typing import Iterable, Optional, Sequence, Type, TypeVar, Union
 import numpy as np
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory.frame_data import FrameData
-from openmm import Context, State, System
+from openmm import Context, NonbondedForce, State, System
+from openmm import _openmm as openmm_internal  # type: ignore
 from openmm.app import Element, Simulation, Topology
 
 from narupatools.frame import FrameConverter
@@ -38,6 +39,7 @@ from narupatools.frame.fields import (
     ChainCount,
     ChainNames,
     KineticEnergy,
+    ParticleCharges,
     ParticleCount,
     ParticleElements,
     ParticleForces,
@@ -228,6 +230,12 @@ def openmm_simulation_to_frame(
     if BoxPeriodic in fields:
         is_periodic = 1 if simulation.system.usesPeriodicBoundaryConditions() else 0
         frame[BoxPeriodic] = [is_periodic, is_periodic, is_periodic]
+
+    if (
+        ParticleCharges in fields
+        and (charges := get_openmm_charges(simulation.system)) is not None
+    ):
+        frame[ParticleCharges] = charges
 
     openmm_topology_to_frame(simulation.topology, fields=fields, existing=frame)
     openmm_context_to_frame(simulation.context, fields=fields, existing=frame)
@@ -424,9 +432,35 @@ def _get_openmm_topology_residue_info(
 
 def get_openmm_masses(system: System) -> ScalarArray:
     """
-    Get the masses defined in an OpenMM in daltons.
+    Get the masses defined in an OpenMM system in daltons.
 
-    :param simulation: OpenMM simulation to extract masses from.
+    :param system: OpenMM system to extract masses from.
     """
     n = system.getNumParticles()
-    return np.array([system.getParticleMass(i)._value for i in range(n)], dtype=float)
+    masses = np.empty(shape=n, dtype=float)
+    for i in range(n):
+        # Optimisation to skip creating Quantity, only to then ignore it.
+        masses[i] = openmm_internal.System_getParticleMass(system, i)
+    return masses
+
+
+def get_openmm_charges(system: System) -> Optional[ScalarArray]:
+    """
+    Get the charges defined in an OpenMM system in elementary charges.
+
+    The charges are found by looking for a NonbondedForce term, and extracting the
+    particle parameters from this.
+
+    :param system: OpenMM system to extract charges from.
+    """
+    n = system.getNumParticles()
+    for force in system.getForces():
+        if isinstance(force, NonbondedForce):
+            charges = np.empty(shape=n, dtype=float)
+            for i in range(n):
+                # Optimisation to skip creating Quantity, only to then ignore it.
+                charges[i] = openmm_internal.NonbondedForce_getParticleParameters(
+                    force, i
+                )[0]
+            return charges
+    return None
