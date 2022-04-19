@@ -454,9 +454,12 @@ class LAMMPSSimulation(FrameSource):
             if ParticleMasses in fields:
                 frame[ParticleMasses] = self.masses * self._lammps_to_narupa.mass
             if ParticleElements in fields:
-                elements = np.vectorize(mass_to_element)(
-                    self.masses * self._lammps_to_narupa.mass
-                )
+                elements = np.vectorize(
+                    lambda m: element
+                    if ((element := mass_to_element(m)) is not None)
+                    else 0,
+                    otypes=[int],
+                )(self.masses * self._lammps_to_narupa.mass)
                 if not np.any(np.equal(elements, None)):  # type: ignore[call-overload]
                     frame[ParticleElements] = elements
             if ParticleCharges in fields:
@@ -508,7 +511,9 @@ class LAMMPSSimulation(FrameSource):
                         np.argsort(unique_mol_ids), unique_mol_ids
                     )
                 }
-                frame[ParticleResidues] = np.vectorize(mol_id_to_index.get)(mol_ids)
+                frame[ParticleResidues] = np.vectorize(
+                    mol_id_to_index.get, otypes=[int]
+                )(mol_ids)
                 frame[ResidueCount] = len(unique_mol_ids)
 
         return frame
@@ -656,7 +661,7 @@ class LAMMPSIndexing:
 
     def atom_id_to_ordered(self, array: np.ndarray) -> np.ndarray:
         """Maps Atom IDs to zero-based ordered index."""
-        return np.vectorize(self._atom_ids_to_ordered.get)(array)  # type: ignore[no-any-return]
+        return np.vectorize(self._atom_ids_to_ordered.get, otypes=[int])(array)  # type: ignore[no-any-return]
 
     def ordered_to_atom_id(self, index: int) -> int:
         """Maps a zero-based index to an Atom ID."""
