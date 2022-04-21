@@ -23,6 +23,7 @@ import numpy as np
 import numpy.typing as npt
 from infinite_sets import everything
 from MDAnalysis import Universe
+from narupa.trajectory import FrameData
 from narupa.utilities.change_buffers import DictionaryChange
 
 from narupatools.app.scivana import (
@@ -181,6 +182,8 @@ class SharedStateMixin(FrameSource):
         renderer: Renderer,
         layer: Optional[int] = None,
         priority: Optional[int] = None,
+            frame: Optional[FrameData] = None,
+            extend: bool = False
     ) -> SharedStateReference[ParticleVisualisation]:
         """
         Create a new visualisation to draw atoms.
@@ -192,8 +195,8 @@ class SharedStateMixin(FrameSource):
         :param priority: Priority of the renderer in the layer. Renderers with higher priority
         """
         if isinstance(selection, str):
-            frame = self.get_frame(fields=everything())
-            universe = convert(frame, Universe)
+            sel_frame = self.get_frame(fields=everything())
+            universe = convert(sel_frame, Universe)
             atom_group = universe.select_atoms(selection)
             selection = np.asarray(atom_group.indices, dtype=int)
         elif isinstance(selection, SharedStateReference):
@@ -203,7 +206,7 @@ class SharedStateMixin(FrameSource):
         else:
             selection = np.asarray(selection, dtype=int)
         vis = ParticleVisualisation(
-            selection=selection, renderer=renderer, layer=layer, priority=priority
+            selection=selection, renderer=renderer, layer=layer, priority=priority, frame=frame, extend=extend
         )
         return self.visualisations.add(vis)
 

@@ -16,7 +16,7 @@
 
 """Patch to FrameData that allows copy() to work with empty arrays."""
 
-from typing import Any, Generator, ItemsView, KeysView, Union
+from typing import Any, Generator, ItemsView, KeysView, Union, Dict
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
@@ -55,10 +55,12 @@ from .fields import (
     ResidueNames,
     get_frame_key,
 )
+from narupatools.state.typing import Serializable
 
 
 @monkeypatch(FrameData)
 class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameDataMeta):
+
     bond_pairs = BondPairs  # type: ignore
     bond_orders = BondOrders  # type: ignore
     bond_types = BondTypes
@@ -184,6 +186,19 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     @property
     def velocities(self) -> Vector3Array:  # type: ignore
         return self.particle_velocities
+
+    @classmethod
+    def deserialize(cls, value: Serializable) -> FrameData:
+        frame = FrameData()
+        for key, value in value.items():
+            frame[key] = value
+        return frame
+
+    def serialize(self) -> Serializable:
+        json: Dict[str, Serializable] = {}
+        for key, value in self.items():
+            json[key] = value
+        return json
 
 
 def _print_value(value: Any) -> str:

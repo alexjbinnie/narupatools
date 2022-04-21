@@ -83,6 +83,11 @@ def deserialize_simulation(
     :param contents: Contents of the XML file.
     :return: OpenMM simulation read from the provided string.
     """
+    if contents[0] != "<":
+        # interpret as filename
+        with open(contents) as file:
+            contents = file.read()
+
     document = etree.fromstring(contents)
 
     pdb_node = _get_single_node(document, "pdb")

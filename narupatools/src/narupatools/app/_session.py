@@ -186,8 +186,8 @@ class Session(SharedStateMixin, FrameSourceWithNotify, HealthCheck):
         if target is not None:
             self.show(target)
 
-        if isinstance(self.target, Playable) and autoplay:
-            target.play()
+        if autoplay:
+            self.play()
 
     @property
     def app(self) -> NarupaImdApplication:
