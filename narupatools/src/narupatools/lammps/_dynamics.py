@@ -29,9 +29,10 @@ from narupatools.physics.typing import ScalarArray, Vector3Array, Vector3ArrayLi
 from narupatools.physics.units import UnitsNarupa, UnitSystem
 
 from ._simulation import LAMMPSSimulation
+from ..frame import DynamicStructureMethods
 
 
-class LAMMPSDynamics(InteractiveSimulationDynamics):
+class LAMMPSDynamics(InteractiveSimulationDynamics, DynamicStructureMethods):
     """Molecular dynamics implementation using LAMMPS directly."""
 
     def __init__(
@@ -114,6 +115,14 @@ class LAMMPSDynamics(InteractiveSimulationDynamics):
     @property
     def potential_energy(self) -> float:  # noqa: D102
         return self._simulation.potential_energy * self._lammps_to_narupa.energy
+
+    @property
+    def angular_momenta(self) -> Vector3Array:
+        return self._simulation.angular_momenta * self._lammps_to_narupa.angular_momentum
+
+    @property
+    def moments_of_inertia(self) -> Vector3Array:
+        return self._simulation.moments_of_inertia * self._lammps_to_narupa.moment_inertia
 
     @classmethod
     def from_file(

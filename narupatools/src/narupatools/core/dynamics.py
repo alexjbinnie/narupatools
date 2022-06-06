@@ -29,7 +29,7 @@ from narupatools.core.event import Event, EventListener
 from narupatools.frame import (
     DynamicStructureProperties,
     FrameSourceWithNotify,
-    OnFieldsChangedCallback,
+    OnFieldsChangedCallback, DynamicStructureMethods,
 )
 from narupatools.frame.fields import (
     DYNAMIC_FIELDS,

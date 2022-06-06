@@ -336,6 +336,19 @@ class LAMMPSSimulation(FrameSource):
         return self._shape_compute.gather()
 
     @property
+    def moments_of_inertia(self):
+        """Principal moments of inertia for each atom."""
+        ellipsoid_axes = self.ellipsoid_axes / 2
+        if np.allclose(ellipsoid_axes[:, 1], ellipsoid_axes[:, 0]) and np.allclose(ellipsoid_axes[:, 2], ellipsoid_axes[:, 0]):
+           return 0.4 * self.masses * ellipsoid_axes[:, 0] ** 2
+        axes2 = ellipsoid_axes * ellipsoid_axes
+        inertia = np.zeros((len(axes2), 3))
+        inertia[:, 0] = axes2[:, 1] + axes2[:, 2]
+        inertia[:, 1] = axes2[:, 0] + axes2[:, 2]
+        inertia[:, 2] = axes2[:, 0] + axes2[:, 1]
+        return 0.2 * self.masses[:, np.newaxis] * inertia
+
+    @property
     def angular_momenta(self) -> npt.NDArray[np.float64]:
         """Angular momentum of each particle."""
         if self._angmom_compute is None:

@@ -112,20 +112,29 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
 
         return particle_inertia  # type: ignore[no-any-return]
 
-    def _calculate_angular_velocity(
-        self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
-    ) -> Vector3Array:
+    def moment_of_inertia_tensor(self, *, positions: Vector3Array = None, masses: ScalarArray = None):
+        if positions is None:
+            positions = self.dynamics.positions[self.particle_indices]
+        if masses is None:
+            masses = self.dynamics.masses[self.particle_indices]
         particle_inertia = self._get_particle_inertias()
-
         inertia_tensor = moment_of_inertia_tensor(
             positions=positions, masses=masses, origin=self.center_of_mass
         )
-
         if particle_inertia is not None:
             if len(particle_inertia.shape) == 1:
                 inertia_tensor += particle_inertia.sum() * np.identity(3)
             else:
                 raise ValueError("Non-symmetric inertia not supported.")
+        return inertia_tensor
+
+    def total_angular_momentum(self, *, positions: Vector3Array = None, masses: ScalarArray = None, velocities: Vector3Array = None):
+        if positions is None:
+            positions = self.dynamics.positions[self.particle_indices]
+        if velocities is None:
+            velocities = self.dynamics.velocities[self.particle_indices]
+        if masses is None:
+            masses = self.dynamics.masses[self.particle_indices]
 
         angular_momentum = spin_angular_momentum(
             masses=masses,
@@ -141,8 +150,16 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
             ]
             angular_momentum += particle_angular_momenta.sum(axis=-2)
         except AttributeError:
-            particle_angular_momenta = None
+            pass
 
+        return angular_momentum
+
+    def _calculate_angular_velocity(
+        self, *, positions: Vector3Array, velocities: Vector3Array, masses: ScalarArray
+    ) -> Vector3Array:
+        inertia_tensor = self.moment_of_inertia_tensor(positions=positions, masses=masses)
+
+        angular_momentum = self.total_angular_momentum(positions=positions, masses=masses, velocities=velocities)
         try:
             return inv(inertia_tensor) @ angular_momentum
         except LinAlgError:
