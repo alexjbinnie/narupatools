@@ -28,8 +28,8 @@ _VDW_RADII = np.array(
         0.120,  # Hydrogen
         0.140,  # Helium
         0.182,  # Lithium
-        np.nan,  # Beryllium
-        np.nan,  # Boron
+        0.153,  # Beryllium (Mantina et al. 2013)
+        0.192,  # Boron (Mantina et al. 2013)
         0.170,  # Carbon
         0.155,  # Nitrogen
         0.152,  # Oxygen
@@ -37,14 +37,14 @@ _VDW_RADII = np.array(
         0.154,  # Neon
         0.227,  # Sodium
         0.173,  # Magnesium
-        np.nan,  # Aluminum
+        0.184,  # Aluminum (Mantina et al. 2013)
         0.210,  # Silicon
         0.180,  # Phosphorus
         0.180,  # Sulfur
         0.175,  # Chlorine
         0.188,  # Argon
         0.275,  # Potassium
-        np.nan,  # Calcium
+        0.231,  # Calcium (Mantina et al. 2013)
         np.nan,  # Scandium
         np.nan,  # Titanium
         np.nan,  # Vanadium
@@ -56,13 +56,13 @@ _VDW_RADII = np.array(
         0.140,  # Copper
         0.139,  # Zinc
         0.187,  # Gallium
-        np.nan,  # Germanium
+        0.211,  # Germanium (Mantina et al. 2013)
         0.185,  # Arsenic
         0.190,  # Selenium
         0.185,  # Bromine
         0.202,  # Krypton
-        np.nan,  # Rubidium
-        np.nan,  # Strontium
+        0.303,  # Rubidium (Mantina et al. 2013)
+        0.250,  # Strontium (Mantina et al. 2013)
         np.nan,  # Yttrium
         np.nan,  # Zirconium
         np.nan,  # Niobium
@@ -75,12 +75,12 @@ _VDW_RADII = np.array(
         0.158,  # Cadmium
         0.193,  # Indium
         0.217,  # Tin
-        np.nan,  # Antimony
+        0.206,  # Antimony (Mantina et al. 2013)
         0.206,  # Tellurium
         0.198,  # Iodine
         0.216,  # Xenon
-        np.nan,  # Cesium
-        np.nan,  # Barium
+        0.343,  # Cesium (Mantina et al. 2013)
+        0.268,  # Barium (Mantina et al. 2013)
         np.nan,  # Lanthanum
         np.nan,  # Cerium
         np.nan,  # Praseodymium
@@ -107,12 +107,12 @@ _VDW_RADII = np.array(
         0.155,  # Mercury
         0.196,  # Thallium
         0.202,  # Lead
-        np.nan,  # Bismuth
-        np.nan,  # Polonium
-        np.nan,  # Astatine
-        np.nan,  # Radon
-        np.nan,  # Francium
-        np.nan,  # Radium
+        0.207,  # Bismuth (Mantina et al. 2013)
+        0.197,  # Polonium (Mantina et al. 2013)
+        0.202,  # Astatine (Mantina et al. 2013)
+        0.220,  # Radon (Mantina et al. 2013)
+        0.348,  # Francium (Mantina et al. 2013)
+        0.283,  # Radium (Mantina et al. 2013)
         np.nan,  # Actinium
         np.nan,  # Thorium
         np.nan,  # Protactinium
@@ -393,7 +393,6 @@ _ATOMIC_RADII = np.array(
         np.nan,  # Oganesson
     ]
 )
-
 
 def atomic_radius(value: int, /) -> float:
     """Get the atomic radii of one or more atomic elements in nanometers."""

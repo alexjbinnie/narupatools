@@ -159,7 +159,7 @@ class Rotation:
         ang = 2 * math.atan2(mag, self.__quat.w)
         if ang > math.pi:
             ang = -(2 * math.pi - ang)
-        return self.__quat.vec * ang * mag
+        return self.__quat.vec * ang / mag
 
     @property
     def rotation_matrix(self) -> Matrix3x3:

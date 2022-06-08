@@ -15,12 +15,19 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Utility methods."""
+from typing import Any
 
 import numpy as np
+from ase.cell import Cell
+from ase.geometry import find_mic
+from narupa.trajectory import FrameData
+
+from narupatools.frame import ParticlePositions, BoxVectors, ParticleElements, select
+from narupatools.physics.atomic import vdw_radius, covalent_radius
 
 
 def calculate_residue_entities(
-    *, residue_count: int, particle_residues: np.ndarray, bond_pairs: np.ndarray
+        *, residue_count: int, particle_residues: np.ndarray, bond_pairs: np.ndarray
 ) -> np.ndarray:
     """
     Calculate entities based on bonds between residues.
@@ -33,3 +40,27 @@ def calculate_residue_entities(
         entities[pair.max()] = entities[pair.min()]
 
     return np.unique(entities, return_inverse=True)[1]  # type: ignore
+
+
+def calculate_periodic_bonds(frame: FrameData, selection: str = None, method: Any = vdw_radius, cutoff_factor: float = 0.55):
+    """
+    Calculate bonds in a periodic cell.
+    :param frame: Molecular frame to use.
+    :param cutoff_factor: Cutoff factor. Bonds are valid if length < factor * (r(A) + r(B))
+    :return: Bond pairs.
+    """
+    positions = frame[ParticlePositions]
+    elements = frame[ParticleElements]
+    cell = Cell(frame[BoxVectors])
+    if selection is not None:
+        selection_indices = select(frame, selection)
+        positions = positions[selection_indices]
+        elements = elements[selection_indices]
+    indices = np.array(np.triu_indices(len(positions), k=1)).T
+    offsets = positions[indices[:, 1]] - positions[indices[:, 0]]
+    distances = find_mic(offsets, cell)[1]
+    bond_cutoffs = cutoff_factor * method(elements[indices]).sum(axis=-1)
+    if selection is not None:
+        return selection_indices[indices[distances < bond_cutoffs]]
+    else:
+        return indices[distances < bond_cutoffs]

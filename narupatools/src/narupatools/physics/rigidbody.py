@@ -378,3 +378,27 @@ def distribute_angular_velocity(
         o = np.asfarray(origin)
     velocities = [np.cross(angular_velocity, position - o) for position in positions]
     return np.asfarray(velocities)
+
+
+def kabsch_rotation_matrix(
+        *,
+    masses: ScalarArrayLike,
+        original_positions: Vector3ArrayLike,
+        new_positions : Vector3ArrayLike
+):
+    P = np.sqrt(masses)[:, np.newaxis] * (original_positions - center_of_mass(masses=masses, positions=original_positions))
+    Q = np.sqrt(masses)[:, np.newaxis] * new_positions - center_of_mass(masses=masses, positions=new_positions)
+    H = P.T @ Q
+    U, S, VH = np.linalg.svd(H)
+    d = np.linalg.det((U @ VH).T)
+    return (U @ np.array([[1,0,0],[0,1,0],[0,0,d]]) @ VH).T
+
+
+def kabsch_rotation_angle(
+        *,
+    masses: ScalarArrayLike,
+        original_positions: Vector3ArrayLike,
+        new_positions : Vector3ArrayLike
+):
+    matrix = kabsch_rotation_matrix(masses=masses, original_positions=original_positions, new_positions=new_positions)
+    return math.acos((np.trace(matrix) - 1) / 2)

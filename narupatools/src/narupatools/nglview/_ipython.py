@@ -29,4 +29,6 @@ class NGLMagics(Magics):
     @line_magic
     def ngl(self, line: str) -> Any:
         """Display the given object using nglview."""
-        return show(self.shell.ev(line))
+        widget = show(self.shell.ev(line))
+        widget.add_unitcell()
+        return widget

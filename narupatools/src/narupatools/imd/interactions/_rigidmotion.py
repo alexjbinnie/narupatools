@@ -39,6 +39,7 @@ from narupatools.util import properties
 from ._feedback import InteractionFeedback
 from ._interaction import Interaction
 from ._parameters import InteractionParameters
+from ...physics.matrix import identity_matrix, zero_matrix
 
 
 class RigidMotionInteractionData(InteractionParameters):
@@ -90,6 +91,8 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         self._center_of_mass_dirty = True
         self._center_of_mass_velocity_dirty = True
         self._angular_velocity_dirty = True
+        self.damping_factor = 1.0
+        self.use_centripetal = True
 
     @override(Interaction.update)
     def update(self, interaction: RigidMotionInteractionData) -> None:  # noqa: D102
@@ -193,13 +196,16 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         if not self.mass_weighted:
             k *= M
 
-        gamma = 2 * math.sqrt(k * M)
+        gamma = 2 * math.sqrt(k * M) * self.damping_factor
 
         com = self.center_of_mass
         com_vel = self.center_of_mass_velocity
         omega = self.angular_velocity
 
-        rotation_matrix = left_vector_triple_product_matrix(omega, omega)
+        if self.use_centripetal:
+            rotation_matrix = left_vector_triple_product_matrix(omega, omega)
+        else:
+            rotation_matrix = zero_matrix()
 
         if self.rotation is not None:
             desired_rotation = self.rotation @ ~self._accumulated_rotation
