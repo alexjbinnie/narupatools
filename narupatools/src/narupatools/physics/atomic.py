@@ -394,6 +394,7 @@ _ATOMIC_RADII = np.array(
     ]
 )
 
+
 def atomic_radius(value: int, /) -> float:
     """Get the atomic radii of one or more atomic elements in nanometers."""
     return _ATOMIC_RADII[value]  # type: ignore

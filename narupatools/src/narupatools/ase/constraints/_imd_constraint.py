@@ -106,7 +106,7 @@ class InteractionConstraint(
         self, atoms: Atoms, torques: np.ndarray, /
     ) -> None:  # noqa: D102
         torques[self.interaction.particle_indices] += (
-            self.interaction.torques * _NarupaToASE.force
+            self.interaction.torques * _NarupaToASE.torque
         )
 
     def __deepcopy__(self, memodict: Dict[Any, Any] = None) -> Any:

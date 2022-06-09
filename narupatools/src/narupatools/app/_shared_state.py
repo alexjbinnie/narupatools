@@ -182,8 +182,8 @@ class SharedStateMixin(FrameSource):
         renderer: Renderer,
         layer: Optional[int] = None,
         priority: Optional[int] = None,
-            frame: Optional[FrameData] = None,
-            extend: bool = False
+        frame: Optional[FrameData] = None,
+        extend: bool = False,
     ) -> SharedStateReference[ParticleVisualisation]:
         """
         Create a new visualisation to draw atoms.
@@ -206,7 +206,12 @@ class SharedStateMixin(FrameSource):
         else:
             selection = np.asarray(selection, dtype=int)
         vis = ParticleVisualisation(
-            selection=selection, renderer=renderer, layer=layer, priority=priority, frame=frame, extend=extend
+            selection=selection,
+            renderer=renderer,
+            layer=layer,
+            priority=priority,
+            frame=frame,
+            extend=extend,
         )
         return self.visualisations.add(vis)
 

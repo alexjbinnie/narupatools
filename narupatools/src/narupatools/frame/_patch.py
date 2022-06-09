@@ -16,7 +16,7 @@
 
 """Patch to FrameData that allows copy() to work with empty arrays."""
 
-from typing import Any, Generator, ItemsView, KeysView, Union, Dict
+from typing import Any, Dict, Generator, ItemsView, KeysView, Union
 
 import numpy as np
 from infinite_sets import InfiniteSet, everything
@@ -25,6 +25,7 @@ from narupa.trajectory.frame_data import _FrameDataMeta
 from narupa.utilities.protobuf_utilities import value_to_object
 
 from narupatools.physics.typing import ScalarArray, Vector3Array
+from narupatools.state.typing import Serializable
 from narupatools.util import monkeypatch
 
 from ._properties import DynamicStructureMethods
@@ -38,10 +39,12 @@ from .fields import (
     ChainNames,
     FrameKey,
     KineticEnergy,
+    ParticleAngularMomenta,
     ParticleCount,
     ParticleElements,
     ParticleForces,
     ParticleMasses,
+    ParticleMomentInertia,
     ParticleNames,
     ParticlePositions,
     ParticleResidues,
@@ -55,12 +58,10 @@ from .fields import (
     ResidueNames,
     get_frame_key,
 )
-from narupatools.state.typing import Serializable
 
 
 @monkeypatch(FrameData)
 class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameDataMeta):
-
     bond_pairs = BondPairs  # type: ignore
     bond_orders = BondOrders  # type: ignore
     bond_types = BondTypes
@@ -76,6 +77,8 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     particle_velocities = ParticleVelocities
     particle_forces = ParticleForces
     particle_count = ParticleCount  # type: ignore
+    particle_angular_momenta = ParticleAngularMomenta  # type: ignore
+    particle_moment_inertia = ParticleMomentInertia  # type: ignore
 
     residue_names = ResidueNames  # type: ignore
     residue_uds = ResidueIds

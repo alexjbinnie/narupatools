@@ -237,7 +237,9 @@ class ASEDynamics(
 
     @positions.setter
     def positions(self, value: Vector3ArrayLike) -> None:
-        self.atoms.set_positions(np.asfarray(value) * _NarupaToASE.length, apply_constraint=False)
+        self.atoms.set_positions(
+            np.asfarray(value) * _NarupaToASE.length, apply_constraint=False
+        )
         self._on_fields_changed.invoke(fields={ParticlePositions})
 
     @override(InteractiveSimulationDynamics.velocities)  # type: ignore
@@ -247,7 +249,11 @@ class ASEDynamics(
 
     @velocities.setter
     def velocities(self, value: Vector3ArrayLike) -> None:
-        self.atoms.set_momenta(self.atoms.get_masses()[:, np.newaxis] * (np.asfarray(value) * _NarupaToASE.velocity), apply_constraint=False)
+        self.atoms.set_momenta(
+            self.atoms.get_masses()[:, np.newaxis]
+            * (np.asfarray(value) * _NarupaToASE.velocity),
+            apply_constraint=False,
+        )
         self._on_fields_changed.invoke(fields={ParticleVelocities})
 
     @override(InteractiveSimulationDynamics.forces)

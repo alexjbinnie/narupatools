@@ -22,12 +22,12 @@ from ase.cell import Cell
 from ase.geometry import find_mic
 from narupa.trajectory import FrameData
 
-from narupatools.frame import ParticlePositions, BoxVectors, ParticleElements, select
-from narupatools.physics.atomic import vdw_radius, covalent_radius
+from narupatools.frame import BoxVectors, ParticleElements, ParticlePositions, select
+from narupatools.physics.atomic import covalent_radius, vdw_radius
 
 
 def calculate_residue_entities(
-        *, residue_count: int, particle_residues: np.ndarray, bond_pairs: np.ndarray
+    *, residue_count: int, particle_residues: np.ndarray, bond_pairs: np.ndarray
 ) -> np.ndarray:
     """
     Calculate entities based on bonds between residues.
@@ -42,7 +42,12 @@ def calculate_residue_entities(
     return np.unique(entities, return_inverse=True)[1]  # type: ignore
 
 
-def calculate_periodic_bonds(frame: FrameData, selection: str = None, method: Any = vdw_radius, cutoff_factor: float = 0.55):
+def calculate_periodic_bonds(
+    frame: FrameData,
+    selection: str = None,
+    method: Any = vdw_radius,
+    cutoff_factor: float = 0.55,
+):
     """
     Calculate bonds in a periodic cell.
     :param frame: Molecular frame to use.

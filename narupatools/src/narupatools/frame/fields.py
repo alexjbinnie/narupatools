@@ -262,7 +262,7 @@ class _QuaternionFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
     @override(FrameKey.set)
     def _set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
-        if value.dtype == quaternion.quaternion:  # type: ignore
+        if isinstance(value, np.ndarray) and value.dtype == quaternion.quaternion:  # type: ignore
             value = quaternion.as_float_array(value)  # type: ignore
         array = _flatten_array(value)
         if len(array) % 4 > 0:
@@ -314,7 +314,7 @@ class _TwoByNIntegerArrayKey(FrameKey[AssignableToIndexArray, np.ndarray]):
 class _StringArrayKey(FrameKey[AssignableToStringArray, np.ndarray]):
     @override(FrameKey.set)
     def _set(self, frame_data: FrameData, value: AssignableToStringArray) -> None:
-        frame_data.set_string_array(self.key, value)
+        frame_data.set_string_array(self.key, np.asarray(value, dtype=str))
 
     @override(FrameKey._get)
     def _get(self, frame_data: FrameData) -> np.ndarray:
@@ -431,6 +431,16 @@ ParticleForces = _ThreeByNFloatArrayKey(PARTICLE_FORCES)
 """
 Array of particle forces in kilojoule per mole per nanometer, as a NumPy N by 3 array of
 floats.
+"""
+
+ParticleAngularMomenta = _ThreeByNFloatArrayKey("particles.angular_momenta")
+"""
+Array of particle angular momenta as a NumPy N by 3 array of floats.
+"""
+
+ParticleMomentInertia = _FloatArrayKey("particles.moment_inertia")
+"""
+Array of particle moment of inertia as a NumPy N array of floats.
 """
 
 ParticleElements = _IntegerArrayKey(PARTICLE_ELEMENTS)
@@ -572,6 +582,7 @@ DYNAMIC_FIELDS = frozenset(
         ParticleVelocities.key,
         ParticleForces.key,
         ParticleCharges.key,
+        ParticleRotations.key,
         SimulationTotalSteps.key,
         SimulationTotalTime.key,
         SimulationElapsedTime.key,

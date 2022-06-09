@@ -31,6 +31,17 @@ from ase.calculators.calculator import PropertyNotImplementedError
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory.frame_data import FrameData
 
+from narupatools.ase._rotations import (
+    ANGMOM_ARRAY,
+    ORIENTATION_ARRAY,
+    PRINCIPAL_MOMENTS_ARRAY,
+    get_angular_momenta,
+    get_principal_moments,
+    get_rotations,
+    set_angular_momenta,
+    set_principal_moments,
+    set_rotations,
+)
 from narupatools.ase._units import UnitsASE
 from narupatools.ase.calculators import ConstantCalculator
 from narupatools.frame import FrameConverter
@@ -41,14 +52,18 @@ from narupatools.frame.fields import (
     BoxVectors,
     ChainCount,
     KineticEnergy,
+    ParticleAngularMomenta,
     ParticleCharges,
     ParticleCount,
     ParticleElements,
     ParticleForces,
     ParticleMasses,
+    ParticleMomentInertia,
     ParticleNames,
     ParticlePositions,
     ParticleResidues,
+    ParticleRotations,
+    ParticleTypes,
     ParticleVelocities,
     PotentialEnergy,
     ResidueChains,
@@ -193,10 +208,24 @@ def frame_to_ase_atoms(
                 "residuenames", np.array([residue_names[i] for i in particle_residues])
             )
 
-    if ParticleNames in fields and ParticleNames in frame:
-        atoms.set_array("atomtypes", np.array(ParticleNames.get(frame)))
+    if ParticleTypes in fields and ParticleTypes in frame:
+        atoms.set_array("atomtypes", np.array(ParticleTypes.get(frame)))
 
     atoms.set_calculator(calculator)
+
+    if ParticleAngularMomenta in fields and ParticleAngularMomenta in frame:
+        set_angular_momenta(
+            atoms, ParticleAngularMomenta.get(frame) * _NarupaToASE.angular_momentum
+        )
+
+    if ParticleRotations in fields and ParticleRotations in frame:
+        set_rotations(atoms, ParticleRotations.get(frame))
+
+    if ParticleMomentInertia in fields and ParticleMomentInertia in frame:
+        set_principal_moments(
+            atoms, ParticleMomentInertia.get(frame) * _NarupaToASE.moment_inertia
+        )
+
     return atoms
 
 
@@ -249,6 +278,19 @@ def ase_atoms_to_frame(
         )
         frame[ChainCount] = frame[ResidueChains].max() + 1
 
+    if ParticleAngularMomenta in fields and ANGMOM_ARRAY in atoms.arrays:
+        ParticleAngularMomenta.set(
+            frame, get_angular_momenta(atoms) * _ASEToNarupa.angular_momentum
+        )
+
+    if ParticleRotations in fields and ORIENTATION_ARRAY in atoms.arrays:
+        ParticleRotations.set(frame, get_rotations(atoms))
+
+    if ParticleMomentInertia in fields and PRINCIPAL_MOMENTS_ARRAY in atoms.arrays:
+        ParticleMomentInertia.set(
+            frame, get_principal_moments(atoms) * _ASEToNarupa.moment_inertia
+        )
+
     return frame
 
 
@@ -276,6 +318,9 @@ def _add_ase_atoms_particles_to_frame(
 
     if ParticleNames in fields:
         frame[ParticleNames] = atoms.arrays.get("atomtypes", list(atoms.symbols))
+
+    if ParticleTypes in fields:
+        frame[ParticleTypes] = atoms.arrays.get("atomtypes", list(atoms.symbols))
 
 
 def _add_ase_atoms_calculated_properties_to_frame(
@@ -357,6 +402,9 @@ class _AtomsBonds(Atoms):
 def _add_bonds_to_ase_atoms(
     frame: FrameData, fields: InfiniteSet[str], atoms: Atoms
 ) -> None:
+
+    if BondPairs not in frame:
+        return
 
     bonds: List[List[int]] = [[] for _ in range(len(atoms))]
     bond_types: List[List[str]] = [[] for _ in range(len(atoms))]
