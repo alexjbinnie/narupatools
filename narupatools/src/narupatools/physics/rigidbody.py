@@ -385,7 +385,15 @@ def kabsch_rotation_matrix(
     masses: ScalarArrayLike,
     original_positions: Vector3ArrayLike,
     new_positions: Vector3ArrayLike,
-):
+) -> Matrix3x3:
+    """
+    Calculate the rotation matrix between two sets of positions using the Kabsch algorithm.
+
+    :param masses: Atomic masses to use as weights.
+    :param original_positions: Original positions of the atoms.
+    :param new_positions: New positions of the atoms.
+    :returns: Rotation matrix that rotates between original_positions and new_positions.
+    """
     P = np.sqrt(masses)[:, np.newaxis] * (
         original_positions - center_of_mass(masses=masses, positions=original_positions)
     )
@@ -395,7 +403,7 @@ def kabsch_rotation_matrix(
     H = P.T @ Q
     U, S, VH = np.linalg.svd(H)
     d = np.linalg.det((U @ VH).T)
-    return (U @ np.array([[1, 0, 0], [0, 1, 0], [0, 0, d]]) @ VH).T
+    return (U @ np.array([[1, 0, 0], [0, 1, 0], [0, 0, d]]) @ VH).T  # type: ignore
 
 
 def kabsch_rotation_angle(
@@ -403,7 +411,15 @@ def kabsch_rotation_angle(
     masses: ScalarArrayLike,
     original_positions: Vector3ArrayLike,
     new_positions: Vector3ArrayLike,
-):
+) -> float:
+    """
+    Calculate the angle between two sets of positions using the Kabsch algorithm.
+
+    :param masses: Atomic masses to use as weights.
+    :param original_positions: Original positions of the atoms.
+    :param new_positions: New positions of the atoms.
+    :returns: Rotation matrix that rotates between original_positions and new_positions.
+    """
     matrix = kabsch_rotation_matrix(
         masses=masses,
         original_positions=original_positions,

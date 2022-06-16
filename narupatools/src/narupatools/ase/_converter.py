@@ -58,9 +58,9 @@ from narupatools.frame.fields import (
     ParticleElements,
     ParticleForces,
     ParticleMasses,
-    ParticleMomentInertia,
     ParticleNames,
     ParticlePositions,
+    ParticlePrincipalMoments,
     ParticleResidues,
     ParticleRotations,
     ParticleTypes,
@@ -221,9 +221,9 @@ def frame_to_ase_atoms(
     if ParticleRotations in fields and ParticleRotations in frame:
         set_rotations(atoms, ParticleRotations.get(frame))
 
-    if ParticleMomentInertia in fields and ParticleMomentInertia in frame:
+    if ParticlePrincipalMoments in fields and ParticlePrincipalMoments in frame:
         set_principal_moments(
-            atoms, ParticleMomentInertia.get(frame) * _NarupaToASE.moment_inertia
+            atoms, ParticlePrincipalMoments.get(frame) * _NarupaToASE.moment_inertia
         )
 
     return atoms
@@ -286,8 +286,8 @@ def ase_atoms_to_frame(
     if ParticleRotations in fields and ORIENTATION_ARRAY in atoms.arrays:
         ParticleRotations.set(frame, get_rotations(atoms))
 
-    if ParticleMomentInertia in fields and PRINCIPAL_MOMENTS_ARRAY in atoms.arrays:
-        ParticleMomentInertia.set(
+    if ParticlePrincipalMoments in fields and PRINCIPAL_MOMENTS_ARRAY in atoms.arrays:
+        ParticlePrincipalMoments.set(
             frame, get_principal_moments(atoms) * _ASEToNarupa.moment_inertia
         )
 

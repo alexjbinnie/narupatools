@@ -34,11 +34,7 @@ from openmm.app import Simulation, Topology
 from narupatools.frame import FrameSource
 from narupatools.override import override
 
-from ._converter import (
-    openmm_context_to_frame,
-    openmm_simulation_to_frame,
-    openmm_topology_to_frame,
-)
+from ._converter import openmm_simulation_to_frame
 from ._serializer import deserialize_simulation
 
 
@@ -63,7 +59,7 @@ class OpenMMSimulation(FrameSource):
         frame = existing
         if not frame:
             frame = FrameData()
-        openmm_simulation_to_frame(self, fields=fields, existing=frame)
+        openmm_simulation_to_frame(self, fields=fields, existing=frame)  # type: ignore
         return frame
 
     def __init__(

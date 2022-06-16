@@ -21,7 +21,12 @@ def monkeypatch(baseclass: Type) -> Callable[[Type], None]:
     """Decorate that modifies a base class via monkeypatching."""
 
     def patch(derivedclass: Type) -> None:
-        for key, value in derivedclass.__dict__.items():
-            setattr(baseclass, key, value)
+        for clss in derivedclass.mro():
+            if clss == baseclass or clss in baseclass.mro():
+                continue
+            for key, value in clss.__dict__.items():
+                if key in {"__doc__", "__module__", "__dict__", "__weakref__"}:
+                    continue
+                setattr(baseclass, key, value)
 
     return patch

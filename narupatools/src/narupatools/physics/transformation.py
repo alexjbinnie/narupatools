@@ -229,9 +229,7 @@ class Rotation:
         """
         rotation_matrix = self.rotation_matrix
         origin = np.asfarray(origin)
-        return np.array(
-            list(map(lambda p: origin + rotation_matrix @ (p - origin), positions))
-        )
+        return np.array([origin + rotation_matrix @ (p - origin) for p in positions])
 
 
 Rotation.identity = Rotation(quaternion(1, 0, 0, 0))

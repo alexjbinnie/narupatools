@@ -105,7 +105,7 @@ def _resolve_target(value: Any) -> Any:
 
     Finally, if it is a FrameSource or convertible to a FrameData, a FrameData is returned.
     """
-    if isinstance(value, (FrameSource, FrameSourceWithNotify, Playable)):
+    if isinstance(value, (FrameData, FrameSource, FrameSourceWithNotify, Playable)):
         return value
     dynamics = SimulationDynamics.create_from_object(value)
     if dynamics is not None:

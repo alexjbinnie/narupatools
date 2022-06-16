@@ -86,10 +86,10 @@ class Client(NarupaImdClient, SharedStateMixin):
         self._shared_state = SessionSharedState(SharedStateClientWrapper(self))
 
         super().__init__(**kwargs)
-
-        self._multiplayer_client._state.content_updated.add_callback(  # type: ignore
-            self._shared_state._on_dictionary_update
-        )
+        if self._multiplayer_client is not None:
+            self._multiplayer_client._state.content_updated.add_callback(
+                self._shared_state._on_dictionary_update
+            )
 
     @property
     def shared_state(self) -> SessionSharedState:

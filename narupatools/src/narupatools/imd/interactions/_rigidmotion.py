@@ -36,7 +36,6 @@ from narupatools.physics.vector import (
 )
 from narupatools.util import properties
 
-from ...physics.matrix import identity_matrix, zero_matrix
 from ._feedback import InteractionFeedback
 from ._interaction import Interaction
 from ._parameters import InteractionParameters
@@ -92,8 +91,6 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         self._center_of_mass_velocity_dirty = True
         self._angular_velocity_dirty = True
         self.damping_factor = 1.0
-        self.use_centripetal = True
-        self._filter = None
 
     @override(Interaction.update)
     def update(self, interaction: RigidMotionInteractionData) -> None:  # noqa: D102
@@ -203,10 +200,7 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         com_vel = self.center_of_mass_velocity
         omega = self.angular_velocity
 
-        if self.use_centripetal:
-            rotation_matrix = left_vector_triple_product_matrix(omega, omega)
-        else:
-            rotation_matrix = zero_matrix()
+        rotation_matrix = left_vector_triple_product_matrix(omega, omega)
 
         if self.rotation is not None:
             desired_rotation = self.rotation @ ~self._accumulated_rotation
@@ -226,14 +220,9 @@ class RigidMotionInteraction(Interaction[RigidMotionInteractionData]):
         self._forces = np.zeros((len(self), 3))
         self._torques = np.zeros((len(self), 3))
 
-        if self._filter is not None:
-            self._forces[self._filter] = (masses[:, np.newaxis] * (
-                (positions - com) @ rotation_matrix.T + translation_vector
-            ))[self._filter]
-        else:
-            self._forces = masses[:, np.newaxis] * (
-                    (positions - com) @ rotation_matrix.T + translation_vector
-            )
+        self._forces = masses[:, np.newaxis] * (
+            (positions - com) @ rotation_matrix.T + translation_vector
+        )
 
         # for i in range(len(self.particle_indices)):
 

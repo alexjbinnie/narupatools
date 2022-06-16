@@ -27,7 +27,7 @@ class PipedOutput:
 
     def __init__(self, handle_line: Any):
         self._filename = os.path.join(tempfile.mkdtemp(), "fifo")
-        os.mkfifo(self.filename)
+        os.mkfifo(self.filename)  # type: ignore
         self._thread = Thread(target=self._thread_run, daemon=True)
         self._thread.start()
         self._handle_line = handle_line

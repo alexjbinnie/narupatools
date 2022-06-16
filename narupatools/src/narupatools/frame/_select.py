@@ -51,11 +51,11 @@ def _get_selection_fields(selection: str, /) -> Set[str]:
         "resname",
         "atom",
     } & keywords:
-        fields |= {ParticleResidues, ResidueNames, ParticleCount, ResidueCount}  # type: ignore
+        fields |= {ParticleResidues, ResidueNames, ParticleCount, ResidueCount}
     if {"backbone", "nucleicbackbone", "nucleicsugar", "name", "atom"} & keywords:
-        fields |= {ParticleNames, ParticleCount}  # type: ignore
+        fields |= {ParticleNames, ParticleCount}
     if {"type"} & keywords:
-        fields |= {ParticleTypes, ParticleCount}  # type: ignore
+        fields |= {ParticleTypes, ParticleCount}
     if {
         "around",
         "sphzone",
@@ -65,9 +65,9 @@ def _get_selection_fields(selection: str, /) -> Set[str]:
         "point",
         "prop",
     } & keywords:
-        fields |= {ParticlePositions, ParticleCount}  # type: ignore
+        fields |= {ParticlePositions, ParticleCount}
     if {"bonded"} & keywords:
-        fields |= {BondPairs, BondCount}  # type: ignore
+        fields |= {BondPairs, BondCount}
     if {"element"} & keywords:
         fields |= {ParticleElements}
     return fields

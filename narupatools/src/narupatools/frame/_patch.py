@@ -21,7 +21,6 @@ from typing import Any, Dict, Generator, ItemsView, KeysView, Union
 import numpy as np
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
-from narupa.trajectory.frame_data import _FrameDataMeta
 from narupa.utilities.protobuf_utilities import value_to_object
 
 from narupatools.physics.typing import ScalarArray, Vector3Array
@@ -44,9 +43,9 @@ from .fields import (
     ParticleElements,
     ParticleForces,
     ParticleMasses,
-    ParticleMomentInertia,
     ParticleNames,
     ParticlePositions,
+    ParticlePrincipalMoments,
     ParticleResidues,
     ParticleRotations,
     ParticleTypes,
@@ -61,7 +60,7 @@ from .fields import (
 
 
 @monkeypatch(FrameData)
-class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameDataMeta):
+class _PatchedFrameData(DynamicStructureMethods, FrameData):
     bond_pairs = BondPairs  # type: ignore
     bond_orders = BondOrders  # type: ignore
     bond_types = BondTypes
@@ -77,8 +76,8 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     particle_velocities = ParticleVelocities
     particle_forces = ParticleForces
     particle_count = ParticleCount  # type: ignore
-    particle_angular_momenta = ParticleAngularMomenta  # type: ignore
-    particle_moment_inertia = ParticleMomentInertia  # type: ignore
+    particle_angular_momenta = ParticleAngularMomenta
+    particle_principal_moments = ParticlePrincipalMoments
 
     residue_names = ResidueNames  # type: ignore
     residue_uds = ResidueIds
@@ -193,8 +192,11 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData, metaclass=_FrameData
     @classmethod
     def deserialize(cls, value: Serializable) -> FrameData:
         frame = FrameData()
-        for key, value in value.items():
-            frame[key] = value
+        try:
+            for key, v in value.items():  # type: ignore
+                frame[key] = v
+        except AttributeError as e:
+            raise TypeError(f"{value} cannot be deserialized into a FrameData.") from e
         return frame
 
     def serialize(self) -> Serializable:

@@ -545,7 +545,6 @@ class LAMMPSSimulation(FrameSource):
             prev_ids: Set[np.int64] = set()
         else:
             prev_ids = set(self.gather_atoms(PROPERTIES.AtomID))  # type: ignore[arg-type]
-        position = position
         command = (
             f"create_atoms {atom_type} single {position[0]} {position[1]} {position[2]}"
         )

@@ -262,7 +262,7 @@ class _QuaternionFloatArrayKey(FrameKey[AssignableToFloatArray, np.ndarray]):
 
     @override(FrameKey.set)
     def _set(self, frame_data: FrameData, value: AssignableToFloatArray) -> None:
-        if isinstance(value, np.ndarray) and value.dtype == quaternion.quaternion:  # type: ignore
+        if isinstance(value, np.ndarray) and value.dtype == quaternion.quaternion:
             value = quaternion.as_float_array(value)  # type: ignore
         array = _flatten_array(value)
         if len(array) % 4 > 0:
@@ -438,7 +438,7 @@ ParticleAngularMomenta = _ThreeByNFloatArrayKey("particles.angular_momenta")
 Array of particle angular momenta as a NumPy N by 3 array of floats.
 """
 
-ParticleMomentInertia = _FloatArrayKey("particles.moment_inertia")
+ParticlePrincipalMoments = _FloatArrayKey("particles.moment_inertia")
 """
 Array of particle moment of inertia as a NumPy N array of floats.
 """

@@ -210,7 +210,7 @@ class SharedStateMixin(FrameSource):
             renderer=renderer,
             layer=layer,
             priority=priority,
-            frame=frame,
+            frame=frame,  # type: ignore
             extend=extend,
         )
         return self.visualisations.add(vis)
