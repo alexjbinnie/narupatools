@@ -14,17 +14,26 @@
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Code relating to ASE constraints, which can modify an ASE atoms object."""
+"""
+Code relating to ASE constraints, which can modify an ASE atoms object.
 
-from .constraint import (
+ASE constraints don't exist as a base class from which all other constraints are a subclass.
+Instead, it is assumed that they have at a minimum an `adjust_positions` and
+`adjust_forces` method, with optional other methods depending on what they alter.
+
+This module includes protocols that provide these methods as abstract methods, ensuring
+that if you include them in your class hierarchy then you have to implement them correctly.
+"""
+
+from ._constraint import (
     ASECellConstraint,
     ASEConstraint,
     ASEEnergyConstraint,
     ASEMomentaConstraint,
     ASEStressConstraint,
 )
-from .imd_constraint import InteractionConstraint
-from .observer import ASEObserver
+from ._imd_constraint import InteractionConstraint
+from ._observer import ASEObserver
 
 __all__ = [
     "InteractionConstraint",

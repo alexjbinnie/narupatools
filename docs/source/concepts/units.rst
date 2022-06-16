@@ -40,11 +40,11 @@ The units used by *narupatools* are the same as used for Narupa and OpenMM:
      - Nanometers per picosecond squared (:math:`\text{nm} \text{ps}^{-2}`)
      -
 
-These units are **consistent**, in that the units of mass times acceleration are equal to the units of force. This is not true in certain other packages such as MDAnalysis.
+These units are **consistent**, in that the units of mass times acceleration are equal to the units of force. The units used for other packages may not always be consistent, such as MDAnalysis.
 
-Unit conversions are normally done by either having defined constants (such as :code:`NM_TO_A` to convert nanometers to angstroms), or through wrapping quantities like OpenMM's `Quantity`.
+Unit conversions in other packages are normally done by either having defined constants (such as :code:`NM_TO_A` to convert nanometers to angstroms), or through wrapping quantities in more complex objects such as OpenMM's `Quantity`.
 
-This package provides useful methods for converting between the various unit systems, without having to know exactly what units they use and hence which constants to use. Each package has a :class:`~UnitSystem` that stores the units used for each quantity:
+This package provides useful methods for converting between units and unit systems, without having to know exactly what units they use and hence which constants to use. Each package has a :class:`~UnitSystem` that stores the unit system used by that package:
 
 * Narupa/narupatools has the unit system :obj:`~narupatools.core.units.UnitsNarupa`. This uses the unit system as described above.
 * OpenMM has the unit system :obj:`~narupatools.openmm.units.UnitsOpenMM`. This is the same unit system as Narupa.
@@ -63,7 +63,7 @@ Conversions between these are done by creating a unit system conversion using th
 
     positions_narupa = atoms.get_positions() * ASEToNarupa.length
 
-This object acts in a similar way to the unit system, except now properties such as :code:`.length` would give the conversion factor from lengths in ASE units to lengths in Narupa units.
+This object acts in a similar way to the unit system, except now properties such as :code:`.length` would give the conversion factor from lengths in ASE units to lengths in Narupa units. The arrow operator makes it clear that this represents conversions from units in ASE to units in Narupa.
 
 There are also units defined in :mod:`narupatools.core.units` such as :obj:`~narupatools.core.units.electronvolt`. These units can be multiplied, divided and exponentiated together to get another unit. When multiplied on the left by a float, they represent that value in this units, expressed in standard Narupa units. For example:
 
@@ -73,7 +73,7 @@ There are also units defined in :mod:`narupatools.core.units` such as :obj:`~nar
 
     value_nm = 2.42 * angstrom
 
-Units also override the :code:`>>` operator and hence can be used to get conversion factors in a pythonic way:
+Units also override the :code:`>>` operator and hence can be used to get conversion factors in a Pythonic way:
 
 .. code-block:: python
 

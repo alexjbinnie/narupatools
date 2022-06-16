@@ -16,15 +16,14 @@
 
 import pytest
 from ase.md import VelocityVerlet
-from simtk.openmm import System
-from simtk.openmm.app import Element, Simulation, Topology
+from openmm import System
+from openmm.app import Element, Simulation, Topology
 from test_classes.single_carbon import SingleCarbonSystemTests
 
 from narupatools.ase import ASEDynamics, UnitsASE
 from narupatools.ase.openmm import openmm_simulation_to_ase_atoms
-from narupatools.core import UnitsNarupa
-from narupatools.openmm.dynamics import OpenMMDynamics
-from narupatools.openmm.integrators import velocity_verlet_integrator
+from narupatools.openmm import OpenMMDynamics, VelocityVerletIntegrator
+from narupatools.physics.units import UnitsNarupa
 from narupatools.physics.vector import vector
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
@@ -38,7 +37,7 @@ def simulation():
     chain = topology.addChain(0)
     residue = topology.addResidue("RES", chain)
     topology.addAtom("C", Element.getBySymbol("C"), residue)
-    integrator = velocity_verlet_integrator(0.01)
+    integrator = VelocityVerletIntegrator(timestep=0.01)
     simulation = Simulation(topology, system, integrator)
     simulation.context.setPositions([vector(5.0, 5.0, 5.0)])
     return simulation
@@ -55,5 +54,4 @@ class TestASEOpenMMSingleCarbonSystem(SingleCarbonSystemTests):
     def dynamics(self, simulation):
         atoms = openmm_simulation_to_ase_atoms(simulation)
         verlet = VelocityVerlet(atoms, timestep=0.01 * _NarupaToASE.time)
-        dynamics = ASEDynamics(verlet)
-        return dynamics
+        return ASEDynamics(verlet)

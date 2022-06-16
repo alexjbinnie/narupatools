@@ -16,10 +16,13 @@
 
 """Classes and methods for interfacing with the OpenMM package."""
 
-from .converter import openmm_state_to_frame, openmm_topology_to_frame
-from .dynamics import OpenMMDynamics
-from .serializer import deserialize_simulation, serialize_simulation
-from .units import UnitsOpenMM
+from ._converter import openmm_state_to_frame, openmm_topology_to_frame
+from ._dynamics import OpenMMDynamics
+from ._integrators import VelocityVerletIntegrator
+from ._serializer import deserialize_simulation, serialize_simulation
+from ._simulation import OpenMMSimulation
+from ._subset import simulation_subset
+from ._units import UnitsOpenMM
 
 __all__ = [
     "openmm_state_to_frame",
@@ -28,4 +31,7 @@ __all__ = [
     "serialize_simulation",
     "deserialize_simulation",
     "OpenMMDynamics",
+    "VelocityVerletIntegrator",
+    "simulation_subset",
+    "OpenMMSimulation",
 ]

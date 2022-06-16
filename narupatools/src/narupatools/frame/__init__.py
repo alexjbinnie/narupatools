@@ -16,67 +16,39 @@
 
 """Code for handling FrameData and other related objects."""
 
-from .converter import convert
-from .fields import (
-    BondCount,
-    BondOrders,
-    BondPairs,
-    BoxVectors,
-    ChainCount,
-    ChainNames,
-    KineticEnergy,
-    ParticleCharges,
-    ParticleCount,
-    ParticleElements,
-    ParticleForces,
-    ParticleMasses,
-    ParticleNames,
-    ParticlePositions,
-    ParticleResidues,
-    ParticleTypes,
-    ParticleVelocities,
-    PotentialEnergy,
-    ResidueChains,
-    ResidueCount,
-    ResidueIds,
-    ResidueNames,
-    SimulationElapsedSteps,
-    SimulationElapsedTime,
-    SimulationTotalSteps,
-    SimulationTotalTime,
+from narupa.trajectory import FrameData
+
+from ._converter import FrameConverter, NoConversionDefinedError, convert
+from ._frame_producer import FrameProducer
+from ._frame_source import (
+    FrameSource,
+    FrameSourceWithNotify,
+    OnFieldsChangedCallback,
+    TrajectorySource,
 )
-from .frame import NarupaFrame
-from .patch import *  # noqa: F401, F403
-from .trajectory_playback import TrajectoryPlayback
+from ._patch import *  # noqa: F401, F403
+from ._pdb import frame_to_pdb_string
+from ._properties import DynamicStructureProperties, StaticStructureProperties
+from ._select import select
+from ._simple_trajectory import SimpleTrajectory
+from ._state import StateData
+from ._trajectory_playback import TrajectoryPlayback
 
 __all__ = [
     "convert",
-    "ParticlePositions",
-    "ParticleCount",
-    "ParticleElements",
-    "ParticleNames",
-    "ParticleTypes",
-    "ParticleResidues",
-    "ParticleMasses",
-    "ParticleVelocities",
-    "ParticleForces",
-    "ParticleCharges",
-    "ResidueNames",
-    "ResidueChains",
-    "ResidueCount",
-    "ResidueIds",
-    "ChainCount",
-    "ChainNames",
-    "BondCount",
-    "BondPairs",
-    "BoxVectors",
-    "BondOrders",
-    "PotentialEnergy",
-    "KineticEnergy",
-    "SimulationTotalTime",
-    "SimulationElapsedTime",
-    "SimulationTotalSteps",
-    "SimulationElapsedSteps",
-    "NarupaFrame",
+    "select",
     "TrajectoryPlayback",
+    "FrameSource",
+    "FrameData",
+    "FrameSourceWithNotify",
+    "OnFieldsChangedCallback",
+    "TrajectorySource",
+    "FrameConverter",
+    "FrameProducer",
+    "frame_to_pdb_string",
+    "StaticStructureProperties",
+    "DynamicStructureProperties",
+    "StateData",
+    "SimpleTrajectory",
+    "NoConversionDefinedError",
 ]

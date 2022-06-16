@@ -40,7 +40,7 @@ class HealthCheck(metaclass=ABCMeta):
         It is recommended to call this periodically from the main thread to ensure an
         object is healthy. If no exceptions have occurred, this method will do nothing.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
     def check_task(cls, task: Optional[Future]) -> None:

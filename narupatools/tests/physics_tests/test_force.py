@@ -1,9 +1,24 @@
+# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
+# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+#
+# narupatools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# narupatools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
+
 import math
 
 import numpy as np
 import pytest
 
-from narupatools.core.random import random_integer
 from narupatools.physics.force import (
     centripetal_force,
     critically_damped_spring_force,
@@ -14,7 +29,7 @@ from narupatools.physics.force import (
     spring_force,
     spring_force_and_energy,
 )
-from narupatools.physics.random import random_scalar, random_vector
+from narupatools.physics.random import random_float, random_integer, random_vector
 from narupatools.physics.vector import (
     dot_product,
     magnitude,
@@ -31,17 +46,17 @@ def offset(seed):
 
 @pytest.fixture
 def spring_constant(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def depth(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def sigma(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
@@ -71,22 +86,22 @@ def force(seed):
 
 @pytest.fixture
 def damping_coefficient(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def mass(seed):
-    return random_scalar(min=0.0, max=100.0)
+    return random_float(minimum=0.0, maximum=100.0)
 
 
 @pytest.fixture
 def system_size(seed):
-    return random_integer(1, 10)
+    return random_integer(minimum=1, maximum=10)
 
 
 @pytest.fixture
 def masses(seed, system_size):
-    return [random_scalar(min=0.0, max=100.0) for _ in range(system_size)]
+    return [random_float(minimum=0.0, maximum=100.0) for _ in range(system_size)]
 
 
 @pytest.fixture
@@ -144,7 +159,7 @@ def test_gaussian_force_zero_offset(depth, sigma):
 def test_gaussian_energy(offset, depth, sigma):
     _, energy = gaussian_force_and_energy(offset=offset, depth=depth, sigma=sigma)
     assert energy == pytest.approx(
-        -depth * math.exp(-sqr_magnitude(offset) / (2 * sigma ** 2))
+        -depth * math.exp(-sqr_magnitude(offset) / (2 * sigma**2))
     )
 
 
@@ -153,8 +168,8 @@ def test_gaussian_force(offset, depth, sigma):
     assert force == pytest.approx(
         -depth
         * offset
-        * math.exp(-sqr_magnitude(offset) / (2 * sigma ** 2))
-        / (sigma ** 2)
+        * math.exp(-sqr_magnitude(offset) / (2 * sigma**2))
+        / (sigma**2)
     )
 
 
@@ -228,7 +243,6 @@ def test_centripetal_force_single_particle_arbitrary_axis(
         origin=origin,
     )
     rperp = vector_rejection(np.subtract(position, origin), angular_velocity)
-    print(rperp)
     assert force == pytest.approx(
         np.asfarray([-mass * sqr_magnitude(angular_velocity) * rperp])
     )

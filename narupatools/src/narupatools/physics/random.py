@@ -21,8 +21,11 @@ import random
 
 import numpy as np
 
-from narupatools.core.random import random_float
-from narupatools.physics.typing import QuaternionLike, Vector3
+from narupatools.physics.typing import Vector3
+from narupatools.physics.vector import normalized
+from narupatools.util.random import random_float, random_integer
+
+from ._quaternion import quaternion
 
 
 def random_sphere() -> Vector3:
@@ -47,9 +50,21 @@ def random_vector(*, max_magnitude: float = 1.0) -> Vector3:
     return random_sphere() * max_magnitude
 
 
-def random_quaternion() -> QuaternionLike:
-    """Generate a random vector of length 3."""
-    return [random_scalar(min=-1.0, max=1.0) for _ in range(4)]
+def random_quaternion() -> quaternion:
+    """Generate a random quanternion."""
+    return quaternion(*[random_float(minimum=-1.0, maximum=1.0) for _ in range(4)])
 
 
-random_scalar = random_float
+def random_unit_quaternion() -> quaternion:
+    """Generate a random quaternion of magnitude 1."""
+    return normalized(random_quaternion())
+
+
+__all__ = [
+    "random_float",
+    "random_integer",
+    "random_quaternion",
+    "random_unit_quaternion",
+    "random_vector",
+    "random_sphere",
+]

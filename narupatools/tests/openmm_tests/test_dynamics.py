@@ -17,12 +17,12 @@
 from io import BytesIO
 
 import pytest
-from simtk.openmm import LangevinIntegrator
-from simtk.openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
-from simtk.unit import kelvin, nanometer, picosecond, picoseconds
+from openmm import LangevinIntegrator
+from openmm.app import PME, ForceField, HBonds, PDBFile, Simulation
+from openmm.unit import kelvin, nanometer, picosecond, picoseconds
 from test_classes.dynamics import VillinDynamicsTests
 
-from narupatools.openmm.dynamics import OpenMMDynamics
+from narupatools.openmm._dynamics import OpenMMDynamics
 
 
 @pytest.fixture(scope="module")

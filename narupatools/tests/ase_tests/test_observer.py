@@ -17,13 +17,12 @@
 import pytest
 from testing import assert_event_called
 
-from narupatools.ase.constraints.observer import ASEObserver
+from narupatools.ase.constraints._observer import ASEObserver
 
 
 @pytest.fixture
 def observer(ethane_atoms):
-    observer = ASEObserver.get_or_create(ethane_atoms)
-    return observer
+    return ASEObserver.get_or_create(ethane_atoms)
 
 
 def test_set_positions(ethane_atoms, observer):

@@ -80,7 +80,7 @@ DICT = {KEY_NON_COLLECTION: VALUE_NON_COLLECTION, KEY: VALUE, KEY_EXTRA: VALUE_E
 
 
 @pytest.fixture
-def object() -> ExampleStateObject:
+def state_object() -> ExampleStateObject:
     return ExampleStateObject(named_field="item")
 
 
@@ -108,7 +108,7 @@ def test_ref_snapshot_raw(view):
 # Can cast snapshot to arbitrary object using second argument of SharedStateView.get
 def test_ref_snapshot_typed(view):
     assert (
-        view.get(KEY_NON_COLLECTION, ExampleStateObject).snapshot()
+        view.get(KEY_NON_COLLECTION, snapshot_type=ExampleStateObject).snapshot()
         == VALUE_NON_COLLECTION_OBJ
     )
 
@@ -153,7 +153,7 @@ def test_collection_reference_set_typed(view, collection):
 
 # SharedStateCollectionView.update() works with SharedStateObject and modifies property
 def test_collection_update_property(view, collection):
-    collection.update(KEY, **{"named_field": VALUE_NEW["named_field"]})
+    collection.update(KEY, named_field=VALUE_NEW["named_field"])
     assert view[KEY].snapshot() == VALUE_NEW
     assert collection[KEY].snapshot() == VALUE_NEW_OBJ
 
@@ -161,14 +161,14 @@ def test_collection_update_property(view, collection):
 # SharedStateCollectionView.update() works with SharedStateObject and modifies
 # arbitrary data
 def test_collection_update_arbitrary(view, collection):
-    collection.update(KEY, **{"extra_data": "extra_data"})
+    collection.update(KEY, extra_data="extra_data")
     assert view[KEY].snapshot() == VALUE_EXTRA
     assert collection[KEY].snapshot() == VALUE_EXTRA_OBJ
 
 
 # SharedStateCollectionView.update() works with SharedStateObject and modifies property
 def test_collection_reference_update_property(view, collection):
-    collection[KEY].update(**{"named_field": VALUE_NEW["named_field"]})
+    collection[KEY].update(named_field=VALUE_NEW["named_field"])
     assert view[KEY].snapshot() == VALUE_NEW
     assert collection[KEY].snapshot() == VALUE_NEW_OBJ
 
@@ -176,7 +176,7 @@ def test_collection_reference_update_property(view, collection):
 # SharedStateCollectionView.update() works with SharedStateObject and modifies
 # arbitrary data
 def test_collection_reference_update_arbitrary(view, collection):
-    collection[KEY].update(**{"extra_data": "extra_data"})
+    collection[KEY].update(extra_data="extra_data")
     assert view[KEY].snapshot() == VALUE_EXTRA
     assert collection[KEY].snapshot() == VALUE_EXTRA_OBJ
 
@@ -204,29 +204,29 @@ def test_collection_modify(view, collection):
 
 
 @given(serializable_dictionaries())
-def test_load_then_save(dict):
-    obj = ExampleStateObject.deserialize(dict)
-    assert obj.serialize() == dict
+def test_load_then_save(dict_):
+    obj = ExampleStateObject.deserialize(dict_)
+    assert obj.serialize() == dict_
 
 
 @given(serializable_dictionaries(), keys(), serializable())
-def test_arbitrary_data(dict, key, value):
-    obj = ExampleStateObject.deserialize(dict)
-    dict[key] = value
+def test_arbitrary_data(dict_, key, value):
+    obj = ExampleStateObject.deserialize(dict_)
+    dict_[key] = value
     obj[key] = value
     new_dict = obj.serialize()
-    assert new_dict == dict
+    assert new_dict == dict_
     new_obj = ExampleStateObject.deserialize(new_dict)
     assert new_obj == obj
 
 
-def set_named_field_setitem(object):
-    object["named_field"] = "new"
-    assert object.named_field == "new"
+def test_set_named_field_setitem(state_object):
+    state_object["named_field"] = "new"
+    assert state_object.named_field == "new"
 
 
-def get_named_field_getitem(object):
-    assert object["named_field"] == object.named_field
+def test_get_named_field_getitem(state_object):
+    assert state_object["named_field"] == state_object.named_field
 
 
 def test_ref_repr(collection):

@@ -430,7 +430,7 @@ Key
     `box.vectors`
 
 Canonical representation
-    :math:`3\times 3` matrix, whose columns denote the three axes of the unit scell.
+    :math:`3\times 3` matrix, whose columns denote the three axes of the unit cell.
 
 Dimension
     `length`

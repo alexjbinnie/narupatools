@@ -1,16 +1,34 @@
+# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
+# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+#
+# narupatools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# narupatools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import pytest
 
-from narupatools.core.random import random_integer
 from narupatools.physics import rigidbody
 from narupatools.physics.matrix import identity_matrix, kronecker_delta, zero_matrix
-from narupatools.physics.random import random_quaternion, random_scalar, random_vector
+from narupatools.physics.random import (
+    random_float,
+    random_integer,
+    random_unit_quaternion,
+    random_vector,
+)
 from narupatools.physics.rigidbody import (
     center_of_mass,
     center_of_mass_acceleration,
     center_of_mass_velocity,
     distribute_angular_velocity,
-    kinetic_energy,
     moment_of_inertia_tensor,
     orbital_angular_momentum,
     spin_angular_momentum,
@@ -26,7 +44,7 @@ from narupatools.physics.vector import (
 
 @pytest.fixture
 def system_size(seed):
-    return random_integer(1, 10)
+    return random_integer(minimum=1, maximum=10)
 
 
 @pytest.fixture
@@ -46,7 +64,7 @@ def accelerations(seed, system_size):
 
 @pytest.fixture
 def masses(seed, system_size):
-    return [random_scalar(max=100.0) for _ in range(system_size)]
+    return [random_float(maximum=100.0) for _ in range(system_size)]
 
 
 @pytest.fixture
@@ -60,8 +78,8 @@ def displacement(seed):
 
 
 @pytest.fixture
-def rotation(seed):
-    return [random_quaternion(max_magnitude=100.0) for _ in range(system_size)]
+def rotation(seed, system_size):
+    return [random_unit_quaternion() for _ in range(system_size)]
 
 
 @pytest.fixture
@@ -250,13 +268,3 @@ def test_distribute_angular_velocity_no_origin_or_mass(positions, angular_veloci
         _ = distribute_angular_velocity(
             angular_velocity=angular_velocity, positions=positions
         )
-
-
-def test_kinetic_energy(masses, velocities):
-    energy = kinetic_energy(masses=masses, velocities=velocities)
-
-    energy_calc = 0.0
-    for mass, velocity in zip(masses, velocities):
-        energy_calc += 0.5 * mass * sqr_magnitude(velocity)
-
-    assert energy == pytest.approx(energy_calc)

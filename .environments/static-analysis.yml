@@ -1,0 +1,23 @@
+# Conda environment for running linters and mypy.
+# Due to the presence of the stubs folder, packages such as lxml, mdtraj
+# and lammps are not needed.
+name: narupatools-lint
+channels:
+  - conda-forge
+dependencies:
+# Black formatter
+  - black=22.*
+# Import soring
+  - isort=5.*
+# Flake8 and extensions
+  - flake8=4.0.*
+  - flake8-bugbear=22.*
+  - flake8-comprehensions=3.*
+  - flake8-docstrings=1.*
+  - flake8-pyi=22.*
+  - flake8-rst-docstrings=0.2.*
+  - flake8-simplify=0.19.*
+  - flake8-builtins=1.5.*
+# Mypy and extensions
+  - mypy=0.961
+  - mypy_extensions=0.4.*

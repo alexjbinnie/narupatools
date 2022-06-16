@@ -19,7 +19,7 @@ from typing import Generator
 import pytest
 from narupa.core import NarupaServer
 
-from narupatools.state.view.wrappers import SharedStateServerWrapper
+from narupatools.state.view._wrappers import SharedStateServerWrapper
 
 
 class Unserializable:

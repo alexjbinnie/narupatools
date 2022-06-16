@@ -13,22 +13,4 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
-
-from .element import Element
-from .forcefield import PME, ForceField, HBonds
-from .pdbfile import PDBFile
-from .simulation import Simulation
-from .topology import Atom, Chain, Residue, Topology
-
-__all__ = [
-    "Element",
-    "ForceField",
-    "Simulation",
-    "Topology",
-    "Chain",
-    "Residue",
-    "Atom",
-    "PME",
-    "HBonds",
-    "PDBFile",
-]
+from openmm.app import *

@@ -1,0 +1,29 @@
+# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
+# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+#
+# narupatools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# narupatools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
+
+from collections import namedtuple
+from typing import Any, Sequence
+
+class Vec3(namedtuple("Vec3", ["x", "y", "z"])):
+    def __add__(self, other: Any) -> Vec3: ...
+    def __radd__(self, other: Sequence[float]) -> Vec3: ...
+    def __sub__(self, other: Sequence[float]) -> Vec3: ...
+    def __rsub__(self, other: Sequence[float]) -> Vec3: ...
+    def __mul__(self, other: Any) -> Vec3: ...
+    def __rmul__(self, other: Any) -> Vec3: ...
+    def __div__(self, other: float) -> Vec3: ...
+    def __truediv__(self, other: float) -> Vec3: ...
+    def __neg__(self) -> Vec3: ...

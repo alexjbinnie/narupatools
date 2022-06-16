@@ -19,7 +19,7 @@ from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 
 from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
-from narupatools.core import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 
 ASEToNarupa = UnitsASE >> UnitsNarupa
 
@@ -41,9 +41,7 @@ def test_from_ase_atoms_leaves_existing_calculator(ethane_atoms):
 
 
 def test_from_ase_dynamics(villin_ase_langevin_dynamics, villin_mda_universe_readonly):
-    dynamics = ASEDynamics(
-        villin_ase_langevin_dynamics, universe=villin_mda_universe_readonly
-    )
+    dynamics = ASEDynamics(villin_ase_langevin_dynamics)
     assert dynamics.molecular_dynamics == villin_ase_langevin_dynamics
 
 

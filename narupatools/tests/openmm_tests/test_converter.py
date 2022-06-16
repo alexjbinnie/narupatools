@@ -16,10 +16,10 @@
 
 import pytest
 from narupa.trajectory import FrameData
-from simtk.openmm.app import PDBFile, Topology
+from openmm.app import PDBFile, Topology
 from test_classes.converter import NeuraminidaseTestConverter
 
-from narupatools.frame import ParticlePositions
+from narupatools.frame.fields import ParticlePositions
 from narupatools.openmm import openmm_topology_to_frame
 
 
@@ -32,7 +32,7 @@ def neuraminidase_pdbfile(neuraminidase_pdb_filename) -> PDBFile:
 def neuraminidase_frame(neuraminidase_pdbfile) -> FrameData:
     frame = FrameData()
     openmm_topology_to_frame(neuraminidase_pdbfile.getTopology(), existing=frame)
-    ParticlePositions.set(frame, neuraminidase_pdbfile.getPositions(asNumpy=True))
+    frame[ParticlePositions] = neuraminidase_pdbfile.getPositions(asNumpy=True)
     return frame
 
 

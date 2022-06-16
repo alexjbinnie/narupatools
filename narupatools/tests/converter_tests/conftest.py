@@ -1,3 +1,19 @@
+# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
+# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+#
+# narupatools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# narupatools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
+
 import itertools
 import random
 
@@ -5,14 +21,14 @@ import pytest
 from ase.geometry import cellpar_to_cell
 from infinite_sets import InfiniteSet, everything
 
-from narupatools.core.random import random_integer, random_word
-from narupatools.frame import (
+from narupatools.frame import FrameData
+from narupatools.frame.fields import (
     BondCount,
     BondPairs,
     BoxVectors,
     ChainCount,
     ChainNames,
-    NarupaFrame,
+    FrameKey,
     ParticleCharges,
     ParticleCount,
     ParticleElements,
@@ -29,8 +45,8 @@ from narupatools.frame import (
     ResidueIds,
     ResidueNames,
 )
-from narupatools.frame.fields import FrameKey
-from narupatools.physics.random import random_scalar, random_vector
+from narupatools.physics.random import random_float, random_vector
+from narupatools.util.random import random_integer, random_word
 
 
 @pytest.fixture(params=range(20))
@@ -41,7 +57,7 @@ def seed(request):
 
 @pytest.fixture
 def particle_count(seed):
-    return random_integer(1, 100)
+    return random_integer(minimum=1, maximum=100)
 
 
 @pytest.fixture
@@ -71,25 +87,25 @@ def particle_forces(seed, particle_count):
 
 @pytest.fixture
 def particle_charges(seed, particle_count):
-    return [random_scalar(min=-5.0, max=5.0) for _ in range(particle_count)]
+    return [random_float(minimum=-5.0, maximum=5.0) for _ in range(particle_count)]
 
 
 @pytest.fixture
 def particle_masses(seed, particle_count):
-    return [random_scalar(min=-5.0, max=5.0) for _ in range(particle_count)]
+    return [random_float(minimum=-5.0, maximum=5.0) for _ in range(particle_count)]
 
 
 @pytest.fixture
 def particle_names(seed, particle_count):
     return [
-        random_word(min_length=2, max_length=10).capitalize()
+        random_word(minimum_length=2, maximum_length=10).capitalize()
         for _ in range(particle_count)
     ]
 
 
 @pytest.fixture
 def particle_elements(seed, particle_count):
-    return [random_integer(1, 92) for _ in range(particle_count)]
+    return [random_integer(minimum=1, maximum=92) for _ in range(particle_count)]
 
 
 @pytest.fixture
@@ -98,7 +114,7 @@ def particle_residues(seed, residue_count, particle_count):
     ids = itertools.chain(
         range(residue_count),
         (
-            random_integer(0, residue_count - 1)
+            random_integer(minimum=0, maximum=residue_count - 1)
             for _ in range(particle_count - residue_count)
         ),
     )
@@ -109,7 +125,7 @@ def particle_residues(seed, residue_count, particle_count):
 @pytest.fixture
 def particle_types(seed, particle_count):
     return [
-        random_word(min_length=2, max_length=10).capitalize()
+        random_word(minimum_length=2, maximum_length=10).capitalize()
         for _ in range(particle_count)
     ]
 
@@ -117,7 +133,7 @@ def particle_types(seed, particle_count):
 @pytest.fixture
 def residue_names(seed, residue_count):
     return [
-        random_word(min_length=2, max_length=10).capitalize()
+        random_word(minimum_length=2, maximum_length=10).capitalize()
         for _ in range(residue_count)
     ]
 
@@ -129,30 +145,33 @@ def residue_ids(seed, residue_count):
 
 @pytest.fixture
 def residue_chains(seed, chain_count, residue_count):
-    return sorted(random_integer(0, chain_count - 1) for _ in range(residue_count))
+    return sorted(
+        random_integer(minimum=0, maximum=chain_count - 1) for _ in range(residue_count)
+    )
 
 
 @pytest.fixture
 def box_vectors(seed):
-    a = random_scalar(min=50.0, max=100.0)
-    b = random_scalar(min=50.0, max=100.0)
-    c = random_scalar(min=50.0, max=100.0)
-    alpha = random_scalar(min=90.0, max=90.0)
-    beta = random_scalar(min=90.0, max=90.0)
-    gamma = random_scalar(min=90.0, max=90.0)
+    a = random_float(minimum=50.0, maximum=100.0)
+    b = random_float(minimum=50.0, maximum=100.0)
+    c = random_float(minimum=50.0, maximum=100.0)
+    alpha = random_float(minimum=90.0, maximum=90.0)
+    beta = random_float(minimum=90.0, maximum=90.0)
+    gamma = random_float(minimum=90.0, maximum=90.0)
     return cellpar_to_cell([a, b, c, alpha, beta, gamma])
 
 
 @pytest.fixture
 def chain_names(seed, chain_count):
     return [
-        random_word(min_length=1, max_length=2).capitalize() for _ in range(chain_count)
+        random_word(minimum_length=1, maximum_length=2).capitalize()
+        for _ in range(chain_count)
     ]
 
 
 @pytest.fixture
 def potential_energy(seed):
-    return random_scalar(min=100.0, max=100.0)
+    return random_float(minimum=-100.0, maximum=100.0)
 
 
 @pytest.fixture
@@ -170,8 +189,8 @@ def bond_pairs(seed, bond_count, particle_count):
         bonds = []
         while len(bonds) < bond_count:
             bond = (
-                random_integer(max=particle_count - 1),
-                random_integer(max=particle_count - 1),
+                random_integer(maximum=particle_count - 1),
+                random_integer(maximum=particle_count - 1),
             )
             if bond[0] == bond[1]:
                 continue
@@ -207,47 +226,47 @@ def make_frame(  # noqa: C901
     chain_names,
 ):
     def make(fields: InfiniteSet[FrameKey]):
-        frame = NarupaFrame()
+        frame = FrameData()
         if ParticleCount in fields:
-            ParticleCount.set(frame, particle_count)
+            frame[ParticleCount] = particle_count
         if ParticleCharges in fields:
-            ParticleCharges.set(frame, particle_charges)
+            frame[ParticleCharges] = particle_charges
         if ParticlePositions in fields:
-            ParticlePositions.set(frame, particle_positions)
+            frame[ParticlePositions] = particle_positions
         if ParticleVelocities in fields:
-            ParticleVelocities.set(frame, particle_velocities)
+            frame[ParticleVelocities] = particle_velocities
         if ParticleForces in fields:
-            ParticleForces.set(frame, particle_forces)
+            frame[ParticleForces] = particle_forces
         if ParticleNames in fields:
-            ParticleNames.set(frame, particle_names)
+            frame[ParticleNames] = particle_names
         if ParticleMasses in fields:
-            ParticleMasses.set(frame, particle_masses)
+            frame[ParticleMasses] = particle_masses
         if ParticleElements in fields:
-            ParticleElements.set(frame, particle_elements)
+            frame[ParticleElements] = particle_elements
         if ParticleResidues in fields:
-            ParticleResidues.set(frame, particle_residues)
+            frame[ParticleResidues] = particle_residues
         if ParticleTypes in fields:
-            ParticleTypes.set(frame, particle_types)
+            frame[ParticleTypes] = particle_types
         if ResidueNames in fields:
-            ResidueNames.set(frame, residue_names)
+            frame[ResidueNames] = residue_names
         if ResidueChains in fields:
-            ResidueChains.set(frame, residue_chains)
+            frame[ResidueChains] = residue_chains
         if ResidueCount in fields:
-            ResidueCount.set(frame, residue_count)
+            frame[ResidueCount] = residue_count
         if ChainCount in fields:
-            ChainCount.set(frame, chain_count)
+            frame[ChainCount] = chain_count
         if BoxVectors in fields:
-            BoxVectors.set(frame, box_vectors)
+            frame[BoxVectors] = box_vectors
         if PotentialEnergy in fields:
-            PotentialEnergy.set(frame, potential_energy)
+            frame[PotentialEnergy] = potential_energy
         if BondCount in fields:
-            BondCount.set(frame, bond_count)
+            frame[BondCount] = bond_count
         if BondPairs in fields:
-            BondPairs.set(frame, bond_pairs)
+            frame[BondPairs] = bond_pairs
         if ResidueIds in fields:
-            ResidueIds.set(frame, residue_ids)
+            frame[ResidueIds] = residue_ids
         if ChainNames in fields:
-            ChainNames.set(frame, chain_names)
+            frame[ChainNames] = chain_names
         return frame
 
     return make

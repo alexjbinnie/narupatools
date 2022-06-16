@@ -16,9 +16,9 @@
 
 """Utilities for interfacing with the MDTraj package."""
 
-from .converter import mdtraj_topology_to_frame, mdtraj_trajectory_to_frame
-from .trajectory import MDTrajTrajectory
-from .units import UnitsMDTraj
+from ._converter import mdtraj_topology_to_frame, mdtraj_trajectory_to_frame
+from ._trajectory import MDTrajTrajectory
+from ._units import UnitsMDTraj
 
 __all__ = [
     "UnitsMDTraj",

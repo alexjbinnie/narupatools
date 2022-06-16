@@ -1,0 +1,237 @@
+name: CI
+
+on: push
+
+jobs:
+  lint:
+    name: Run linters
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Create environment file
+        run: |
+          pip install conda-merge
+          conda-merge .environments/base.yml .environments/tests.yml .environments/static-analysis.yml > gitlab-environment.yml
+
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache lint-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('lint-environment.yml') }}
+
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: gitlab-environment.yml
+          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+          miniconda-version: "latest"
+
+      - name: Run isort
+        shell: bash -l {0}
+        run: |
+          isort --check-only narupatools stubs
+
+      - name: Run black
+        shell: bash -l {0}
+        run: |
+          black --check narupatools stubs
+
+      - name: Run flake8
+        shell: bash -l {0}
+        run: |
+          flake8 narupatools stubs
+
+      - name: Run mypy
+        shell: bash -l {0}
+        run: |
+          mypy --install-types --non-interactive narupatools/src narupatools/tests
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v2
+
+    - name: Create environment file
+      run: |
+        pip install conda-merge
+        conda-merge .environments/base.yml .environments/tests.yml > gitlab-environment.yml
+
+    - name: Cache conda
+      uses: actions/cache@v2
+      env:
+        # Increase this value to reset cache lint-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('test-environment.yml') }}
+
+    - name: Set up conda environment
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        environment-file: gitlab-environment.yml
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+    - name: Install narupatools
+      run: |
+        pip install -e narupatools
+
+    - name: Run tests
+      run: |
+        pytest -m "(not openmm) and (not lammps)" --junit-xml pytest.xml --cov=narupatools/ --cov-report=xml narupatools
+
+    - name: Publish results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        files: pytest.xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
+
+    - name: Create coverage artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Coverage Report
+        path: coverage.xml
+
+  build-docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Create environment file
+        run: |
+          pip install conda-merge
+          conda-merge .environments/base.yml .environments/docs.yml > gitlab-environment.yml
+
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache gitlab-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('gitlab-environment.yml') }}
+
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: gitlab-environment.yml
+          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+      - name: Run sphinx doctest
+        run: |
+          cd docs
+          sphinx-build -b doctest source build
+
+      - name: Run sphinx
+        run: |
+          cd docs
+          sphinx-build -b html source build
+
+  build-conda:
+    name: Build Conda package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.8
+          miniconda-version: "latest"
+
+      - name: Install conda build
+        run: |
+          conda install conda-build
+
+      - name: Append dev versioning
+        run: |
+          echo "${GITHUB_REF##*/}"
+          if [ "develop" == ${GITHUB_REF##*/} ]; then
+            echo "Development Version"
+            echo -n ".dev${GITHUB_RUN_NUMBER}" >> narupatools/src/narupatools/VERSION
+          fi
+
+      - name: Get Version
+        run: |
+          echo "$(cat narupatools/src/narupatools/VERSION)"
+          echo "VERSION=$(cat narupatools/src/narupatools/VERSION)" >> $GITHUB_ENV
+
+      - name: Run conda build
+        run: |
+          conda build narupatools -c conda-forge -c irl -c omnia -c alexjbinnie
+          echo "conda_package=$(conda build narupatools -c conda-forge -c irl -c omnia -c alexjbinnie --output)" >> $GITHUB_ENV
+
+      - name: Test conda install
+        run: |
+          conda install "${{ env.conda_package }}" -c conda-forge -c irl -c omnia -c alexjbinnie
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Conda Package
+          path: "${{ env.conda_package }}"
+
+  publish-conda-dev:
+    name: Publish Conda development package
+    needs: [lint, test, build-conda]
+    environment: anaconda
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -l {0}
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.8
+
+      - name: Get conda package
+        uses: actions/download-artifact@v2
+        with:
+          name: Conda Package
+
+      - name: Upload
+        run: |
+          conda install anaconda
+          file="$(ls narupatools*.dev*.tar.bz2 | sort -V | tail -n1)"
+          anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload $file --label dev

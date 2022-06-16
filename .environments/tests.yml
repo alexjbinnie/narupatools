@@ -1,0 +1,11 @@
+# Conda environment for unit testing
+name: narupatools-test
+channels:
+  - conda-forge
+dependencies:
+# Testing Framework.
+  - pytest=7.*
+  - pytest-xdist=2.*
+  - pytest-timeout=2.*
+  - pytest-cov=3.*
+  - hypothesis=6.*

@@ -18,14 +18,14 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
-from narupatools.core.units import calorie, electronvolt, kilo, mole
-from narupatools.lammps.converter import atoms_from_lammps_simulation
-from narupatools.lammps.simulation import LAMMPSSimulation
+from narupatools.ase.lammps import atoms_from_lammps_simulation
+from narupatools.lammps import LAMMPSSimulation
+from narupatools.physics.units import calorie, electronvolt, kilo, mole
 
 
 @pytest.fixture(scope="module")
 def simulation():
-    return LAMMPSSimulation.from_file("./in.peptide", "./data.peptide")
+    return LAMMPSSimulation.from_file("./in.peptide")
 
 
 @pytest.fixture
@@ -36,4 +36,4 @@ def atoms(simulation):
 def test_energy(atoms):
     # energy output by LAMMPS
     initial_energy = -6372.3759 * ((kilo * calorie / mole) >> (electronvolt))
-    assert atoms.get_potential_energy() == pytest.approx(initial_energy)
+    assert atoms.get_potential_energy() == pytest.approx(initial_energy, rel=1e-3)

@@ -16,11 +16,12 @@
 
 """Utility methods for using vectors."""
 
-import math
-from typing import Union
+from typing import Optional, Union, overload
 
 import numpy as np
+import numpy.typing as npt
 
+from ._quaternion import quaternion
 from .typing import Matrix3x3, Vector3, Vector3Like, VectorN, VectorNLike
 
 
@@ -45,11 +46,22 @@ def dot_product(a: VectorN, b: VectorN, /) -> float:
 
     .. math:: a \cdot b = \sum_i a_i b_i
 
+    If both a and b are one dimensional vectors, the dot product is calculated as above.
+
+    If either a or b have more dimensions, NumPy broadcasting is used:
+
+    * (N) + (N) -> float
+    * (M, N) + (N) -> (M)
+    * (M, N) + (M, N) -> (M)
+    * (M, N) + (K, M, N) -> (K, M)
+
     :param a: Vector :math:`a`.
     :param b: Vector :math:`b`.
     :return: Dot product :math:`a \cdot b` of the vectors :math:`a` and :math:`b`.
     """
-    return np.dot(a, b)  # type: ignore
+    a = np.asfarray(a)
+    b = np.asfarray(b)
+    return (a * b).sum(axis=-1)  # type: ignore
 
 
 def cross_product(a: Vector3Like, b: Vector3Like, /) -> Vector3:
@@ -65,7 +77,18 @@ def cross_product(a: Vector3Like, b: Vector3Like, /) -> Vector3:
     :param b: Vector :math:`b`.
     :return: Cross product :math:`a \times b` of the vectors :math:`a` and :math:`b`.
     """
-    return np.cross(a, b)
+    a = np.asfarray(a)
+    b = np.asfarray(b)
+    if a.shape == (3,) and b.shape == (3,):
+        return np.array(
+            [
+                a[1] * b[2] - b[1] * a[2],
+                a[2] * b[0] - b[2] * a[0],
+                a[0] * b[1] - b[0] * a[1],
+            ]
+        )
+    else:
+        return np.cross(a, b)
 
 
 def zero_vector() -> Vector3:
@@ -75,22 +98,44 @@ def zero_vector() -> Vector3:
 
 def sqr_magnitude(vector: VectorNLike, /) -> float:
     """Get the square magnitude of a n-dimensional vector."""
-    return np.dot(vector, vector)  # type: ignore
+    return (vector * vector).sum(axis=-1)  # type: ignore
 
 
 def magnitude(vector: VectorNLike, /) -> float:
     """Get the magnitude of a n-dimensional vector."""
-    return np.linalg.norm(vector)  # type: ignore
+    return np.linalg.norm(vector, axis=-1)  # type: ignore
 
 
-def normalized(vector: VectorNLike, /) -> float:
+@overload
+def normalized(vector: quaternion, /) -> quaternion:
+    ...
+
+
+@overload
+def normalized(vector: npt.NDArray[quaternion], /) -> npt.NDArray[quaternion]:
+    ...
+
+
+@overload
+def normalized(vector: VectorNLike, /) -> npt.NDArray[np.floating]:
+    ...
+
+
+def normalized(
+    vector: Union[quaternion, npt.NDArray[quaternion], VectorNLike], /
+) -> Union[quaternion, npt.NDArray[quaternion], npt.NDArray[np.floating]]:
     """Normalize an n-dimensional vector."""
-    vector_np: VectorN = np.asfarray(vector)
-    mag = magnitude(vector_np)
-    if mag == 0.0:
-        return vector_np / 1.0  # type: ignore
+    if isinstance(vector, quaternion):
+        return np.normalized(vector)  # type: ignore
+    arr = np.asarray(vector)
+    if arr.dtype == quaternion:
+        return np.normalized(arr)  # type: ignore
     else:
-        return vector_np / mag  # type: ignore
+        mag = np.sqrt((arr**2).sum(axis=-1))
+        if isinstance(mag, float):
+            return np.nan_to_num(arr / mag)
+        else:
+            return np.nan_to_num(arr / mag[:, np.newaxis])  # type: ignore
 
 
 def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
@@ -110,10 +155,10 @@ def vector_projection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
     :param onto: Vector :math:`b` to project onto.
     :return: Vector projection :math:`a_1` of vector :math:`a` onto vector :math:`b`.
     """
-    dot = np.dot(onto, onto)
-    if dot == 0.0:
-        return zero_vector()
-    return np.dot(vector, onto) / dot * np.asfarray(onto)  # type: ignore
+    vector = np.asfarray(vector)
+    onto = np.asfarray(onto)
+    dot = (onto * onto).sum(axis=-1)
+    return ((vector * onto).sum(axis=-1) / dot)[..., np.newaxis] * onto  # type: ignore
 
 
 def vector_rejection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
@@ -133,10 +178,10 @@ def vector_rejection(vector: Vector3Like, onto: Vector3Like, /) -> Vector3:
     :param onto: Vector :math:`b` to reject from.
     :return: Vector rejection :math:`a_2` of vector :math:`a` from vector :math:`b`.
     """
-    return np.asfarray(vector) - vector_projection(vector, onto)  # type: ignore
+    return np.asfarray(vector) - vector_projection(vector, onto)
 
 
-def distance(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
+def distance(vector1: Vector3Like, vector2: Optional[Vector3Like] = None, /) -> float:
     r"""
     Calculate the distance :math:`d` between two points :math:`a` and :math:`b`.
 
@@ -144,10 +189,19 @@ def distance(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
     :param vector2: Point :math:`b`.
     :return: Distance between the two points.
     """
-    return np.linalg.norm(np.subtract(vector1, vector2))  # type: ignore
+    vector1 = np.asfarray(vector1)
+    if vector2 is None:
+        if vector1.shape[-2] != 2:
+            raise ValueError(
+                "Cannot take distances of array without second last axes being shape 2."
+            )
+        return np.linalg.norm(vector1[..., 1, :] - vector1[..., 0, :], axis=-1)  # type: ignore
+    return np.sqrt(((vector1[..., :] - vector2[..., :]) ** 2).sum(axis=-1))  # type: ignore
 
 
-def sqr_distance(point1: Vector3Like, point2: Vector3Like, /) -> float:
+def sqr_distance(
+    point1: Vector3Like, point2: Vector3Like, /
+) -> Union[float, np.ndarray]:
     r"""
     Calculate the square distance between two points :math:`a` and :math:`b`.
 
@@ -155,11 +209,10 @@ def sqr_distance(point1: Vector3Like, point2: Vector3Like, /) -> float:
     :param point2: Point :math:`b`.
     :return: Square distance between the two points.
     """
-    offset = np.subtract(point1, point2)
-    return np.dot(offset, offset)  # type: ignore
+    return ((point1[..., :] - point2[..., :]) ** 2).sum(axis=-1)  # type: ignore
 
 
-def angle(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
+def angle(vector1: Vector3Like, vector2: Vector3Like, /) -> Union[float, np.ndarray]:
     r"""
     Calculate the angle in radians between two vectors :math:`a` and  :math:`b`.
 
@@ -172,13 +225,11 @@ def angle(vector1: Vector3Like, vector2: Vector3Like, /) -> float:
     :raises ValueError: One of the vectors is zero.
     :return: Angle between the two vectors in radians.
     """
-    norm1 = np.linalg.norm(vector1)
-    if norm1 == 0.0:
-        raise ValueError("Cannot calculate angle if one vector is zero.")
-    norm2 = np.linalg.norm(vector2)
-    if norm2 == 0.0:
-        raise ValueError("Cannot calculate angle if one vector is zero.")
-    return math.acos(np.dot(vector1, vector2) / (norm1 * norm2))
+    a = np.asfarray(vector1)
+    b = np.asfarray(vector2)
+    return np.arccos(  # type: ignore
+        (a * b).sum(axis=-1) / np.sqrt((a * a).sum(axis=-1) * (b * b).sum(axis=-1))
+    )
 
 
 def cross_product_matrix(vector: Vector3Like, /) -> Matrix3x3:
@@ -248,7 +299,7 @@ def left_vector_triple_product_matrix(a: Vector3Like, b: Vector3Like, /) -> Matr
     return np.matmul(cross_product_matrix(a), cross_product_matrix(b))  # type: ignore
 
 
-def outer_product(a: Vector3Like, b: Vector3Like, /) -> Matrix3x3:
+def outer_product(a: Vector3Like, b: Vector3Like, /) -> np.ndarray:
     r"""
     Calculate the outer product of two vectors :math:`a` and :math:`b`.
 
@@ -261,4 +312,4 @@ def outer_product(a: Vector3Like, b: Vector3Like, /) -> Matrix3x3:
     :param b: Vector :math:`b`.
     :return: Matrix formed by the outer product of :math:`a` and :math:`b`.
     """
-    return np.outer(a, b)
+    return np.einsum("...i,...j->...ij", a, b)  # type: ignore

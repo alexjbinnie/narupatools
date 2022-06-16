@@ -449,8 +449,8 @@ def test_reference_set_absent(serializable_dictionary, view):
 # SharedStateReference.modify() returns a dict that can be edited
 def test_reference_modify_dict(serializable_dictionary, view):
     reference = view[KEY_OF_DICT_VALUE]
-    with reference.modify() as dict:
-        dict[DICT_KEY] = DICT_NEW_VALUE
+    with reference.modify() as dict_:
+        dict_[DICT_KEY] = DICT_NEW_VALUE
     assert serializable_dictionary[KEY_OF_DICT_VALUE] == NEW_DICT_VALUE
 
 
@@ -519,12 +519,6 @@ def test_reference_not_in_collection(serializable_dictionary, view):
     item = view[KEY_OF_STRING_VALUE]
     del view[KEY_OF_STRING_VALUE]
     assert item not in view
-
-
-# SharedStateReference.__repr__ returns the expected result
-def test_reference_repr(serializable_dictionary, view):
-    reference = view[KEY_OF_STRING_VALUE]
-    assert repr(reference) == f"<SharedStateReference key:{KEY_OF_STRING_VALUE}>"
 
 
 # SharedStateView.__contains__ returns true is the string key is present
@@ -626,35 +620,3 @@ def test_items_collection(serializable_dictionary, view_collection):
 def test_get(serializable_dictionary, view):
     reference = view.get(KEY_OF_STRING_VALUE)
     assert reference.snapshot() == INITIAL_STRING_VALUE
-
-
-@pytest.mark.parametrize(
-    ("test_input", "expected"),
-    [
-        ({}, "<SharedStateDictionaryView 0 item(s)>"),
-        ({"abc": 2}, "<SharedStateDictionaryView 1 item(s)>"),
-        ({"abc": 1, "def": 3}, "<SharedStateDictionaryView 2 item(s)>"),
-        (
-            {"abc": True, "def": -1.2, "ghi": None},
-            "<SharedStateDictionaryView 3 item(s)>",
-        ),
-    ],
-)
-def test_repr(test_input, expected):
-    assert repr(SharedStateDictionaryView(test_input)) == expected
-
-
-@pytest.mark.parametrize(
-    ("test_input", "expected"),
-    [
-        ({}, "<SharedStateCollectionView 0 item(s)>"),
-        ({"item.abc": 2}, "<SharedStateCollectionView 1 item(s)>"),
-        ({"item.abc": 1, "item.def": 3}, "<SharedStateCollectionView 2 item(s)>"),
-        (
-            {"abc": True, "item.def": -1.2, "ghi": None},
-            "<SharedStateCollectionView 1 item(s)>",
-        ),
-    ],
-)
-def test_repr_collection(test_input, expected):
-    assert repr(SharedStateCollectionView(test_input, prefix="item.")) == expected

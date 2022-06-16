@@ -19,68 +19,22 @@ import pytest
 
 lammps = pytest.importorskip("lammps")
 
-from narupatools.lammps.simulation import (
-    Compute,
-    ComputeNotFoundError,
-    InvalidComputeSpecificationError,
-    LAMMPSSimulation,
-    PropertyType,
-    VariableStyle,
-    VariableType,
-)
+from narupatools.lammps._simulation import LAMMPSSimulation
+from narupatools.lammps.atom_properties import AtomID
 
 
 @pytest.fixture(scope="module")
 def simulation():
-    return LAMMPSSimulation.from_file("./in.peptide", "./data.peptide")
+    return LAMMPSSimulation.from_file("./in.peptide")
 
 
 @pytest.fixture(scope="module")
 def simulation_dynamic():
-    return LAMMPSSimulation.from_file("./in.peptide", "./data.peptide")
-
-
-def test_extract_compute_missing(simulation):
-    with pytest.raises(ComputeNotFoundError):
-        simulation.extract_compute(
-            "missing_key", VariableStyle.ATOM, VariableType.SCALAR
-        )
-
-
-def test_extract_compute_invalid(simulation):
-    with pytest.raises(InvalidComputeSpecificationError):
-        simulation.extract_compute("thermo_pe", VariableStyle.ATOM, VariableType.SCALAR)
-
-
-def test_atom_property_valid(simulation):
-    assert simulation.gather_atoms("f", PropertyType.DOUBLE, 3) is not None
-
-
-def test_packages(simulation):
-    assert isinstance(simulation.lammps_packages, list)
-    assert "PYTHON" in simulation.lammps_packages
-
-
-def test_computes(simulation):
-    assert isinstance(simulation.computes, dict)
-    assert (
-        Compute(simulation=simulation, group="all", name="thermo_temp", style="temp")
-        == simulation.computes["thermo_temp"]
-    )
-    assert (
-        Compute(
-            simulation=simulation, group="all", name="thermo_press", style="pressure"
-        )
-        == simulation.computes["thermo_press"]
-    )
-    assert (
-        Compute(simulation=simulation, group="all", name="thermo_pe", style="pe")
-        == simulation.computes["thermo_pe"]
-    )
+    return LAMMPSSimulation.from_file("./in.peptide")
 
 
 def test_energy(simulation):
-    assert simulation.potential_energy == pytest.approx(-26662.02362458588)
+    assert simulation.potential_energy == pytest.approx(-6372.37658)
 
 
 def test_temperature(simulation):
@@ -90,7 +44,7 @@ def test_temperature(simulation):
 def test_positions(simulation):
     assert len(simulation.positions) == 2004
     assert simulation.positions[0] == pytest.approx(
-        np.array([4.399993, 5.852678, 3.67855])
+        np.array([43.99993, 58.52678, 36.7855])
     )
 
 
@@ -105,6 +59,15 @@ def test_forces(simulation):
 def test_masses(simulation):
     assert len(simulation.masses) == 2004
     assert simulation.masses[0] > 0
+
+
+def test_orientations(simulation):
+    with pytest.raises(AttributeError):
+        _ = simulation.orientations
+
+
+def test_ids_sorted(simulation):
+    assert np.all(np.diff(simulation.gather_atoms(AtomID)) >= 1)
 
 
 def test_set_positions(simulation_dynamic):

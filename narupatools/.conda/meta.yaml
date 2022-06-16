@@ -16,12 +16,13 @@ requirements:
     - python
   run:
     - python>=3.8
-    - numpy>=1.20.*
+    - numpy>=1.21.*
     - narupa-server=0.1.2061
-    - openmm<7.6.0
     - mdtraj>=1.9.*
-    - lxml>=4.6.*
-    - infinite-sets==1.0.*
+    - lxml>=4.*
+    - infinite-sets==1.*
+    - quaternion
+    - openmm>=7.5.*
 
 about:
   home: https://github.com/alexjbinnie/narupatools

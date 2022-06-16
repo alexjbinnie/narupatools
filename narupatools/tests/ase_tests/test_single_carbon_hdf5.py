@@ -21,7 +21,7 @@ from ase.md import Langevin
 from test_classes.single_carbon_hdf5 import SingleCarbonHDF5Tests
 
 from narupatools.ase import ASEDynamics, NullCalculator, UnitsASE
-from narupatools.core import UnitsNarupa
+from narupatools.physics.units import UnitsNarupa
 
 _NarupaToASE = UnitsNarupa >> UnitsASE
 

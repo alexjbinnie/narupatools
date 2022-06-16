@@ -15,3 +15,7 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Methods relating to calculating physical quantities."""
+
+from ._quaternion import as_quaternion_array, quaternion, quaternion_from_vector_part
+
+__all__ = ["quaternion", "quaternion_from_vector_part", "as_quaternion_array"]

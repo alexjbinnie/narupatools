@@ -20,28 +20,28 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from concurrent.futures import Future
-from typing import Optional, Protocol, Union
+from typing import Any, List, Optional, Protocol, Type, Union
 
 from infinite_sets import InfiniteSet, everything
 from narupa.trajectory import FrameData
 
 from narupatools.core.event import Event, EventListener
-from narupatools.frame.frame_source import (
+from narupatools.frame import (
+    DynamicStructureProperties,
     FrameSourceWithNotify,
     OnFieldsChangedCallback,
 )
-
-from ..frame import (
-    KineticEnergy,
-    ParticlePositions,
-    ParticleVelocities,
-    PotentialEnergy,
+from narupatools.frame.fields import (
+    DYNAMIC_FIELDS,
     SimulationElapsedSteps,
     SimulationElapsedTime,
     SimulationTotalSteps,
     SimulationTotalTime,
 )
-from .playable import Playable
+from narupatools.override import override
+from narupatools.physics.typing import ScalarArray, Vector3Array
+
+from . import Playable
 
 
 class OnResetCallback(Protocol):
@@ -61,11 +61,16 @@ class OnPreStepCallback(Protocol):
 class OnPostStepCallback(Protocol):
     """Callback for just after an MD step is taken."""
 
-    def __call__(self) -> None:  # noqa: D102
+    def __call__(self, *, timestep: float) -> None:  # noqa: D102
         ...
 
 
-class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
+_DYNAMICS_SUBCLASSES: List[Type[SimulationDynamics]] = []
+
+
+class SimulationDynamics(
+    Playable, DynamicStructureProperties, FrameSourceWithNotify, metaclass=ABCMeta
+):
     """
     Base class for an implementation of dynamics driven by Narupa.
 
@@ -84,12 +89,7 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
     _on_post_step: Event[OnPostStepCallback]
     _on_fields_changed: Event[OnFieldsChangedCallback]
 
-    dynamic_fields = {
-        ParticlePositions.key,
-        PotentialEnergy.key,
-        KineticEnergy.key,
-        ParticleVelocities.key,
-    }
+    dynamic_fields = DYNAMIC_FIELDS.copy()
     """Set of fields which are marked as having changed after a dynamics step."""
 
     def __init__(self, *, playback_interval: float):
@@ -145,17 +145,23 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         """
         super().restart()
 
+    @override(Playable._restart)
     def _restart(self) -> None:
-        self._previous_total_time += self.elapsed_time
-        self._previous_total_steps += self.elapsed_steps
-        self._elapsed_time = 0
-        self._elapsed_steps = 0
+        self.reset_time()
         self._reset_internal()
         self._on_reset.invoke()
         self._on_fields_changed.invoke(fields=everything())
 
+    def reset_time(self) -> None:
+        """Reset the timer such that the elapsed time and steps is zero."""
+        self._previous_total_time += self.elapsed_time
+        self._previous_total_steps += self.elapsed_steps
+        self._elapsed_time = 0
+        self._elapsed_steps = 0
+
+    @override(Playable.run)
     def run(  # type: ignore
-        self, steps: Optional[int] = None, block: Optional[bool] = None
+        self, steps: Optional[int] = None, *, block: Optional[bool] = None
     ) -> Union[bool, Future[bool]]:
         """
         Run the dynamics.
@@ -174,14 +180,15 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
         if block is None:
             block = steps is not None
         self._remaining_steps = steps
-        return super().run(block)
+        return super().run(block=block)
 
+    @override(Playable._advance)
     def _advance(self) -> bool:
         self._on_pre_step.invoke()
         self._step_internal()
         self._elapsed_steps += 1
         self._elapsed_time += self.timestep
-        self._on_post_step.invoke()
+        self._on_post_step.invoke(timestep=self.timestep)
         self._on_fields_changed.invoke(fields=self.dynamic_fields)
         if self._remaining_steps is not None:
             self._remaining_steps -= 1
@@ -192,12 +199,12 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
     @abstractmethod
     def _step_internal(self) -> None:
         """Step the dynamics forward by a single timestep."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def _reset_internal(self) -> None:
         """Reset the simulation to its initial state."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def elapsed_time(self) -> float:
@@ -243,7 +250,7 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
 
         :raises AttributeError: Cannot get the current time step for this dynamics.
         """
-        raise AttributeError()
+        raise AttributeError
 
     @property
     def temperature(self) -> float:
@@ -252,26 +259,97 @@ class SimulationDynamics(Playable, FrameSourceWithNotify, metaclass=ABCMeta):
 
         :raises AttributeError: Temperature is not defined for this dynamics.
         """
-        raise AttributeError()
+        raise AttributeError
 
     @abstractmethod
-    def _get_frame(self, fields: InfiniteSet[str]) -> FrameData:
+    def _get_frame(
+        self, fields: InfiniteSet[str], existing: Optional[FrameData] = None
+    ) -> FrameData:
         pass
 
-    def get_frame(self, fields: InfiniteSet[str]) -> FrameData:
+    @override(FrameSourceWithNotify.get_frame)
+    def get_frame(
+        self,
+        fields: InfiniteSet[str] = everything(),
+        existing: Optional[FrameData] = None,
+    ) -> FrameData:
         """
         Get the current state of the system as a Narupa `FrameData`.
 
         :param fields: Collection of keys to include in the FrameData
         :return: Narupa `FrameData` populated with requested fields.
         """
-        frame = self._get_frame(fields)
-        SimulationElapsedTime.set(frame, self.elapsed_time)
-        SimulationElapsedSteps.set(frame, self.elapsed_steps)
-        SimulationTotalTime.set(frame, self.total_time)
-        SimulationTotalSteps.set(frame, self.total_steps)
+        frame = self._get_frame(fields=fields, existing=existing)
+        frame[SimulationElapsedTime] = self.elapsed_time
+        frame[SimulationElapsedSteps] = self.elapsed_steps
+        frame[SimulationTotalTime] = self.total_time
+        frame[SimulationTotalSteps] = self.total_steps
         return frame
 
     @property
-    def on_field_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
+    @override(DynamicStructureProperties.positions)
+    def positions(self) -> Vector3Array:
+        """Positions of particles in nanometers."""
+        raise AttributeError
+
+    @property
+    @override(DynamicStructureProperties.velocities)
+    def velocities(self) -> Vector3Array:
+        """Velocities of particles in nanometers per picosecond."""
+        raise AttributeError
+
+    @property
+    @override(DynamicStructureProperties.forces)
+    def forces(self) -> Vector3Array:
+        """Forces on particles in kilojoules per mole per nanometer."""
+        raise AttributeError
+
+    @property
+    @override(DynamicStructureProperties.masses)
+    def masses(self) -> ScalarArray:
+        """Masses of particles in daltons."""
+        raise AttributeError
+
+    @property
+    @override(DynamicStructureProperties.kinetic_energy)
+    def kinetic_energy(self) -> float:
+        """Kinetic energy in kilojoules per mole."""
+        raise AttributeError
+
+    @property
+    @override(DynamicStructureProperties.potential_energy)
+    def potential_energy(self) -> float:
+        """Potential energy in kilojoules per mole."""
+        raise AttributeError
+
+    @property
+    def on_fields_changed(self) -> EventListener[OnFieldsChangedCallback]:  # noqa: D102
         return self._on_fields_changed
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if cls != SimulationDynamics:
+            _DYNAMICS_SUBCLASSES.append(cls)
+
+    @staticmethod
+    def create_from_object(obj: Any) -> Optional[SimulationDynamics]:
+        """Attempt to convert an arbitrary object to simulation dynamics."""
+        try:
+            return SimulationDynamics._create_from_object(obj)
+        except NotImplementedError:
+            return None
+
+    @classmethod
+    def _create_from_object(cls, obj: Any) -> SimulationDynamics:
+        """
+        Attempt to convert an arbitrary object to a trajectory source.
+
+        Subclasses can override this to allow automatic conversion of objects to trajectory sources.
+        """
+        if cls == SimulationDynamics:
+            for subclass in _DYNAMICS_SUBCLASSES:
+                try:
+                    return subclass._create_from_object(obj)
+                except NotImplementedError:
+                    continue
+        raise NotImplementedError

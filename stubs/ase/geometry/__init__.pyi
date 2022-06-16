@@ -15,5 +15,6 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 from .cell import cell_to_cellpar, cellpar_to_cell
+from .geometry import find_mic
 
-__all__ = ["cellpar_to_cell", "cell_to_cellpar"]
+__all__ = ["cellpar_to_cell", "cell_to_cellpar", "find_mic"]

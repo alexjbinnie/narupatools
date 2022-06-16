@@ -21,7 +21,7 @@ from narupa.app import NarupaImdClient
 from narupa.core import NarupaServer
 from narupa.utilities.change_buffers import DictionaryChange
 
-from narupatools.state.view.wrappers import (
+from narupatools.state.view._wrappers import (
     SharedStateClientWrapper,
     SharedStateServerWrapper,
 )

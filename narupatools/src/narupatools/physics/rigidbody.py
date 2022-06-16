@@ -20,12 +20,13 @@ Methods for dealing with systems of particles, such as center of mass.
 Methods here are not specific with units - as long as arguments are provided in
 consistent units, then the calculated result will be correct.
 """
-
-from typing import Optional
+import math
+from typing import Optional, Tuple
 
 import numpy as np
+from numpy.linalg import inv
 
-from .matrix import zero_matrix
+from .matrix import transpose
 from .typing import (
     Matrix3x3,
     ScalarArray,
@@ -35,7 +36,7 @@ from .typing import (
     Vector3ArrayLike,
     Vector3Like,
 )
-from .vector import left_vector_triple_product_matrix, sqr_magnitude, zero_vector
+from .vector import zero_vector
 
 
 def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> Vector3:
@@ -52,20 +53,9 @@ def center_of_mass(*, masses: ScalarArrayLike, positions: Vector3ArrayLike) -> V
     :return: Center of mass of the particles, in the same units as positions was
              provided in.
     """
-    positions: Vector3Array = np.asfarray(positions)
-    masses: ScalarArray = np.asfarray(masses)
-
-    count = len(positions)
-    if len(masses) != count:
-        raise ValueError(
-            f"Mismatch between number of positions ({len(positions)}) "
-            f"and number of masses ({len(masses)})"
-        )
-
-    total_center = zero_vector()
-    for i in range(0, count):
-        total_center += masses[i] * positions[i]
-    return total_center / sum(masses)
+    masses = np.asfarray(masses)
+    positions = np.asfarray(positions)
+    return (positions * masses[..., np.newaxis]).sum(axis=-2) / masses[..., np.newaxis].sum(axis=-2)  # type: ignore
 
 
 def center_of_mass_velocity(
@@ -108,8 +98,18 @@ def center_of_mass_acceleration(
     return center_of_mass(masses=masses, positions=accelerations)
 
 
+_center_of_mass = center_of_mass
+
+_center_of_mass_velocity = center_of_mass_velocity
+
+
 def spin_angular_momentum(
-    *, masses: ScalarArray, positions: Vector3Array, velocities: Vector3Array
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    velocities: Vector3Array,
+    center_of_mass: Optional[Vector3] = None,
+    center_of_mass_velocity: Optional[Vector3] = None,
 ) -> Vector3:
     r"""
     Calculate the spin angular momentum of a set of particles.
@@ -127,14 +127,19 @@ def spin_angular_momentum(
     :return: Spin angular momentum :math:`L` in units of [mass] * [distance] squared /
              [time].
     """
-    com = center_of_mass(masses=masses, positions=positions)
-    com_velocity = center_of_mass_velocity(masses=masses, velocities=velocities)
-    angular_momentum = np.array([0.0, 0.0, 0.0], dtype=float)
-    for i in range(0, len(masses)):
-        angular_momentum += masses[i] * np.cross(
-            positions[i] - com, velocities[i] - com_velocity
+    if center_of_mass is None:
+        center_of_mass = _center_of_mass(masses=masses, positions=positions)
+    if center_of_mass_velocity is None:
+        center_of_mass_velocity = _center_of_mass_velocity(
+            masses=masses, velocities=velocities
         )
-    return angular_momentum
+    return (  # type: ignore
+        np.cross(
+            np.asfarray(positions) - center_of_mass[..., np.newaxis, :],
+            np.asfarray(velocities) - center_of_mass_velocity[..., np.newaxis, :],
+        )
+        * np.asfarray(masses)[..., np.newaxis]
+    ).sum(axis=-2)
 
 
 def orbital_angular_momentum(
@@ -173,6 +178,73 @@ def orbital_angular_momentum(
     return total_mass * np.cross(com - origin, com_velocity)  # type: ignore
 
 
+def radius_of_gyration(
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    axis: Vector3,
+    origin: Optional[Vector3Like] = None,
+) -> float:
+    r"""
+    Calculate the radius of gyration about an axis.
+
+    The radius of gyration :math:`R` about an axis is the radius at which a fictitious particle of total mass :math:`M`
+    would have the same moment of inertia as the provided system does about the axis and origin.
+
+    It is the solution to the equation:
+
+    .. math:: M R^2 = I
+
+    where :math:`M` is the total mass and :math:`I` is the moment of inertia about the axis (see
+    :func:`moment_of_inertia`) for more details.
+
+    By default, the origin is taken to be the center of mass.
+
+    :param masses: List of masses :math:`m_i` of each particle.
+    :param positions: List of positions :math:`R_i` of each particle.
+    :param axis: Axis about which to calculate the radius of gyration.
+    :param origin: Optional origin to calculate the moment of inertia around. Defaults
+                   to the center of mass.
+    :return: Radius of gyration :math:`R` with respect to the given axis and origin, in
+             units of [distance].
+    """
+    return math.sqrt(
+        moment_of_inertia(masses=masses, positions=positions, axis=axis, origin=origin)
+        / masses.sum()
+    )
+
+
+def moment_of_inertia(
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    axis: Vector3,
+    origin: Optional[Vector3Like] = None,
+) -> float:
+    r"""
+    Calculate the moment of inertia of a set of particles about an axis.
+
+    The moment of inertia acts similarly to a rotational analogue to mass, and describes the distribution of mass
+    about the provided axis.
+
+    .. math:: I = \sum_i m_i |r_i^\perp|^2
+
+    where :math:`m_i` is the mass of each particle and :math:`r_i^\perp` is the distance of the particle from the axis.
+
+    By default, the origin is taken to be the center of mass.
+
+    :param masses: List of masses :math:`m_i` of each particle.
+    :param positions: List of positions :math:`R_i` of each particle.
+    :param axis: Axis about which to calculate the radius of gyration.
+    :param origin: Optional origin to calculate the moment of inertia around. Defaults
+                   to the center of mass.
+    :return: Moment of inertia :math:`I` with respect to the given axis and origin, in
+             units of [mass] * [distance] squared
+    """
+    tensor = moment_of_inertia_tensor(masses=masses, positions=positions, origin=origin)
+    return np.dot(axis, tensor @ axis) / np.dot(axis, axis)  # type: ignore[no-any-return]
+
+
 def moment_of_inertia_tensor(
     *,
     masses: ScalarArray,
@@ -202,21 +274,65 @@ def moment_of_inertia_tensor(
         origin = center_of_mass(masses=masses, positions=positions)
     else:
         origin = np.asfarray(origin)
-    tensor = zero_matrix()
-    for i in range(0, len(masses)):
-        tensor -= masses[i] * left_vector_triple_product_matrix(
-            positions[i] - origin, positions[i] - origin
-        )
-    return tensor
+
+    positions = np.asfarray(positions)
+    masses = np.asfarray(masses)
+
+    positions = positions - origin[..., np.newaxis, :]
+    return (masses * (positions**2).sum(-1)).sum(-1)[  # type: ignore
+        ..., np.newaxis, np.newaxis
+    ] * np.eye(3) - (
+        masses[..., np.newaxis, np.newaxis]
+        * np.einsum("...i,...j->...ij", positions, positions)
+    ).sum(
+        -3
+    )
+
+
+def principal_moments_and_axes(
+    *, masses: ScalarArrayLike, positions: Vector3ArrayLike
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Calculate the principal moments and axes of a set of point particles.
+
+    The principal axes are the eigenvectors of the moment of inertia tensor. They describe the axes
+    which form a coordinate system where the moment of inertia tensor is diagonal.
+
+    :param masses: Mass of each particles.
+    :param positions: Position of each particle.
+    :return: Tuple of the principal moments (ordered from largest to smallest) and corresponding principal axes.
+    """
+    masses = np.asfarray(masses)
+    positions = np.asfarray(positions)
+    inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
+    eigvals, eigvecs = np.linalg.eig(inertia)
+    idx = eigvals.argsort()[..., ::-1]
+    return eigvals[idx], np.take_along_axis(
+        transpose(eigvecs), idx[..., np.newaxis], axis=-2  # type: ignore
+    )
+
+
+def principal_axes(
+    *, masses: ScalarArrayLike, positions: Vector3ArrayLike
+) -> np.ndarray:
+    """
+    Calculate the principal axes of a set of point particles.
+
+    The principal axes are the eigenvectors of the moment of inertia tensor.
+    """
+    return principal_moments_and_axes(masses=masses, positions=positions)[1]
 
 
 def angular_velocity(
-    *, masses: ScalarArray, positions: Vector3Array, velocities: Vector3Array
+    *,
+    masses: ScalarArray,
+    positions: Vector3Array,
+    velocities: Vector3Array,
 ) -> Vector3:
     r"""
     Calculate the angular velocity of a set of particles.
 
-    This is peformed by calculating the angular momentum about the center of mass, and
+    This is performed by calculating the angular momentum about the center of mass, and
     inverting the inertia tensor to obtain :math:`\omega`:
 
     .. math:: \omega = I^{-1} L
@@ -228,7 +344,7 @@ def angular_velocity(
     """
     L = spin_angular_momentum(masses=masses, positions=positions, velocities=velocities)
     inertia = moment_of_inertia_tensor(masses=masses, positions=positions)
-    return np.matmul(np.linalg.inv(inertia), L)  # type: ignore
+    return inv(inertia) @ L
 
 
 def distribute_angular_velocity(
@@ -261,22 +377,52 @@ def distribute_angular_velocity(
     else:
         o = np.asfarray(origin)
     velocities = [np.cross(angular_velocity, position - o) for position in positions]
-    return np.asfarray(velocities)  # type: ignore
+    return np.asfarray(velocities)
 
 
-def kinetic_energy(*, masses: ScalarArrayLike, velocities: Vector3ArrayLike) -> float:
-    r"""
-    Calculate the total kinetic energy of a set of particles.
-
-    This is given by:
-
-    .. math:: K = \frac{1}{2} \sum_i m_i v_i^2
-
-    :param masses: List of masses :math:`m_i` of each particle.
-    :param velocities: List of velocities :math:`v_i` of each particle.
-    :return: Kinetic energy :math:`K` in units of [distance] / [time].
+def kabsch_rotation_matrix(
+    *,
+    masses: ScalarArrayLike,
+    original_positions: Vector3ArrayLike,
+    new_positions: Vector3ArrayLike,
+) -> Matrix3x3:
     """
-    return sum(
-        0.5 * mass * sqr_magnitude(velocity)
-        for mass, velocity in zip(masses, velocities)
+    Calculate the rotation matrix between two sets of positions using the Kabsch algorithm.
+
+    :param masses: Atomic masses to use as weights.
+    :param original_positions: Original positions of the atoms.
+    :param new_positions: New positions of the atoms.
+    :returns: Rotation matrix that rotates between original_positions and new_positions.
+    """
+    P = np.sqrt(masses)[:, np.newaxis] * (
+        original_positions - center_of_mass(masses=masses, positions=original_positions)
     )
+    Q = np.sqrt(masses)[:, np.newaxis] * new_positions - center_of_mass(
+        masses=masses, positions=new_positions
+    )
+    H = P.T @ Q
+    U, S, VH = np.linalg.svd(H)
+    d = np.linalg.det((U @ VH).T)
+    return (U @ np.array([[1, 0, 0], [0, 1, 0], [0, 0, d]]) @ VH).T  # type: ignore
+
+
+def kabsch_rotation_angle(
+    *,
+    masses: ScalarArrayLike,
+    original_positions: Vector3ArrayLike,
+    new_positions: Vector3ArrayLike,
+) -> float:
+    """
+    Calculate the angle between two sets of positions using the Kabsch algorithm.
+
+    :param masses: Atomic masses to use as weights.
+    :param original_positions: Original positions of the atoms.
+    :param new_positions: New positions of the atoms.
+    :returns: Rotation matrix that rotates between original_positions and new_positions.
+    """
+    matrix = kabsch_rotation_matrix(
+        masses=masses,
+        original_positions=original_positions,
+        new_positions=new_positions,
+    )
+    return math.acos((np.trace(matrix) - 1) / 2)

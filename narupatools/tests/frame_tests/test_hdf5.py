@@ -1,3 +1,18 @@
+# This file is part of narupatools (https://github.com/alexjbinnie/narupatools).
+# Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+#
+# narupatools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# narupatools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 from pathlib import Path
 
 import pytest
@@ -91,19 +106,19 @@ def test_interaction_frame_range(nanotube_traj):
 def test_interaction_position_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        assert interaction.interaction_positions.shape == (size, 3)
+        assert interaction.parameters.position.shape == (size, 3)
 
 
 def test_interaction_scales_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        assert interaction.interaction_scales.shape == (size,)
+        assert interaction.parameters.scale.shape == (size,)
 
 
 def test_interaction_forces_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
         size = len(interaction.frame_indices)
-        atoms = len(interaction.indices)
+        atoms = len(interaction.particle_indices)
         assert interaction.forces.shape == (size, atoms, 3)
 
 
@@ -115,12 +130,12 @@ def test_interaction_energy_shape(nanotube_traj):
 
 def test_interaction_per_particle_work_shape(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
-        size = len(interaction.indices)
+        size = len(interaction.particle_indices)
         assert interaction.calculate_per_particle_work().shape == (size,)
 
 
 def test_interaction_work_is_cumulative(nanotube_traj):
     for interaction in nanotube_traj.interactions.values():
-        assert (
-            interaction.calculate_cumulative_work()[-1] == interaction.calculate_work()
+        assert interaction.calculate_cumulative_work()[-1] == pytest.approx(
+            interaction.calculate_work()
         )

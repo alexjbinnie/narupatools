@@ -15,51 +15,47 @@
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
 
 """Custom exceptions that wrap LAMMPS output."""
-from .constants import VariableStyle, VariableType
+from typing import Any
+
+
+class UntestedVersionWarning(UserWarning):
+    """Warning raised when a version of LAMMPS is used that may not be supported."""
+
+
+class LAMMPSWarning(UserWarning):
+    """Warning raised by LAMMPS."""
 
 
 class LAMMPSError(RuntimeError):
     """Error raised by LAMMPS."""
 
-    def __init__(self, message: str):
-        super().__init__(message)
-
 
 class CannotOpenFileError(LAMMPSError, FileNotFoundError):
     """Error raised when a file is not found by LAMMPS."""
-
-    pass
 
 
 class MissingInputScriptError(CannotOpenFileError):
     """Error raised when a file is not found by LAMMPS."""
 
-    pass
-
 
 class UnknownCommandError(LAMMPSError):
     """Error raised when an unknown command is used in LAMMPS."""
-
-    pass
 
 
 class IllegalCommandError(LAMMPSError):
     """Error raised when a command is used incorrectly in LAMMPS."""
 
-    pass
-
 
 class UnrecognizedStyleError(LAMMPSError):
     """Error raised when a style not recognized by LAMMPS is used."""
-
-    pass
 
 
 class UnknownPropertyNameError(LAMMPSError):
     """Error raised when lammps_gather_atoms encounters an unknown property name."""
 
-    def __init__(self) -> None:
-        super().__init__("Unknown property name when calling gather_atoms.")
+
+class UnknownDataTypeError(LAMMPSError):
+    """Error raised when lammps_gather_atoms encounters an unknown data type."""
 
 
 class AtomIDsNotDefinedError(LAMMPSError):
@@ -72,6 +68,31 @@ class AtomIDsNotDefinedError(LAMMPSError):
         )
 
 
+class VariableNotFoundError(LAMMPSError):
+    """Error raised when a variable is requested which is not defined."""
+
+    def __init__(self, key: str):
+        super().__init__(f"No variable defined with key {key}")
+
+
+class SettingNotFoundError(LAMMPSError):
+    """Error raised when a setting is requested which is not defined."""
+
+    def __init__(self, key: str):
+        super().__init__(f"No setting defined with key {key}")
+
+
+class GlobalNotFoundError(LAMMPSError):
+    """Error raised when a global is requested which is not defined."""
+
+    def __init__(self, key: str):
+        super().__init__(f"No global defined with key {key}")
+
+
+class InvalidThermoKeywordError(LAMMPSError):
+    """Error raised when an invalid thermo keyword is specified."""
+
+
 class ComputeNotFoundError(LAMMPSError):
     """Error raised when a compute is requested which is not defined."""
 
@@ -79,12 +100,19 @@ class ComputeNotFoundError(LAMMPSError):
         super().__init__(f"No compute defined with key {key}")
 
 
+class FixNotFoundError(LAMMPSError):
+    """Error raised when a fix is requested which is not defined."""
+
+    def __init__(self, key: str):
+        super().__init__(f"No fix defined with key {key}")
+
+
 class InvalidComputeSpecificationError(LAMMPSError):
     """Error raised when a compute is requested where the types are not defined."""
 
-    def __init__(self, key: str, style: VariableStyle, type: VariableType):
+    def __init__(self, key: str, style: Any, datatype: Any):
         super().__init__(
-            f"Invalid compute specification for {key}: Style {style} and type {type}"
+            f"Invalid compute specification for {key}: Style {style} and type {datatype}"
         )
 
 

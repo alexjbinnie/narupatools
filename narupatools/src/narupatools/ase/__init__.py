@@ -16,16 +16,19 @@
 
 """Runners and utilities for interfacing between ASE and Narupa."""
 
+from ._converter import ase_atoms_to_frame
+from ._dynamics import ASEDynamics
+from ._system import ASESystem, create_ase_atoms
+from ._trajectory import ASETrajectory
+from ._units import UnitsASE
 from .calculators import ConstantCalculator, NullCalculator, OneBodyPotentialCalculator
-from .converter import ase_atoms_to_frame
-from .dynamics import ASEDynamics
-from .trajectory import ASETrajectory
-from .units import UnitsASE
 
 __all__ = [
+    "create_ase_atoms",
     "ase_atoms_to_frame",
     "ASEDynamics",
     "ASETrajectory",
+    "ASESystem",
     "UnitsASE",
     "OneBodyPotentialCalculator",
     "ConstantCalculator",

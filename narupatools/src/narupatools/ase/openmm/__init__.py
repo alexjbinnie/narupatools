@@ -16,12 +16,12 @@
 
 """Classes and methods for interfacing OpenMM with ASE as a calculator."""
 
-from .calculator import OpenMMCalculator
-from .converter import (
+from ._calculator import OpenMMCalculator
+from ._converter import (
     openmm_simulation_to_ase_atoms,
     openmm_simulation_to_ase_molecular_dynamics,
 )
-from .dynamics import ASEOpenMMDynamics
+from ._dynamics import ASEOpenMMDynamics
 
 __all__ = [
     "OpenMMCalculator",

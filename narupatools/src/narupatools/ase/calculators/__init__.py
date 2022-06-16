@@ -21,14 +21,16 @@ ASE delegates the calculation of energy, forces, charges and few other propertie
 'calculator', which can be equated to a forcefield in other engines.
 """
 
-from .constant_calculator import ConstantCalculator
-from .null_calculator import NullCalculator
-from .onebody_potential_calculator import OneBodyPotentialCalculator
-from .protocols import CalculatorSetAtoms
+from ._calculator import Calculator
+from ._constant_calculator import ConstantCalculator
+from ._null_calculator import NullCalculator
+from ._onebody_potential_calculator import OneBodyPotentialCalculator
+from ._protocols import CalculatorSetAtoms
 
 __all__ = [
     "ConstantCalculator",
     "OneBodyPotentialCalculator",
     "CalculatorSetAtoms",
     "NullCalculator",
+    "Calculator",
 ]

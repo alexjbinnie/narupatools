@@ -13,27 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with narupatools.  If not, see <http://www.gnu.org/licenses/>.
+import logging
 
-from .openmm import (
-    Context,
-    CustomExternalForce,
-    CustomIntegrator,
-    Integrator,
-    LangevinIntegrator,
-    State,
-    System,
-    XmlSerializer,
+from openmm import *
+
+from . import app
+
+logging.getLogger().warning(
+    "Warning: importing 'simtk.openmm' is deprecated.  Import 'openmm' instead."
 )
-from .vec3 import Vec3
-
-__all__ = [
-    "State",
-    "System",
-    "Integrator",
-    "LangevinIntegrator",
-    "Context",
-    "Vec3",
-    "CustomExternalForce",
-    "XmlSerializer",
-    "CustomIntegrator",
-]
