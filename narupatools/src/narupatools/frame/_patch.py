@@ -134,7 +134,6 @@ class _PatchedFrameData(DynamicStructureMethods, FrameData):
                 return value_to_object(self.raw.values[k])
             if k in self.raw.arrays:
                 arr = self.raw.arrays[k]
-                print(type(self.raw.arrays[k]))
                 if self.raw.arrays[k].HasField("index_values"):
                     return np.array(arr.ListFields()[0][1].values, dtype=int)
                 elif self.raw.arrays[k].HasField("float_values"):

@@ -14,7 +14,7 @@ dependencies:
   - infinite-sets=1.*
   - quaternion
 # Exact Narupa version. Required as breaking changes can occur
-  - narupa-server=0.1.2085
+  - narupa-server=0.1.2118
 # MDTraj needed for using HDF5
   - mdtraj=1.*
 # Documentation tools

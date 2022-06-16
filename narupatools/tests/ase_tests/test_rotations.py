@@ -212,14 +212,9 @@ def test_rotate(mass, symmetric_inertia, timestep, single_carbon_atoms):
     )
 
     for _ in range(100):
-        print(Rotation(dynamics.orientations[0]))
-        print(dynamics.torques[0])
         dynamics.run(steps=5)
 
     end = dynamics.orientations[0]
-
-    print(rotation)
-    print(end)
 
 
 X_AXIS = vector(1, 0, 0)

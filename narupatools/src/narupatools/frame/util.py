@@ -124,10 +124,6 @@ def supercell(
                 for i in range(nx):
                     for j in range(ny):
                         for k in range(nz):
-                            print(
-                                atom_count * (i + j * nx + k * (nx + ny)),
-                                atom_count * (1 + i + j * nx + k * (nx + ny)),
-                            )
                             positions[
                                 atom_count
                                 * (i + j * nx + k * (nx + ny)) : atom_count

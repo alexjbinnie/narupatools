@@ -14,11 +14,11 @@ dependencies:
   - infinite-sets=1.*
   - quaternion
 # Exact Narupa version. Required as breaking changes can occur
-  - narupa-server=0.1.2085
+  - narupa-server=0.1.2118
 # Compatible Packages
   - mdtraj=1.*
   - openmm>=7.6
-  - rdkit=2021.*
+  - rdkit>=2021.*
 # Packages required to run jupyter notebooks
   - plotly=5.*
   - nglview=3.*

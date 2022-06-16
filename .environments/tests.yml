@@ -4,7 +4,7 @@ channels:
   - conda-forge
 dependencies:
 # Testing Framework.
-  - pytest=6.*
+  - pytest=7.*
   - pytest-xdist=2.*
   - pytest-timeout=2.*
   - pytest-cov=3.*
